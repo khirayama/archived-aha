@@ -44,7 +44,21 @@ export default function IndexPage(props) {
     const keyCode = event.keyCode;
 
     if (keyCode === keyCodes.DOWN) {
-      console.log('move cursor.range.id to next block.');
+      if (doc.cursor.blockId === null) {
+        const firstId = doc.blocks[0].id;
+        const firstBlock = doc.find(firstId);
+        doc.cursor.blockId = firstBlock.id
+        // range
+      } else {
+        const b = doc.find(doc.cursor.blockId);
+        if (b.children.length) {
+          doc.cursor.blockId = b.children[0].id;
+          // range
+        } else if (b.next) {
+          doc.cursor.blockId = b.next.id;
+          // range
+        }
+      }
     } else if (keyCode === keyCodes.UP) {
       console.log('move cursor.range.id to prev block.');
     } else if (keyCode === keyCodes.LEFT) {
@@ -70,8 +84,8 @@ export default function IndexPage(props) {
       <div style={{whiteSpace: 'pre'}}>
         {`{
   id: "${cursor.id}",
+  blockId: "${cursor.blockId}",
   range: ${cursor.range === null ? 'null' : (`
-    id: "${cursor.range.id}",
     anchor: ${cursor.range.anchor},
     focus: ${cursor.range.focus},
   `)}

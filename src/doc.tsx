@@ -7,6 +7,15 @@ type Block = TextBlock;
 export class Cursor {
   public doc: Doc;
 
+  public id: string;
+
+  public blockId: BlockId;
+
+  public range: {
+    anchor: number;
+    focus: number;
+  } | null = null;
+
   constructor(cursor: {
     id?: string;
     blockId?: BlockId | null;
@@ -23,8 +32,14 @@ export class Cursor {
   public toJSON() {
     return {
       id: this.id,
+      blockId: this.blockId,
       range: this.range,
     }
+  }
+
+  set blockId(blockId: BlockId) {
+    console.log('dispatch change');
+    this.blockId = blockId;
   }
 }
 
@@ -37,7 +52,7 @@ export class Doc {
 
   constructor(doc: {
     id?: string;
-    cursor?: Cursor[];
+    cursor?: Cursor;
     blocks?: Block[];
   } = {}) {
     this.id = doc.id || uuid();
@@ -48,7 +63,26 @@ export class Doc {
 
   public append(block: Block) {
     block.doc = this;
+    block.parent = this;
+    block.prev = this.blocks[this.blocks.length - 1] || null;
+    block.next = null;
     this.blocks.push(block);
+  }
+
+  public find(id: BlockId): Block {
+    function find(blocks: Block[], id: BlockId): Block {
+      for (let i = 0; i < blocks.length; i += 1) {
+        const block = blocks[i];
+        if (block.id === id) {
+          return block;
+        }
+        const b = find(block.children, id);
+        if (b) {
+          return b;
+        }
+      }
+    }
+    return find(this.blocks, id);
   }
 
   public toJSON() {
@@ -63,13 +97,19 @@ export class Doc {
 }
 
 export class TextBlock {
-  public doc: Doc = null;
-
   public id: BlockId;
 
   public text: string;
 
   public children: Block[];
+
+  public doc: Doc | null = null;
+
+  public parent: Doc | Block | null = null;
+
+  public prev: Block | null = null;
+
+  public next: Block | null = null;
 
   constructor(block: {
     id?: BlockId;
@@ -83,6 +123,9 @@ export class TextBlock {
 
   public append(block: Block) {
     block.doc = this.doc;
+    block.parent = this;
+    block.prev = this.children[this.children.length - 1] || null;
+    block.next = null;
     this.children.push(block);
   }
 
