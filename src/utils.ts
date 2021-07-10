@@ -27,7 +27,7 @@ export const utils = {
       return children[children.length - 1];
     } else if (currentBlock.prev) {
       return currentBlock.prev;
-    } else if (currentBlock.doc !== currentBlock.parent && currentBlock.parent) {
+    } else if (currentBlock.parent && currentBlock.parent.isItemBlock()) {
       return currentBlock.parent;
     }
     return null;
