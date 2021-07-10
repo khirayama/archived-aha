@@ -1,8 +1,8 @@
 import { v4 as uuid } from 'uuid';
 
-type BlockId = string;
+export type BlockId = string;
 
-type Block = TextBlock;
+export type Block = TextBlock;
 
 export class Cursor {
   public doc: Doc;
@@ -36,11 +36,6 @@ export class Cursor {
       range: this.range,
     }
   }
-
-  set blockId(blockId: BlockId) {
-    console.log('dispatch change');
-    this.blockId = blockId;
-  }
 }
 
 export class Doc {
@@ -48,25 +43,33 @@ export class Doc {
 
   private cursor: Cursor;
 
-  private blocks: Block[];
+  private children: Block[] = [];
 
   constructor(doc: {
     id?: string;
     cursor?: Cursor;
-    blocks?: Block[];
+    children?: Block[];
   } = {}) {
     this.id = doc.id || uuid();
     this.cursor = doc.cursor ? new Cursor(doc.cursor) : new Cursor();
     this.cursor.doc = this;
-    this.blocks = doc.blocks ? doc.blocks.map(b => new TextBlock(b)) : [];
+    if (doc.children) {
+      for (let i = 0; i < doc.children.length; i += 1) {
+        const block = new TextBlock(doc.children[i]);
+        this.append(block);
+      }
+    }
   }
 
   public append(block: Block) {
     block.doc = this;
     block.parent = this;
-    block.prev = this.blocks[this.blocks.length - 1] || null;
+    block.prev = this.children[this.children.length - 1] || null;
+    if (block.prev) {
+      block.prev.next = block;
+    }
     block.next = null;
-    this.blocks.push(block);
+    this.children.push(block);
   }
 
   public find(id: BlockId): Block {
@@ -82,14 +85,14 @@ export class Doc {
         }
       }
     }
-    return find(this.blocks, id);
+    return find(this.children, id);
   }
 
   public toJSON() {
     return {
       id: this.id,
       cursor: this.cursor.toJSON(),
-      blocks: this.blocks.map((b) => {
+      children: this.children.map((b) => {
         return b.toJSON();
       }),
     };
@@ -101,7 +104,7 @@ export class TextBlock {
 
   public text: string;
 
-  public children: Block[];
+  public children: Block[] = [];
 
   public doc: Doc | null = null;
 
@@ -118,13 +121,21 @@ export class TextBlock {
   }) {
     this.id = block.id || uuid();
     this.text = block.text || '';
-    this.children = block.children ? block.children.map((b) => new TextBlock(b)) : [];
+    if (block.children) {
+      for (let i = 0; i < block.children.length; i += 1) {
+        const b = new TextBlock(block.children[i]);
+        this.append(b);
+      }
+    }
   }
 
   public append(block: Block) {
     block.doc = this.doc;
     block.parent = this;
     block.prev = this.children[this.children.length - 1] || null;
+    if (block.prev) {
+      block.prev.next = block;
+    }
     block.next = null;
     this.children.push(block);
   }
