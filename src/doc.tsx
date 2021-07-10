@@ -1,9 +1,26 @@
 import { v4 as uuid } from 'uuid';
 
+/*
+  - Cursor
+  - Block
+    - DocumentBlock
+    - ItemBlock
+      - TextBlock
+*/
+
 export type BlockId = string;
 
-export type Block = TextBlock;
+function createBlock(block: any): ItemBlockType | null {
+  switch (block.type) {
+    case 'text': {
+      return new TextBlock(block);
+    }
+  }
+  return null;
+}
 
+
+/* Cursor */
 export class Cursor {
   public doc: DocumentBlock;
 
@@ -38,31 +55,34 @@ export class Cursor {
   }
 }
 
-export class DocumentBlock {
-  public id: string;
+/* Blocks */
+export abstract class Block {
+  public id: BlockId;
 
-  private cursor: Cursor;
+  public type: string;
 
-  private children: Block[] = [];
+  public children: ItemBlockType[] = [];
 
-  constructor(doc: {
-    id?: string;
-    cursor?: Cursor;
-    children?: Block[];
-  } = {}) {
-    this.id = doc.id || uuid();
-    this.cursor = doc.cursor ? new Cursor(doc.cursor) : new Cursor();
-    this.cursor.doc = this;
-    if (doc.children) {
-      for (let i = 0; i < doc.children.length; i += 1) {
-        const block = new TextBlock(doc.children[i]);
-        this.append(block);
+  public doc: DocumentBlockType | null = null;
+
+  constructor(block: {
+    id?: BlockId;
+    type?: string;
+    children?: ItemBlockType[];
+  }) {
+    this.id = block.id || uuid();
+    if (block.children) {
+      for (let i = 0; i < block.children.length; i += 1) {
+        const b = createBlock(block.children[i]);
+        if (b) {
+          this.append(b);
+        }
       }
     }
   }
 
-  public append(block: Block) {
-    block.doc = this;
+  public append(block: ItemBlockType) {
+    block.doc = this.doc;
     block.parent = this;
     block.prev = this.children[this.children.length - 1] || null;
     if (block.prev) {
@@ -72,8 +92,8 @@ export class DocumentBlock {
     this.children.push(block);
   }
 
-  public find(id: BlockId): Block {
-    function find(blocks: Block[], id: BlockId): Block {
+  public find(id: BlockId): ItemBlockType {
+    function find(blocks: ItemBlockType[], id: BlockId): ItemBlockType {
       for (let i = 0; i < blocks.length; i += 1) {
         const block = blocks[i];
         if (block.id === id) {
@@ -91,7 +111,7 @@ export class DocumentBlock {
   public toJSON() {
     return {
       id: this.id,
-      cursor: this.cursor.toJSON(),
+      type: this.type,
       children: this.children.map((b) => {
         return b.toJSON();
       }),
@@ -99,52 +119,65 @@ export class DocumentBlock {
   }
 }
 
-export class TextBlock {
-  public id: BlockId;
+type BlockType = DocumentBlockType | ItemBlockType | Block;
 
-  public text: string;
+/* Document Blocks */
+export class DocumentBlock extends Block {
+  public type = 'document';
 
-  public children: Block[] = [];
-
-  public doc: DocumentBlock | null = null;
-
-  public parent: DocumentBlock | Block | null = null;
-
-  public prev: Block | null = null;
-
-  public next: Block | null = null;
+  private cursor: Cursor;
 
   constructor(block: {
-    id?: BlockId;
-    text: string;
-    children?: Block[];
-  }) {
-    this.id = block.id || uuid();
-    this.text = block.text || '';
-    if (block.children) {
-      for (let i = 0; i < block.children.length; i += 1) {
-        const b = new TextBlock(block.children[i]);
-        this.append(b);
-      }
-    }
-  }
-
-  public append(block: Block) {
-    block.doc = this.doc;
-    block.parent = this;
-    block.prev = this.children[this.children.length - 1] || null;
-    if (block.prev) {
-      block.prev.next = block;
-    }
-    block.next = null;
-    this.children.push(block);
+    id?: string;
+    type?: string;
+    children?: ItemBlockType[];
+    cursor?: Cursor;
+  } = {}) {
+    super({ id: block.id, type: block.type, children: block.children });
+    this.doc = this;
+    this.cursor = block.cursor ? new Cursor(block.cursor) : new Cursor();
+    this.cursor.doc = this;
   }
 
   public toJSON() {
     return {
-      id: this.id,
-      text: this.text,
-      children: this.children.map((b) => b.toJSON()),
+      ...super.toJSON(),
+      cursor: this.cursor.toJSON(),
     };
   }
 }
+
+type DocumentBlockType = DocumentBlock;
+
+/* Item Blocks */
+export abstract class ItemBlock extends Block {
+  public parent: BlockType | null = null;
+
+  public prev: ItemBlockType | null = null;
+
+  public next: ItemBlockType | null = null;
+}
+
+export class TextBlock extends ItemBlock {
+  public type = 'text';
+
+  public text: string;
+
+  constructor(block: {
+    id?: BlockId;
+    type?: string;
+    text?: string;
+    children?: ItemBlockType[];
+  }) {
+    super({ id: block.id, type: block.type, children: block.children });
+    this.text = block.text || '';
+  }
+  public toJSON() {
+    return {
+      ...super.toJSON(),
+      text: this.text,
+    };
+  }
+}
+
+type ItemBlockType = TextBlock | ItemBlock;
