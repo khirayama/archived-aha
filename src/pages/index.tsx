@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import { Doc, TextBlock } from '../doc';
+import { DocumentBlock, TextBlock } from '../doc';
 import { keyCodes } from '../keyCodes';
 import { utils } from '../utils';
 
@@ -35,7 +35,7 @@ function Block({block, cursor}) {
 
 export default function IndexPage(props) {
   if (doc === null) {
-    doc = new Doc(props.doc);
+    doc = new DocumentBlock(props.doc);
   }
 
   const [docJSON, setDocJSON] = React.useState(doc.toJSON());
@@ -97,9 +97,8 @@ export default function IndexPage(props) {
       }
     } else if (keyCode === keyCodes.LEFT) {
       console.log('increment cursor.range.focus.');
-    } else {
-      setKeyCode(keyCode);
     }
+    setKeyCode(keyCode);
     setDocJSON(doc.toJSON());
   }, []);
 
@@ -132,7 +131,7 @@ export default function IndexPage(props) {
 }
 
 export async function getServerSideProps(context) {
-  doc = new Doc();
+  doc = new DocumentBlock();
   const tb = new TextBlock({
     text: 'Hello',
   });
@@ -145,11 +144,23 @@ export async function getServerSideProps(context) {
   const tb4 = new TextBlock({
     text: 'Hello 4',
   });
+  const tb5 = new TextBlock({
+    text: 'Hello 5',
+  });
+  const tb6 = new TextBlock({
+    text: 'Hello 6',
+  });
+  const tb7 = new TextBlock({
+    text: 'Hello 7',
+  });
 
-  tb.append(tb2);
   doc.append(tb);
-  doc.append(tb3);
-  doc.append(tb4);
+    tb.append(tb2);
+      tb2.append(tb3);
+      tb2.append(tb4);
+  doc.append(tb5);
+    tb5.append(tb6);
+  doc.append(tb7);
 
   return {
     props: {

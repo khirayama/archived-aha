@@ -1,8 +1,8 @@
 import { Children } from 'react';
-import { BlockId, Block, Doc } from './doc';
+import { BlockId, Block, DocumentBlock } from './doc';
 
 export const utils = {
-  findDownerBlock: (currentBlockId: BlockId, doc: Doc): Block | null => {
+  findDownerBlock: (currentBlockId: BlockId, doc: DocumentBlock): Block | null => {
     const currentBlock = doc.find(currentBlockId);
     if (currentBlock.children.length) {
       return currentBlock.children[0];
@@ -13,7 +13,7 @@ export const utils = {
     }
     return null;
   },
-  findUpperBlock: (currentBlockId: BlockId, doc: Doc): Block | null => {
+  findUpperBlock: (currentBlockId: BlockId, doc: DocumentBlock): Block | null => {
     const currentBlock = doc.find(currentBlockId);
     if (currentBlock.prev && currentBlock.prev.children.length) {
       let children = currentBlock.prev.children;

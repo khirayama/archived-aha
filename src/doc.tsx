@@ -5,7 +5,7 @@ export type BlockId = string;
 export type Block = TextBlock;
 
 export class Cursor {
-  public doc: Doc;
+  public doc: DocumentBlock;
 
   public id: string;
 
@@ -38,7 +38,7 @@ export class Cursor {
   }
 }
 
-export class Doc {
+export class DocumentBlock {
   public id: string;
 
   private cursor: Cursor;
@@ -106,9 +106,9 @@ export class TextBlock {
 
   public children: Block[] = [];
 
-  public doc: Doc | null = null;
+  public doc: DocumentBlock | null = null;
 
-  public parent: Doc | Block | null = null;
+  public parent: DocumentBlock | Block | null = null;
 
   public prev: Block | null = null;
 
