@@ -19,6 +19,7 @@ function Block({block, cursor}) {
       <span>
         {`{
   id: "${block.id}",
+  type: "${block.type}",
   text: "${block.text}",
   children: [`}</span>
       <span style={{paddingLeft: '1em', display: 'block'}}>
