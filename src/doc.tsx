@@ -164,6 +164,10 @@ export abstract class ItemBlock extends Block {
   public prev: ItemBlockType | null = null;
 
   public next: ItemBlockType | null = null;
+
+  public hasText(): this is (TextBlock) {
+    return this.type === 'text';
+  }
 }
 
 export class TextBlock extends ItemBlock {

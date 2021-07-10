@@ -55,7 +55,7 @@ export default function IndexPage(props) {
         const firstId = doc.children[0].id;
         const firstBlock = doc.find(firstId);
         doc.cursor.blockId = firstBlock.id
-        if (doc.cursor.range !== null) {
+        if (doc.cursor.range !== null && firstBlock.hasText()) {
           doc.cursor.range = {
             anchor: firstBlock.text.length,
             focus: firstBlock.text.length,
@@ -65,7 +65,7 @@ export default function IndexPage(props) {
         const downer = utils.findDownerBlock(doc.cursor.blockId, doc);
         if (downer) {
           doc.cursor.blockId = downer.id;
-          if (doc.cursor.range !== null) {
+          if (doc.cursor.range !== null && downer.hasText()) {
             doc.cursor.range = {
               anchor: downer.text.length,
               focus: downer.text.length,
@@ -78,7 +78,7 @@ export default function IndexPage(props) {
         const lastId = doc.children[doc.children.length - 1].id;
         const lastBlock = doc.find(lastId);
         doc.cursor.blockId = lastBlock.id
-        if (doc.cursor.range !== null) {
+        if (doc.cursor.range !== null && lastBlock.hasText()) {
           doc.cursor.range = {
             anchor: lastBlock.text.length,
             focus: lastBlock.text.length,
@@ -88,7 +88,7 @@ export default function IndexPage(props) {
         const upper = utils.findUpperBlock(doc.cursor.blockId, doc);
         if (upper) {
           doc.cursor.blockId = upper.id;
-          if (doc.cursor.range !== null) {
+          if (doc.cursor.range !== null && upper.hasText()) {
             doc.cursor.range = {
               anchor: upper.text.length,
               focus: upper.text.length,
