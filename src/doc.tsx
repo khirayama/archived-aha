@@ -81,6 +81,14 @@ export abstract class Block {
     }
   }
 
+  public isItemBlock(): this is ItemBlockType {
+    return this.type !== 'document';
+  }
+
+  public isDocumentBlock(): this is DocumentBlockType {
+    return this.type === 'document';
+  }
+
   public append(block: ItemBlockType) {
     block.doc = this.doc;
     block.parent = this;
@@ -119,7 +127,7 @@ export abstract class Block {
   }
 }
 
-type BlockType = DocumentBlockType | ItemBlockType | Block;
+export type BlockType = DocumentBlockType | ItemBlockType | Block;
 
 /* Document Blocks */
 export class DocumentBlock extends Block {
@@ -147,7 +155,7 @@ export class DocumentBlock extends Block {
   }
 }
 
-type DocumentBlockType = DocumentBlock;
+export type DocumentBlockType = DocumentBlock;
 
 /* Item Blocks */
 export abstract class ItemBlock extends Block {
@@ -180,4 +188,4 @@ export class TextBlock extends ItemBlock {
   }
 }
 
-type ItemBlockType = TextBlock | ItemBlock;
+export type ItemBlockType = TextBlock | ItemBlock;
