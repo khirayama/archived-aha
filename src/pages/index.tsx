@@ -2,15 +2,16 @@ import * as React from 'react';
 
 import { Doc, TextBlock } from '../doc';
 import { keyCodes } from '../keyCodes';
+import { utils } from '../utils';
 
 let doc = null;
 
-function Block({block}) {
+function Block({block, cursor}) {
   const style = {
     display: 'block',
     verticalAlign: 'top',
     whiteSpace: 'pre',
-    background: 'rgba(100, 0, 0, 0.05)',
+    background: block.id === cursor.blockId && cursor.range === null ? 'green' : 'rgba(100, 0, 0, 0.05)',
   };
 
   return (
@@ -22,7 +23,7 @@ function Block({block}) {
   children: [`}</span>
       <span style={{paddingLeft: '1em', display: 'block'}}>
         {block.children.map((b) => {
-          return <Block key={b.id} block={b} />
+          return <Block key={b.id} block={b} cursor={cursor} />
         })}
       </span>
       <span>{`  ]
@@ -33,6 +34,11 @@ function Block({block}) {
 }
 
 export default function IndexPage(props) {
+  if (doc === null) {
+    doc = new Doc(props.doc);
+  }
+
+  const [docJSON, setDocJSON] = React.useState(doc.toJSON());
   const [value, setValue] = React.useState('');
   const [keyCode, setKeyCode] = React.useState(null);
 
@@ -45,33 +51,58 @@ export default function IndexPage(props) {
 
     if (keyCode === keyCodes.DOWN) {
       if (doc.cursor.blockId === null) {
-        const firstId = doc.blocks[0].id;
+        const firstId = doc.children[0].id;
         const firstBlock = doc.find(firstId);
         doc.cursor.blockId = firstBlock.id
-        // range
+        if (doc.cursor.range !== null) {
+          doc.cursor.range = {
+            anchor: firstBlock.text.length,
+            focus: firstBlock.text.length,
+          };
+        }
       } else {
-        const b = doc.find(doc.cursor.blockId);
-        if (b.children.length) {
-          doc.cursor.blockId = b.children[0].id;
-          // range
-        } else if (b.next) {
-          doc.cursor.blockId = b.next.id;
-          // range
+        const downer = utils.findDownerBlock(doc.cursor.blockId, doc);
+        if (downer) {
+          doc.cursor.blockId = downer.id;
+          if (doc.cursor.range !== null) {
+            doc.cursor.range = {
+              anchor: downer.text.length,
+              focus: downer.text.length,
+            };
+          }
         }
       }
     } else if (keyCode === keyCodes.UP) {
-      console.log('move cursor.range.id to prev block.');
+      if (doc.cursor.blockId === null) {
+        const lastId = doc.children[doc.children.length - 1].id;
+        const lastBlock = doc.find(lastId);
+        doc.cursor.blockId = lastBlock.id
+        if (doc.cursor.range !== null) {
+          doc.cursor.range = {
+            anchor: lastBlock.text.length,
+            focus: lastBlock.text.length,
+          };
+        }
+      } else {
+        const upper = utils.findUpperBlock(doc.cursor.blockId, doc);
+        if (upper) {
+          doc.cursor.blockId = upper.id;
+          if (doc.cursor.range !== null) {
+            doc.cursor.range = {
+              anchor: upper.text.length,
+              focus: upper.text.length,
+            };
+          }
+        }
+      }
     } else if (keyCode === keyCodes.LEFT) {
       console.log('increment cursor.range.focus.');
+    } else {
+      setKeyCode(keyCode);
     }
-
-    setKeyCode(keyCode);
+    setDocJSON(doc.toJSON());
   }, []);
 
-  if (doc === null) {
-    doc = new Doc(props.doc);
-  }
-  const docJSON = doc.toJSON();
   const cursor = docJSON.cursor;
 
   return (
@@ -93,8 +124,8 @@ export default function IndexPage(props) {
         }
       </div>
       <h3>Blocks</h3>
-      {docJSON.blocks.map((b) => {
-        return <Block key={b.id} block={b} />
+      {docJSON.children.map((b) => {
+        return <Block key={b.id} block={b} cursor={cursor} />
       })}
     </div>
   );
@@ -108,8 +139,17 @@ export async function getServerSideProps(context) {
   const tb2 = new TextBlock({
     text: 'Hello 2',
   });
+  const tb3 = new TextBlock({
+    text: 'Hello 3',
+  });
+  const tb4 = new TextBlock({
+    text: 'Hello 4',
+  });
+
   tb.append(tb2);
   doc.append(tb);
+  doc.append(tb3);
+  doc.append(tb4);
 
   return {
     props: {
