@@ -13,6 +13,10 @@ function Block({block, cursor}) {
     whiteSpace: 'pre',
     background: block.id === cursor.blockId && cursor.range === null ? 'green' : 'rgba(100, 0, 0, 0.05)',
   };
+  const textStyle = {
+    background: block.id === cursor.blockId && cursor.range !== null ? 'green' : 'transparent',
+  };
+
 
   return (
     <span style={style}>
@@ -20,7 +24,7 @@ function Block({block, cursor}) {
         {`{
   id: "${block.id}",
   type: "${block.type}",
-  text: "${block.text}",
+  text: "`}</span><span style={textStyle}>{block.text}</span><span>{`",
   children: [`}</span>
       <span style={{paddingLeft: '1em', display: 'block'}}>
         {block.children.map((b) => {
@@ -98,6 +102,18 @@ export default function IndexPage(props) {
       }
     } else if (keyCode === keyCodes.LEFT) {
       console.log('increment cursor.range.focus.');
+    } else if (keyCode === keyCodes.ENTER) {
+      if (doc.cursor.blockId) {
+        const block = doc.find(doc.cursor.blockId);
+        doc.cursor.range = {
+          anchor: block.text.length,
+          focus: block.text.length,
+        };
+      }
+    } else if (keyCode === keyCodes.ESC) {
+      if (doc.cursor.blockId) {
+        doc.cursor.range = null;
+      }
     }
     setKeyCode(keyCode);
     setDocJSON(doc.toJSON());
