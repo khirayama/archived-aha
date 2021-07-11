@@ -6,15 +6,35 @@ import { utils } from '../utils';
 
 let doc = null;
 
+function Inline({ block, cursor }) {
+  const textStyle = {
+    background: block.id === cursor.blockId && cursor.range !== null ? 'rgba(0, 255, 0, 0.05)' : 'transparent',
+  };
+
+  if (cursor.blockId !== block.id || cursor.range === null) {
+    return <span style={textStyle}>{block.text}</span>;
+  } else if (cursor.range.anchor !== cursor.range.focus) {
+    return (
+      <span style={textStyle}>
+        <span>{block.text.slice(0, Math.min(cursor.range.anchor, cursor.range.focus))}</span>
+        <span style={textStyle}>{block.text.slice(Math.min(cursor.range.anchor, cursor.range.focus), Math.max(cursor.range.anchor, cursor.range.focus))}</span>
+        <span>{block.text.slice(Math.max(cursor.range.anchor, cursor.range.focus), block.text.length)}</span>
+      </span>
+    );
+  }
+  return (
+    <span style={textStyle}>
+      {block.text.slice(0, cursor.range.anchor)}|{block.text.slice(cursor.range.anchor, block.text.length)}
+    </span>
+  );
+}
+
 function Block({block, cursor}) {
   const style = {
     display: 'block',
     verticalAlign: 'top',
     whiteSpace: 'pre',
     background: block.id === cursor.blockId && cursor.range === null ? 'green' : 'rgba(100, 0, 0, 0.05)',
-  };
-  const textStyle = {
-    background: block.id === cursor.blockId && cursor.range !== null ? 'green' : 'transparent',
   };
 
 
@@ -24,7 +44,7 @@ function Block({block, cursor}) {
         {`{
   id: "${block.id}",
   type: "${block.type}",
-  text: "`}</span><span style={textStyle}>{block.text}</span><span>{`",
+  text: "`}</span><Inline block={block} cursor={cursor} /><span>{`",
   children: [`}</span>
       <span style={{paddingLeft: '1em', display: 'block'}}>
         {block.children.map((b) => {
