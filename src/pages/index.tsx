@@ -121,7 +121,25 @@ export default function IndexPage(props) {
         }
       }
     } else if (keyCode === keyCodes.LEFT) {
-      console.log('increment cursor.range.focus.');
+      if (doc.cursor.range === null) {
+        const block = doc.find(doc.cursor.blockId);
+        if (block.parent && !block.parent.isDocumentBlock()) {
+          doc.cursor.blockId = block.parent.id;
+        }
+      } else if (doc.cursor.range.anchor === doc.cursor.range.focus) {
+        doc.cursor.range.anchor = Math.max(doc.cursor.range.anchor - 1, 0);
+        doc.cursor.range.focus = Math.max(doc.cursor.range.focus - 1, 0);
+      }
+    } else if (keyCode === keyCodes.RIGHT) {
+      const block = doc.find(doc.cursor.blockId);
+      if (doc.cursor.range === null) {
+        if (block.children.length) {
+          doc.cursor.blockId = block.children[0].id;
+        }
+      } else if (doc.cursor.range.anchor === doc.cursor.range.focus) {
+        doc.cursor.range.anchor = Math.min(doc.cursor.range.anchor + 1, block.text.length);
+        doc.cursor.range.focus = Math.min(doc.cursor.range.focus + 1, block.text.length);
+      }
     } else if (keyCode === keyCodes.ENTER) {
       if (doc.cursor.blockId) {
         const block = doc.find(doc.cursor.blockId);
@@ -133,6 +151,16 @@ export default function IndexPage(props) {
     } else if (keyCode === keyCodes.ESC) {
       if (doc.cursor.blockId) {
         doc.cursor.range = null;
+      }
+    } else {
+      const max = Math.max(doc.cursor.range.anchor, doc.cursor.range.focus);
+      const min = Math.min(doc.cursor.range.anchor, doc.cursor.range.focus);
+      if (doc.cursor.range.anchor === doc.cursor.range.focus) {
+        const val = event.currentTarget.value;
+        const block = doc.find(doc.cursor.blockId);
+        let tmp = block.text.split('');
+        tmp.splice(min, max - min, val)
+        block.text = tmp.join('');
       }
     }
     setKeyCode(keyCode);
