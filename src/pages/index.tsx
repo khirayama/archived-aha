@@ -69,7 +69,8 @@ export default function IndexPage(props) {
 
   const onChange = React.useCallback((event: React.FormEvent<HTMLInputElement>) => {
     const val = event.currentTarget.value;
-    setValue(val);
+    console.log(val);
+    // setValue(val);
   }, []);
   const onKeyDown = React.useCallback((event: React.KeyboardEvent<HTMLInputElement>) => {
     const keyCode = event.keyCode;
