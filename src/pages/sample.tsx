@@ -13,8 +13,8 @@ function projectSelectionToCursor(selection: Selection, cursor: Cursor): void {
 }
 
 function onSelectionChange() {
-  if (doc) {
-    const selection = document.getSelection();
+  const selection = document.getSelection();
+  if (doc && selection.anchorNode?.parentNode.dataset.id) {
     projectSelectionToCursor(selection, doc.cursor);
   }
 }
@@ -88,10 +88,10 @@ export default function SamplePage(props) {
   return (
     <div>
       <CursorViewer cursor={doc.cursor} />
+      <textarea />
       <div
-        contentEditable
-        suppressContentEditableWarning
         onKeyDown={onKeyDown}
+        onMouseUp={() => document.querySelector('textarea').focus()}
       >
         {docJSON.children.map((block) => {
           return <Block key={block.id} block={block} />;
