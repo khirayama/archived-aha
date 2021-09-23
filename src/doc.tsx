@@ -19,38 +19,44 @@ function createBlock(block: any): ItemBlockType | null {
   return null;
 }
 
-
 /* Cursor */
 export class Cursor {
   public doc: DocumentBlock;
 
   public id: string;
 
-  public blockId: BlockId;
+  public anchorId: BlockId;
 
-  public range: {
-    anchor: number;
-    focus: number;
-  } | null = null;
+  public anchorOffset: number;
+
+  public focusId: BlockId;
+
+  public focusOffset: number;
+
+  public isCollapsed: boolean;
 
   constructor(cursor: {
     id?: string;
-    blockId?: BlockId | null;
-    range?: {
-      anchor: number;
-      focus: number;
-    } | null;
+    anchorId?: BlockId | null;
+    anchorOffset?: number;
+    focusId?: BlockId | null;
+    focusOffset?: number;
   } = {}) {
     this.id = cursor.id || uuid();
-    this.blockId = cursor.blockId || null;
-    this.range = cursor.range || null;
+    this.anchorId = cursor.anchorId || null;
+    this.anchorOffset = cursor.anchorOffset || 0;
+    this.focusId = cursor.focusId || null;
+    this.focusOffset = cursor.focusOffset || 0;
+    this.isCollapsed = this.anchorId === this.focusId && this.anchorOffset === this.focusOffset;
   }
 
   public toJSON() {
     return {
       id: this.id,
-      blockId: this.blockId,
-      range: this.range,
+      anchorId: this.anchorId,
+      anchorOffset: this.anchorOffset,
+      fosueId: this.focusId,
+      focusOffset: this.focusOffset,
     }
   }
 }
@@ -64,6 +70,8 @@ export abstract class Block {
   public children: ItemBlockType[] = [];
 
   public doc: DocumentBlockType | null = null;
+
+  private listeners: any[] = [];
 
   constructor(block: {
     id?: BlockId;
@@ -114,6 +122,24 @@ export abstract class Block {
       }
     }
     return find(this.children, id);
+  }
+
+  public dispatch() {
+    this.listeners.forEach((listener) => {
+      (listener.bind())();
+    });
+  }
+
+  public addChangeListener(listener) {
+    this.listeners.push(listener);
+  }
+
+  public removeChangeListener(listener?) {
+    if (listener) {
+      this.listeners.filter((lstnr) => lstnr !== listener);
+    } else {
+      this.listeners = [];
+    }
   }
 
   public toJSON() {
