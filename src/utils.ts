@@ -31,5 +31,35 @@ export const utils = {
       return currentBlock.parent;
     }
     return null;
-  }
+  },
+
+  upper: (blockId1: BlockId, blockId2: BlockId, doc): ItemBlockType | null => {
+    if (blockId1 === blockId2) {
+      return doc.find(blockId1);
+    }
+
+    let block = utils.findUpperBlock(blockId1, doc);
+    while (block) {
+      if (block.id === blockId2) {
+        return block;
+      }
+      block = utils.findUpperBlock(block.id, doc);
+    }
+    return doc.find(blockId1);
+  },
+
+  downer: (blockId1: BlockId, blockId2: BlockId, doc): ItemBlockType | null => {
+    if (blockId1 === blockId2) {
+      return doc.find(blockId1);
+    }
+
+    let block = utils.findDownerBlock(blockId1, doc);
+    while (block) {
+      if (block.id === blockId2) {
+        return block;
+      }
+      block = utils.findDownerBlock(block.id, doc);
+    }
+    return doc.find(blockId1);
+  },
 };
