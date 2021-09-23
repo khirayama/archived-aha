@@ -1,7 +1,46 @@
 import * as React from 'react';
 
-import { DocumentBlock, TextBlock } from '../doc';
+import { DocumentBlock, TextBlock, Cursor } from '../doc';
 import { keyCodes } from '../keyCodes';
+
+function projectSelectionToCursor(selection: Selection, cursor: Cursor): void {
+  cursor.anchorId = selection.anchorNode?.parentNode.dataset.id || null;
+  cursor.anchorOffset = selection.anchorOffset || 0;
+  cursor.focusId = selection.focusNode?.parentNode.dataset.id || null;
+  cursor.focusOffset = selection.focusOffset || 0;
+  cursor.isCollapsed = selection.isCollapsed;
+  doc.dispatch();
+}
+
+function onSelectionChange() {
+  if (doc) {
+    const selection = document.getSelection();
+    projectSelectionToCursor(selection, doc.cursor);
+  }
+}
+
+function Block(props) {
+  const block = props.block;
+  return (
+    <>
+      <div data-id={block.id}>{block.text}</div>
+      <div style={{paddingLeft: '1rem'}}>{block.children.map((b) => <Block key={b.id} block={b} />)}</div>
+    </>
+  );
+}
+
+function CursorViewer(props) {
+  const cursor = props.cursor;
+  return (
+    <div style={{whiteSpace: 'pre'}}>{`
+anchorId    : ${cursor.anchorId}
+anchorOffset: ${cursor.anchorOffset}
+focusId     : ${cursor.focusId}
+focusOffset : ${cursor.focusOffset}
+isCollapsed : ${cursor.isCollapsed}`}
+    </div>
+  );
+}
 
 let doc = null;
 
@@ -9,6 +48,19 @@ export default function SamplePage(props) {
   if (doc === null) {
     doc = new DocumentBlock(props.doc);
   }
+
+  React.useEffect(() => {
+    document.addEventListener('selectionchange', onSelectionChange);
+    doc.addChangeListener(() => {
+      setDocJSON(doc.toJSON());
+    });
+
+    return () => {
+      document.removeEventListener('selectionchange', onSelectionChange);
+      doc.removeChangeListener();
+    };
+  });
+
   const [docJSON, setDocJSON] = React.useState(doc.toJSON());
   const onKeyDown = (event) => {
     switch (event.keyCode) {
@@ -25,7 +77,7 @@ export default function SamplePage(props) {
         break;
       }
       default: {
-        if (event.metaKey) {
+        if (event.metaKey /* TODO: Support Mac/Win/Linux */) {
         } else {
           event.preventDefault();
         }
@@ -33,24 +85,16 @@ export default function SamplePage(props) {
     }
   };
 
-  const [items, setItems] = React.useState(['aaaaa', 'bbbbb']);
-
-  setTimeout(() => {
-    setItems([
-      'aaa',
-      'bbbbb',
-      'ccccc',
-    ])
-  }, 3000)
-
   return (
     <div>
+      <CursorViewer cursor={doc.cursor} />
       <div
         contentEditable
+        suppressContentEditableWarning
         onKeyDown={onKeyDown}
       >
-        {items.map((item, i) => {
-          return <div key={i} style={{ padding: `0 0 0 ${i}rem` }}>{item}</div>
+        {docJSON.children.map((block) => {
+          return <Block key={block.id} block={block} />;
         })}
       </div>
     </div>
