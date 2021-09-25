@@ -1,2 +1,40 @@
 .block {
+  position: relative;
+
+  &.is-selected {
+    background: red;
+  }
+
+  .shadow {
+    position: absolute;
+    z-index: -1;
+    top: 0;
+    left: 0;
+
+    span:nth-of-type(2) {
+      position: relative;
+      background: #aaaaff;
+      opacity: 0.7;
+
+      &::before {
+        display: inline-block;
+        content: '';
+        position: absolute;
+        left: 0px;
+        width: 1px;
+        height: 100%;
+        background: black;
+      }
+
+      &::after {
+        display: inline-block;
+        content: '';
+        position: absolute;
+        right: -1px;
+        width: 1px;
+        height: 100%;
+        background: black;
+      }
+    }
+  }
 }
