@@ -82,6 +82,53 @@ ${JSON.stringify(cursor)}`);
       break;
     }
     case keyCodes.UP: {
+      const block = doc.find(cursor.focusId);
+      const upperBlock = utils.findUpperBlock(block.id, doc);
+      if (shift) {
+        if (isSelected) {
+          if (upperBlock && upperBlock.hasText()) {
+            cursor.focusId = upperBlock.id;
+          }
+        } else if (isCollapsed) {
+          if (upperBlock && upperBlock.hasText()) {
+            if (cursor.focusOffset !== 0) {
+              if (cursor.focusOffset > cursor.anchorOffset) {
+                cursor.anchorOffset = 0;
+              } else {
+                cursor.focusOffset = 0;
+              }
+            }
+          }
+        } else if (isFocused) {
+          if (upperBlock && upperBlock.hasText()) {
+            if (cursor.focusOffset !== 0) {
+              if (cursor.focusOffset > cursor.anchorOffset) {
+                cursor.anchorOffset = 0;
+              } else {
+                cursor.focusOffset = 0;
+              }
+            } else {
+              cursor.anchorOffset = null;
+              cursor.focusId = upperBlock.id;
+              cursor.focusOffset = null;
+            }
+          }
+        }
+      } else {
+        if (isSelected) {
+          if (upperBlock && upperBlock.hasText()) {
+            cursor.anchorId = upperBlock.id;
+            cursor.focusId = upperBlock.id;
+          }
+        } else if (isFocused) {
+          if (upperBlock && upperBlock.hasText()) {
+            cursor.anchorId = upperBlock.id;
+            cursor.anchorOffset = upperBlock.text.length;
+            cursor.focusId = upperBlock.id;
+            cursor.focusOffset = upperBlock.text.length;
+          }
+        }
+      }
       break;
     }
     case keyCodes.RIGHT: {
@@ -147,6 +194,53 @@ ${JSON.stringify(cursor)}`);
       break;
     }
     case keyCodes.DOWN: {
+      const block = doc.find(cursor.focusId);
+      const downerBlock = utils.findDownerBlock(block.id, doc);
+      if (shift) {
+        if (isSelected) {
+          if (downerBlock && downerBlock.hasText()) {
+            cursor.focusId = downerBlock.id;
+          }
+        } else if (isCollapsed) {
+          if (downerBlock && downerBlock.hasText()) {
+            if (cursor.focusOffset !== downerBlock.text.length) {
+              if (cursor.focusOffset > cursor.anchorOffset) {
+                cursor.focusOffset = downerBlock.text.length;
+              } else {
+                cursor.anchorOffset = downerBlock.text.length;
+              }
+            }
+          }
+        } else if (isFocused) {
+          if (downerBlock && downerBlock.hasText()) {
+            if (cursor.focusOffset !== downerBlock.text.length) {
+              if (cursor.focusOffset > cursor.anchorOffset) {
+                cursor.focusOffset = downerBlock.text.length;
+              } else {
+                cursor.anchorOffset = downerBlock.text.length;
+              }
+            } else {
+              cursor.anchorOffset = null;
+              cursor.focusId = downerBlock.id;
+              cursor.focusOffset = null;
+            }
+          }
+        }
+      } else {
+        if (isSelected) {
+          if (downerBlock && downerBlock.hasText()) {
+            cursor.anchorId = downerBlock.id;
+            cursor.focusId = downerBlock.id;
+          }
+        } else if (isFocused) {
+          if (downerBlock && downerBlock.hasText()) {
+            cursor.anchorId = downerBlock.id;
+            cursor.anchorOffset = downerBlock.text.length;
+            cursor.focusId = downerBlock.id;
+            cursor.focusOffset = downerBlock.text.length;
+          }
+        }
+      }
       break;
     }
     default: {
