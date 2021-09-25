@@ -5,11 +5,14 @@ import { keyCodes } from '../keyCodes';
 import { utils } from '../utils';
 
 function projectSelectionToCursor(selection: Selection, cursor: Cursor): void {
-  cursor.anchorId = selection.anchorNode?.parentNode.dataset.id || null;
-  cursor.anchorOffset = selection.anchorOffset || 0;
-  cursor.focusId = selection.focusNode?.parentNode.dataset.id || null;
-  cursor.focusOffset = selection.focusOffset || 0;
-  cursor.isCollapsed = selection.isCollapsed;
+  const anchorId = selection.anchorNode?.parentNode.dataset.id;
+  const focusId = selection.focusNode?.parentNode.dataset.id;
+
+  cursor.anchorId = anchorId || null;
+  cursor.anchorOffset = anchorId === focusId ? selection.anchorOffset || 0 : null;
+  cursor.focusId = focusId || null;
+  cursor.focusOffset = anchorId === focusId ? selection.focusOffset || 0 : null;
+  cursor.isCollapsed = (anchorId === focusId && selection.anchorOffset === selection.focusOffset);
   doc.dispatch();
 }
 
@@ -22,10 +25,20 @@ function onSelectionChange() {
 
 function Block(props) {
   const block = props.block;
+  const cursor = props.cursor;
+  const isFocusing = (cursor.anchorId === block.id || cursor.focusId === block.id) && (cursor.anchorOffset !== null || cursor.focusOffset !== null);
+
+  const textArr = Array.from(block.text);
+  const p1 = Math.min(cursor.anchorOffset, cursor.focusOffset);
+  const p2 = Math.max(cursor.anchorOffset, cursor.focusOffset);
+  const t1 = textArr.slice(0, p1);
+  const t2 = textArr.slice(p1, p2);
+  const t3 = textArr.slice(p2, textArr.length);
   return (
     <>
-      <div data-id={block.id}>{block.text}</div>
-      <div style={{paddingLeft: '1rem'}}>{block.children.map((b) => <Block key={b.id} block={b} />)}</div>
+      <div data-id={block.id} style={{background: isFocusing ? 'red' : ''}}>{block.text}</div>
+      {isFocusing ? <div>{t1}|{t2}|{t3}</div> : null }
+      <div style={{paddingLeft: '1rem'}}>{block.children.map((b) => <Block key={b.id} block={b} cursor={cursor} />)}</div>
     </>
   );
 }
@@ -192,7 +205,7 @@ export default function SamplePage(props) {
         onTouchEnd={onPointerEnd}
       >
         {docJSON.children.map((block) => {
-          return <Block key={block.id} block={block} />;
+          return <Block key={block.id} block={block} cursor={doc.cursor} />;
         })}
       </div>
     </div>
