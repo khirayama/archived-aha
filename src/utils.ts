@@ -66,13 +66,14 @@ export const utils = {
 
   // For Cursor
   projectSelectionToCursor: (selection: Selection, cursor: Cursor): void => {
-    const anchorId = selection.anchorNode?.parentNode.dataset.id;
-    const focusId = selection.focusNode?.parentNode.dataset.id;
+    const anchorId = selection.anchorNode?.parentNode.dataset.id || null;
+    const focusId = selection.focusNode?.parentNode.dataset.id || null;
+    const anchorOffset = anchorId === focusId ? selection.anchorOffset || 0 : null;
+    const focusOffset = anchorId === focusId ? selection.focusOffset || 0 : null;
 
-    cursor.anchorId = anchorId || null;
-    cursor.anchorOffset = anchorId === focusId ? selection.anchorOffset || 0 : null;
-    cursor.focusId = focusId || null;
-    cursor.focusOffset = anchorId === focusId ? selection.focusOffset || 0 : null;
-    cursor.isCollapsed = (anchorId === focusId && selection.anchorOffset === selection.focusOffset);
+    cursor.anchorId = anchorId;
+    cursor.anchorOffset = anchorOffset;
+    cursor.focusId = focusId;
+    cursor.focusOffset = focusOffset;
   },
 };

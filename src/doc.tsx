@@ -33,8 +33,6 @@ export class Cursor {
 
   public focusOffset: number;
 
-  public isCollapsed: boolean;
-
   constructor(cursor: {
     id?: string;
     anchorId?: BlockId | null;
@@ -47,7 +45,6 @@ export class Cursor {
     this.anchorOffset = cursor.anchorOffset || 0;
     this.focusId = cursor.focusId || null;
     this.focusOffset = cursor.focusOffset || 0;
-    this.isCollapsed = this.anchorId === this.focusId && this.anchorOffset === this.focusOffset;
   }
 
   public toJSON() {

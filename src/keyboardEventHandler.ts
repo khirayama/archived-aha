@@ -1,94 +1,149 @@
 import { utils } from './utils';
 import { keyCodes } from './keyCodes';
 
+/*
+ * keyCode: switch
+ */
+
 export function keyboardEventHandler(doc, keyCode: number, meta: boolean, shift: boolean, ctrl: boolean) {
   console.log(keyCode, meta, shift, ctrl);
+  const cursor = doc.cursor;
+  const isSelected = cursor.anchorId && cursor.focusId && cursor.anchorOffset === null && cursor.focusOffset === null;
+  const isFocused = cursor.anchorId === cursor.focusId && cursor.anchorOffset !== null && cursor.focusOffset !== null;
+  const isCollapsed = isFocused && cursor.anchorOffset === cursor.focusOffset;
+  
+  if (!(isFocused || isSelected)) {
+    throw new Error(`Current cursor condition is something wrong.
+${JSON.stringify(cursor)}`);
+  }
+
   switch (keyCode) {
     case keyCodes.LEFT: {
-      const block = doc.find(doc.cursor.focusId);
+      const block = doc.find(cursor.focusId);
+
       if (meta && shift) {
-        doc.cursor.focusOffset = 0;
-      } else if (shift) {
-        const offset = doc.cursor.focusOffset - 1;
-        if (offset >= 0) {
-          doc.cursor.focusOffset = offset;
-        } else {
-          const upperBlock = utils.findUpperBlock(block.id, doc);
-          if (upperBlock && upperBlock.hasText()) {
-            doc.cursor.focusId = upperBlock.id;
-            doc.cursor.focusOffset = upperBlock.text.length;
+        if (isFocused) {
+          if (cursor.focusOffset > cursor.anchorOffset) {
+            cursor.anchorOffset = 0;
+          } else {
+            cursor.focusOffset = 0;
           }
         }
-      } else {
-        if (doc.cursor.anchorOffset === doc.cursor.focusOffset) {
-          const offset = doc.cursor.focusOffset - 1;
+      } else if (shift) {
+        if (isFocused) {
+          const offset = cursor.focusOffset - 1;
           if (offset >= 0) {
-            doc.cursor.anchorOffset = offset;
-            doc.cursor.focusOffset = offset;
+            cursor.focusOffset = offset;
           } else {
             const upperBlock = utils.findUpperBlock(block.id, doc);
             if (upperBlock && upperBlock.hasText()) {
-              doc.cursor.anchorId = upperBlock.id;
-              doc.cursor.anchorOffset = upperBlock.text.length;
-              doc.cursor.focusId = upperBlock.id;
-              doc.cursor.focusOffset = upperBlock.text.length;
+              cursor.anchorOffset = null;
+              cursor.focusId = upperBlock.id;
+              cursor.focusOffset = null;
             }
           }
-        } else {
-          const upper = utils.upper(doc.cursor.anchorId, doc.cursor.focusId, doc);
-          const offset = doc.cursor.anchorId === doc.cursor.focusId ? Math.min(doc.cursor.anchorOffset, doc.cursor.focusOffset) : upper.id === doc.cursor.anchorId ? doc.cursor.anchorOffset : doc.cursor.focusOffset;
-          doc.cursor.anchorId = upper.id;
-          doc.cursor.anchorOffset = offset;
-          doc.cursor.focusId = upper.id;
-          doc.cursor.focusOffset = offset;
+        } else if (isSelected) {
+          const upperBlock = utils.findUpperBlock(block.id, doc);
+          if (upperBlock && upperBlock.hasText()) {
+            cursor.anchorOffset = null;
+            cursor.focusId = upperBlock.id;
+            cursor.focusOffset = null;
+          }
+        }
+      } else {
+        if (isCollapsed) {
+          const offset = cursor.focusOffset - 1;
+          if (offset >= 0) {
+            cursor.anchorOffset = offset;
+            cursor.focusOffset = offset;
+          } else {
+            const upperBlock = utils.findUpperBlock(block.id, doc);
+            if (upperBlock && upperBlock.hasText()) {
+              cursor.anchorId = upperBlock.id;
+              cursor.anchorOffset = upperBlock.text.length;
+              cursor.focusId = upperBlock.id;
+              cursor.focusOffset = upperBlock.text.length;
+            }
+          }
+        } else if (isFocused) {
+          const offset = cursor.anchorId === cursor.focusId ? Math.min(cursor.anchorOffset, cursor.focusOffset) : upper.id === cursor.anchorId ? cursor.anchorOffset : cursor.focusOffset;
+          cursor.anchorOffset = offset;
+          cursor.focusOffset = offset;
+        } else if (isSelected) {
+          const upperBlock = utils.findUpperBlock(block.id, doc);
+          if (upperBlock && upperBlock.hasText()) {
+            cursor.anchorId = upperBlock.id;
+            cursor.anchorOffset = null;
+            cursor.focusId = upperBlock.id;
+            cursor.focusOffset = null;
+          }
         }
       }
-      doc.dispatch();
       break;
     }
     case keyCodes.UP: {
       break;
     }
     case keyCodes.RIGHT: {
-      const block = doc.find(doc.cursor.focusId);
+      const block = doc.find(cursor.focusId);
       if (meta && shift) {
-        doc.cursor.focusOffset = block.text.length;
-      } else if (shift) {
-        const offset = doc.cursor.focusOffset + 1;
-        if (offset <= block.text.length) {
-          doc.cursor.focusOffset = offset;
-        } else {
-          const downerBlock = utils.findDownerBlock(block.id, doc);
-          if (downerBlock && downerBlock.hasText()) {
-            doc.cursor.focusId = downerBlock.id;
-            doc.cursor.focusOffset = 0;
+        if (isFocused) {
+          if (cursor.focusOffset > cursor.anchorOffset) {
+            cursor.focusOffset = block.text.length;
+          } else {
+            cursor.anchorOffset = block.text.length;
           }
         }
-      } else {
-        if (doc.cursor.anchorOffset === doc.cursor.focusOffset) {
-          const offset = doc.cursor.focusOffset + 1;
-          if (offset <= block.text.length) {
-            doc.cursor.anchorOffset = offset;
-            doc.cursor.focusOffset = offset;
+      } else if (shift) {
+        if (isFocused) {
+          const offset = cursor.focusOffset + 1;
+          if (cursor.focusOffset !== null && offset <= block.text.length) {
+            cursor.focusOffset = offset;
           } else {
             const downerBlock = utils.findDownerBlock(block.id, doc);
             if (downerBlock && downerBlock.hasText()) {
-              doc.cursor.anchorId = downerBlock.id;
-              doc.cursor.anchorOffset = 0;
-              doc.cursor.focusId = downerBlock.id;
-              doc.cursor.focusOffset = 0;
+              cursor.anchorOffset = null;
+              cursor.focusId = downerBlock.id;
+              cursor.focusOffset = null;
             }
           }
-        } else {
-          const downer = utils.downer(doc.cursor.anchorId, doc.cursor.focusId, doc);
-          const offset = doc.cursor.anchorId === doc.cursor.focusId ? Math.min(doc.cursor.anchorOffset, doc.cursor.focusOffset) : downer.id === doc.cursor.anchorId ? doc.cursor.anchorOffset : doc.cursor.focusOffset;
-          doc.cursor.anchorId = downer.id;
-          doc.cursor.anchorOffset = offset;
-          doc.cursor.focusId = downer.id;
-          doc.cursor.focusOffset = offset;
+        } else if (isSelected) {
+          const downerBlock = utils.findDownerBlock(block.id, doc);
+          if (downerBlock && downerBlock.hasText()) {
+            cursor.anchorOffset = null;
+            cursor.focusId = downerBlock.id;
+            cursor.focusOffset = null;
+          }
+        }
+      } else {
+        if (isCollapsed) {
+          const offset = cursor.focusOffset + 1;
+          if (offset <= block.text.length) {
+            cursor.anchorOffset = offset;
+            cursor.focusOffset = offset;
+          } else {
+            const downerBlock = utils.findDownerBlock(block.id, doc);
+            if (downerBlock && downerBlock.hasText()) {
+              cursor.anchorId = downerBlock.id;
+              cursor.anchorOffset = 0;
+              cursor.focusId = downerBlock.id;
+              cursor.focusOffset = 0;
+            }
+          }
+        } else if (isFocused) {
+          const offset = cursor.anchorId === cursor.focusId ? Math.max(cursor.anchorOffset, cursor.focusOffset) : downer.id === cursor.anchorId ? cursor.anchorOffset : cursor.focusOffset;
+          cursor.anchorOffset = offset;
+          cursor.focusOffset = offset;
+        } else if (isSelected) {
+          const downerBlock = utils.findDownerBlock(block.id, doc);
+          if (downerBlock && downerBlock.hasText()) {
+            cursor.anchorId = downerBlock.id;
+            cursor.anchorOffset = null;
+            cursor.focusId = downerBlock.id;
+            cursor.focusOffset = null;
+          }
         }
       }
-      doc.dispatch();
       break;
     }
     case keyCodes.DOWN: {

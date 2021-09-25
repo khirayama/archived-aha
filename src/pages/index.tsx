@@ -25,8 +25,7 @@ function CursorViewer(props) {
 anchorId    : ${cursor.anchorId}
 anchorOffset: ${cursor.anchorOffset}
 focusId     : ${cursor.focusId}
-focusOffset : ${cursor.focusOffset}
-isCollapsed : ${cursor.isCollapsed}`}
+focusOffset : ${cursor.focusOffset}`}
     </div>
   );
 }
@@ -55,6 +54,7 @@ export default function SamplePage(props) {
 
   const onKeyDown = (event) => {
     keyboardEventHandler(doc, event.keyCode, event.metaKey, event.shiftKey, event.ctrlKey);
+    doc.dispatch();
   };
 
   const onPointerEnd = () => {
