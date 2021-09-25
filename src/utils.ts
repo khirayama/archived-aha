@@ -1,7 +1,8 @@
 import { Children } from 'react';
-import { BlockId, ItemBlockType, DocumentBlockType, ItemBlock } from './doc';
+import { Cursor, BlockId, ItemBlockType, DocumentBlockType, ItemBlock } from './doc';
 
 export const utils = {
+  // For Block
   findDownerBlock: (currentBlockId: BlockId, doc: DocumentBlockType): ItemBlockType | null => {
     const currentBlock = doc.find(currentBlockId);
     if (currentBlock.children.length) {
@@ -61,5 +62,17 @@ export const utils = {
       block = utils.findDownerBlock(block.id, doc);
     }
     return doc.find(blockId1);
+  },
+
+  // For Cursor
+  projectSelectionToCursor: (selection: Selection, cursor: Cursor): void => {
+    const anchorId = selection.anchorNode?.parentNode.dataset.id;
+    const focusId = selection.focusNode?.parentNode.dataset.id;
+
+    cursor.anchorId = anchorId || null;
+    cursor.anchorOffset = anchorId === focusId ? selection.anchorOffset || 0 : null;
+    cursor.focusId = focusId || null;
+    cursor.focusOffset = anchorId === focusId ? selection.focusOffset || 0 : null;
+    cursor.isCollapsed = (anchorId === focusId && selection.anchorOffset === selection.focusOffset);
   },
 };
