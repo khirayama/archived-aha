@@ -17,7 +17,19 @@ export function keyboardEventHandler(doc, keyCode: number, meta: boolean, shift:
 ${JSON.stringify(cursor)}`);
   }
 
+  /* Sections
+   * ENTER / ESC
+   * LEFT / UP / RIGHT / DOWN
+   */
   switch (keyCode) {
+    /* ENTER / ESC */
+    case keyCodes.ENTER: {
+      break;
+    }
+    case keyCodes.ESC: {
+      break;
+    }
+    /* LEFT / UP / RIGTH / DOWN */
     case keyCodes.LEFT: {
       const block = doc.find(cursor.focusId);
 
