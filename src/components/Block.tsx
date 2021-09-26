@@ -18,8 +18,8 @@ export function Block(props) {
   return (
     <>
       <div className={classNames(styles['block'], { [styles['is-selected']]: isSelected })}>
-        <div data-id={block.id}>{block.text}</div>
-        {isFocused ? <div className={styles['shadow']}>
+        <div data-id={block.id} className={styles['block-text']}>{block.text}</div>
+        {isFocused ? <div className={styles['block-shadow-text']}>
           <span>{t1}</span>
           <span>{t2}</span>
           <span>{t3}</span>

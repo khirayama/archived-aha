@@ -1,20 +1,28 @@
 import { utils } from './utils';
 import { keyCodes } from './keyCodes';
+import { TextBlock } from './doc';
 
 /*
  * keyCode: switch
+ *   meta, shift, ctrl: if
+ *     isSelected, isFocused, isCollapsed: if
  */
 
 export function keyboardEventHandler(doc, keyCode: number, meta: boolean, shift: boolean, ctrl: boolean) {
   console.log(keyCode, meta, shift, ctrl);
   const cursor = doc.cursor;
+  const isUnselected = cursor.anchorId === null && cursor.focusId === null && cursor.anchorOffset === null && cursor.focusOffset === null;
   const isSelected = cursor.anchorId && cursor.focusId && cursor.anchorOffset === null && cursor.focusOffset === null;
   const isFocused = cursor.anchorId === cursor.focusId && cursor.anchorOffset !== null && cursor.focusOffset !== null;
   const isCollapsed = isFocused && cursor.anchorOffset === cursor.focusOffset;
   
-  if (!(isFocused || isSelected)) {
+  if (!(isFocused || isSelected || isUnselected)) {
     throw new Error(`Current cursor condition is something wrong.
 ${JSON.stringify(cursor)}`);
+  }
+
+  if (isUnselected) {
+    return;
   }
 
   /* Sections
@@ -24,9 +32,40 @@ ${JSON.stringify(cursor)}`);
   switch (keyCode) {
     /* ENTER / ESC */
     case keyCodes.ENTER: {
+      const block = doc.find(cursor.focusId);
+      if (meta) {
+        /* TODO: Specific Action */
+      } else {
+        if (isSelected) {
+          if (block.hasText()) {
+            cursor.anchorOffset = block.text.length;
+            cursor.focusOffset = block.text.length;
+          }
+        } else if (isCollapsed) {
+          const text1 = block.text.slice(0, cursor.anchorOffset);
+          const text2 = block.text.slice(cursor.anchorOffset, block.text.length);
+          block.text = text1;
+          const textBlock = new TextBlock({
+            text: text2,
+          });
+          block.after(textBlock);
+          cursor.anchorId = textBlock.id;
+          cursor.anchorOffset = 0;
+          cursor.focusId = textBlock.id;
+          cursor.focusOffset = 0;
+        }
+      }
       break;
     }
     case keyCodes.ESC: {
+      const block = doc.find(cursor.focusId);
+      if (isFocused) {
+        cursor.anchorOffset = null;
+        cursor.focusOffset = null;
+      } else if (isSelected) {
+        cursor.anchorId = null;
+        cursor.focusId = null;
+      }
       break;
     }
     /* LEFT / UP / RIGTH / DOWN */

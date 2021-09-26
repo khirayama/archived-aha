@@ -191,6 +191,30 @@ export abstract class ItemBlock extends Block {
   public hasText(): this is (TextBlock) {
     return this.type === 'text';
   }
+
+  public after(block: ItemBlockType) {
+    const parent = this.parent;
+    let index = 0;
+    for (let i = 0; i < parent.children.length; i += 1) {
+      const child = parent.children[i];
+      if (child.id === this.id) {
+        index = i + 1;
+      }
+    }
+
+    const next = this.next;
+    this.next = block;
+    if (next) {
+      next.prev = block;
+    }
+
+    block.parent = this.parent;
+    block.doc = this.doc;
+    block.prev = this;
+    block.next = next;
+
+    parent.children.splice(index, 0, block);
+  }
 }
 
 export class TextBlock extends ItemBlock {
