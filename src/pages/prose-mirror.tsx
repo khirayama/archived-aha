@@ -1,13 +1,14 @@
-import { EditorState, Plugin, PluginKey } from "prosemirror-state";
+import { EditorState } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
-import { Schema, DOMParser } from "prosemirror-model";
 import { schema } from "prosemirror-schema-basic";
-import { addListNodes } from "prosemirror-schema-list";
-import { exampleSetup } from "prosemirror-example-setup";
+import { undo, redo, history } from "prosemirror-history"
+import { keymap } from "prosemirror-keymap"
 import React, { useEffect, useRef } from "react";
 
 /*
  * - [Lightweight React integration example - Show - discuss.ProseMirror](https://discuss.prosemirror.net/t/lightweight-react-integration-example/2680)
+ * - [ProseMirror Guide](https://prosemirror.net/docs/guide/)
+ * - [ProseMirror Reference manual](https://prosemirror.net/docs/ref/#commands)
  */
 
 function Editor(props) {
@@ -15,17 +16,26 @@ function Editor(props) {
   const view = useRef(null);
 
   useEffect(() => {
-    const mySchema = new Schema({
-      nodes: addListNodes(schema.spec.nodes, "paragraph block*", "block"),
-      marks: schema.spec.marks
+    const state = EditorState.create({
+      schema,
+      plugins: [
+        history(),
+        keymap({
+          "Mod-z": undo,
+          "Mod-y": redo,
+        }),
+      ]
     });
-
-    view.current = new EditorView(ref.current, {
-      state: EditorState.create({
-        doc: DOMParser.fromSchema(mySchema).parse(document.querySelector("#content")),
-        plugins: exampleSetup({schema: mySchema})
-      })
-    })
+    const view = new EditorView(ref.current, {
+      state,
+      dispatchTransaction: (transaction) => {
+        console.log("Document size went from", transaction.before.content.size,
+                    "to", transaction.doc.content.size)
+        let newState = view.state.apply(transaction)
+        view.updateState(newState)
+      }
+    });
+    view.current = view;
 
     return () => view.current.destroy();
   }, []);
