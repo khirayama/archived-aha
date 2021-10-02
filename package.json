@@ -22,6 +22,8 @@
     "classnames": "2.2.6",
     "next": "10.2.3",
     "prosemirror-example-setup": "1.1.2",
+    "prosemirror-history": "1.2.0",
+    "prosemirror-keymap": "1.1.4",
     "prosemirror-model": "1.14.3",
     "prosemirror-schema-basic": "1.1.2",
     "prosemirror-schema-list": "1.1.6",
