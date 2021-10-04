@@ -15,7 +15,6 @@ import React, { useEffect, useRef } from "react";
 
 function Editor(props) {
   const ref = useRef();
-  const view = useRef(null);
 
   useEffect(() => {
     const state = EditorState.create({
@@ -33,18 +32,13 @@ function Editor(props) {
       state,
       dispatchTransaction: (transaction) => {
         console.log(transaction);
-        console.log("Document size went from", transaction.before.content.size,
-                    "to", transaction.doc.content.size)
         const newState = view.state.apply(transaction)
         view.updateState(newState)
       }
     });
-    view.current = view;
-
-    return () => view.current.destroy();
   }, []);
 
-  return <><div ref={ref} /><div id="content" /></>;
+  return <><div ref={ref} /></>;
 }
 
 export default function IndexPage() {
