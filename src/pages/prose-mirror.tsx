@@ -11,6 +11,7 @@ import React, { useEffect, useRef } from "react";
  * - [ProseMirror Guide](https://prosemirror.net/docs/guide/)
  * - [ProseMirror Reference manual](https://prosemirror.net/docs/ref/#commands)
  * - [remirror/remirror: ProseMirror toolkit for React 🎉](https://github.com/remirror/remirror)
+ * - [vim keymap](https://codemirror.net/3/keymap/vim.js)
  */
 
 function Editor(props) {
@@ -28,6 +29,7 @@ function Editor(props) {
         keymap(baseKeymap),
       ]
     });
+
     const view = new EditorView(ref.current, {
       state,
       dispatchTransaction: (transaction) => {
