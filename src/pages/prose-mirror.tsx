@@ -5,6 +5,7 @@ import { undo, redo, history } from "prosemirror-history"
 import { keymap } from "prosemirror-keymap"
 import { baseKeymap, selectParentNode } from "prosemirror-commands"
 import React, { useEffect, useRef } from "react";
+import { dropCursor } from 'prosemirror-dropcursor';
 
 import { Schema } from "prosemirror-model"
 
@@ -15,6 +16,8 @@ import { Schema } from "prosemirror-model"
  * - [remirror/remirror: ProseMirror toolkit for React 🎉](https://github.com/remirror/remirror)
  * - [vim keymap](https://codemirror.net/3/keymap/vim.js)
  * - [ProseMirror dino example](https://prosemirror.net/examples/dino/)
+ * - [prosemirror-cookbook/README.md at master · PierBover/prosemirror-cookbook](https://github.com/PierBover/prosemirror-cookbook/blob/master/README.md)
+ * - [How do I Prevent Default Tab Key Behaviour in PM? - discuss.ProseMirror](https://discuss.prosemirror.net/t/how-do-i-prevent-default-tab-key-behaviour-in-pm/3049/2)
  */
 /*
  * - Change order with drag and drop
@@ -78,7 +81,25 @@ const schema = new Schema({
         return ["div", 0];
       },
     },
+    blockgroup: {
+      group: "block",
+      content: "block*",
+      draggable: true,
+      toDOM: (node) => {
+        return ["div", 0];
+      },
+    },
     text: {}
+  }
+});
+
+let preventTabKeyPlugin = new Plugin({
+  props: {
+    handleKeyDown(view, event) {
+      if (event.keyCode === 9 /* TAB */) {
+        event.preventDefault();
+      }
+    }
   }
 });
 
@@ -89,14 +110,19 @@ function Editor(props) {
     const state = EditorState.create({
       schema,
       plugins: [
+        preventTabKeyPlugin,
         history(),
         keymap({
           "Mod-z": undo,
           "Mod-y": redo,
+          "Tab": () => {
+            console.log('call 1');
+          },
           "Escape": selectParentNode,
         }),
         keymap(baseKeymap),
         selectionSizePlugin,
+        dropCursor(),
       ]
     });
 
