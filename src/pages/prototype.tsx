@@ -12,23 +12,18 @@ import { Schema } from "prosemirror-model"
 const schema = new Schema({
   nodes: {
     doc: {
-      content: "blockgroup",
-    },
-    blockgroup: {
-      group: "blockgroup",
-      content: "text* block+",
-      toDOM: (node) => {
-        return ["blockgroup", 0];
-      },
+      content: "block+",
     },
     paragraph: {
       group: "block",
       content: "text*",
-      // attrs: {
-      //   indent: 0,
-      // },
+      attrs: {
+        indent: {
+          default: 0,
+        },
+      },
       toDOM: (node) => {
-        return ["paragraph", 0];
+        return ["div", 0];
       },
     },
     text: {}
