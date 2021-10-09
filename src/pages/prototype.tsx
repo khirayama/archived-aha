@@ -12,14 +12,23 @@ import { Schema } from "prosemirror-model"
 const schema = new Schema({
   nodes: {
     doc: {
-      content: "block+",
+      content: "blockgroup",
+    },
+    blockgroup: {
+      group: "blockgroup",
+      content: "text* block+",
+      toDOM: (node) => {
+        return ["blockgroup", 0];
+      },
     },
     paragraph: {
       group: "block",
       content: "text*",
-      draggable: true,
+      // attrs: {
+      //   indent: 0,
+      // },
       toDOM: (node) => {
-        return ["div", 0];
+        return ["paragraph", 0];
       },
     },
     text: {}
@@ -70,5 +79,5 @@ function Editor(props) {
 }
 
 export default function IndexPage() {
-  return <div style={{whiteSpace: 'pre'}}><Editor /></div>;
+  return <div><Editor /></div>;
 }
