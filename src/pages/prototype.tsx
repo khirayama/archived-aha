@@ -1,13 +1,35 @@
-import { EditorState, Selection, Plugin } from "prosemirror-state";
+import { EditorState, Selection, NodeSelection, Plugin } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
-// import { schema } from "prosemirror-schema-basic";
 import { undo, redo, history } from "prosemirror-history"
 import { keymap } from "prosemirror-keymap"
-import { baseKeymap, selectParentNode } from "prosemirror-commands"
 import React, { useEffect, useRef } from "react";
-import { dropCursor } from 'prosemirror-dropcursor';
+
+// import { dropCursor } from 'prosemirror-dropcursor';
+// import { schema } from "prosemirror-schema-basic";
+// import { baseKeymap } from "prosemirror-commands"
 
 import { Schema } from "prosemirror-model"
+
+const commands = {
+  selectBlock: (state, dispatch) => {
+    // https://github.com/ProseMirror/prosemirror-commands/blob/master/src/commands.js#L348-L355
+    let { $from, to } = state.selection;
+    let same = $from.sharedDepth(to);
+    if (same == 0) {
+      return false;
+    }
+    const pos = $from.before(same);
+    if (dispatch) {
+      dispatch(state.tr.setSelection(NodeSelection.create(state.doc, pos)));
+    }
+    return true;
+  },
+  indent: (state, dispatch) => {
+    console.log('indent');
+    let { $cursor } = state.selection;
+    console.log(state.selection);
+  },
+}
 
 const schema = new Schema({
   nodes: {
@@ -17,13 +39,20 @@ const schema = new Schema({
     paragraph: {
       group: "block",
       content: "text*",
+      // draggable: true,
       attrs: {
         indent: {
           default: 0,
         },
       },
       toDOM: (node) => {
-        return ["div", 0];
+        return [
+          "div",
+          {
+            class: 'indent-' + node.attrs.indent,
+          },
+          0,
+        ];
       },
     },
     text: {}
@@ -52,10 +81,8 @@ function Editor(props) {
         keymap({
           "Mod-z": undo,
           "Mod-y": redo,
-          "Tab": () => {
-            console.log('call 1');
-          },
-          "Escape": selectParentNode,
+          "Tab": commands.indent,
+          "Escape": commands.selectBlock,
         }),
       ]
     });
@@ -70,7 +97,7 @@ function Editor(props) {
     });
   }, []);
 
-  return <><div ref={ref} /></>;
+  return <div ref={ref} />;
 }
 
 export default function IndexPage() {
