@@ -27,38 +27,32 @@ const commands = {
     return true;
   },
   indent: (state, dispatch, view) => {
-    // TODO NodeSelection or TextSelection
-    let { $cursor } = state.selection;
-    const node = $cursor.parent;
-    console.log(node);
-    console.log(state.selection);
-
-    // [Updating node attributes after rendering - discuss.ProseMirror](https://discuss.prosemirror.net/t/updating-node-attributes-after-rendering/2426)
-    const transaction = state.tr.setNodeMarkup(
-      0, // TODO
-      null,
-      {
-        indent: Math.min(node.attrs.indent + 1, 8),
-      },
-    )
-    view.dispatch(transaction)
+    let tr = state.tr
+    state.doc.nodesBetween(
+      state.selection.from,
+      state.selection.to,
+      (node, pos) => {
+        if (node.type.attrs.indent) {
+          tr.setNodeMarkup(pos, null, {
+            indent: Math.min(node.attrs.indent + 1, 8),
+          })
+        }
+      });
+    view.dispatch(tr)
   },
   unindent: (state, dispatch, view) => {
-    // TODO NodeSelection or TextSelection
-    let { $cursor } = state.selection;
-    const node = $cursor.parent;
-    console.log(node);
-    console.log(state.selection);
-
-    // [Updating node attributes after rendering - discuss.ProseMirror](https://discuss.prosemirror.net/t/updating-node-attributes-after-rendering/2426)
-    const transaction = state.tr.setNodeMarkup(
-      0, // TODO
-      null,
-      {
-        indent: Math.max(node.attrs.indent - 1, 0),
-      },
-    )
-    view.dispatch(transaction)
+    let tr = state.tr
+    state.doc.nodesBetween(
+      state.selection.from,
+      state.selection.to,
+      (node, pos) => {
+        if (node.type.attrs.indent) {
+          tr.setNodeMarkup(pos, null, {
+            indent: Math.max(node.attrs.indent - 1, 0),
+          })
+        }
+      });
+    view.dispatch(tr)
   },
 }
 
