@@ -10,6 +10,8 @@ import React, { useEffect, useRef } from "react";
 
 import { Schema } from "prosemirror-model"
 
+import styles from './prototype.module.scss';
+
 const commands = {
   selectBlock: (state, dispatch) => {
     // https://github.com/ProseMirror/prosemirror-commands/blob/master/src/commands.js#L348-L355
@@ -24,10 +26,39 @@ const commands = {
     }
     return true;
   },
-  indent: (state, dispatch) => {
-    console.log('indent');
+  indent: (state, dispatch, view) => {
+    // TODO NodeSelection or TextSelection
     let { $cursor } = state.selection;
+    const node = $cursor.parent;
+    console.log(node);
     console.log(state.selection);
+
+    // [Updating node attributes after rendering - discuss.ProseMirror](https://discuss.prosemirror.net/t/updating-node-attributes-after-rendering/2426)
+    const transaction = state.tr.setNodeMarkup(
+      0, // TODO
+      null,
+      {
+        indent: Math.min(node.attrs.indent + 1, 8),
+      },
+    )
+    view.dispatch(transaction)
+  },
+  unindent: (state, dispatch, view) => {
+    // TODO NodeSelection or TextSelection
+    let { $cursor } = state.selection;
+    const node = $cursor.parent;
+    console.log(node);
+    console.log(state.selection);
+
+    // [Updating node attributes after rendering - discuss.ProseMirror](https://discuss.prosemirror.net/t/updating-node-attributes-after-rendering/2426)
+    const transaction = state.tr.setNodeMarkup(
+      0, // TODO
+      null,
+      {
+        indent: Math.max(node.attrs.indent - 1, 0),
+      },
+    )
+    view.dispatch(transaction)
   },
 }
 
@@ -49,7 +80,7 @@ const schema = new Schema({
         return [
           "div",
           {
-            class: 'indent-' + node.attrs.indent,
+            class: styles[`indent-${node.attrs.indent}`]
           },
           0,
         ];
@@ -82,6 +113,7 @@ function Editor(props) {
           "Mod-z": undo,
           "Mod-y": redo,
           "Tab": commands.indent,
+          "Shift-Tab": commands.unindent,
           "Escape": commands.selectBlock,
         }),
       ]
