@@ -212,7 +212,7 @@ function Editor(props) {
           'Mod-y': redo,
           Tab: commands.indent,
           'Shift-Tab': commands.unindent,
-          Escape: commands.selectBlock,
+          // Escape: commands.selectBlock,
           Enter: commands.chainCommands(
             commands.newlineInCode,
             commands.createParagraphNear,
