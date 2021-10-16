@@ -30,7 +30,6 @@ const commands = {
     };
   },
   newlineInCode: (state, dispatch) => {
-    console.log('start: newlineInCode');
     const { $head, $anchor } = state.selection;
 
     if (!$head.parent.type.spec.code || !$head.sameParent($anchor)) {
@@ -41,11 +40,9 @@ const commands = {
       dispatch(state.tr.insertText('\n').scrollIntoView());
     }
 
-    console.log('end: newlineInCode');
     return true;
   },
   createParagraphNear: (state, dispatch) => {
-    console.log('start: createparagraphNear');
     const sel = state.selection;
     const { $from, $to } = sel;
 
@@ -65,11 +62,9 @@ const commands = {
       tr.setSelection(TextSelection.create(tr.doc, side + 1));
       dispatch(tr.scrollIntoView());
     }
-    console.log('end: createparagraphNear');
     return true;
   },
   liftEmptyBlock: (state, dispatch) => {
-    console.log('start: liftEmptyBlock');
     let { $cursor } = state.selection;
     if (!$cursor || $cursor.parent.content.size) return false;
     if ($cursor.depth > 1 && $cursor.after() != $cursor.end(-1)) {
@@ -83,11 +78,9 @@ const commands = {
       target = range && liftTarget(range);
     if (target == null) return false;
     if (dispatch) dispatch(state.tr.lift(range, target).scrollIntoView());
-    console.log('end: liftEmptyBlock');
     return true;
   },
   splitBlock: (state, dispatch) => {
-    console.log('start: splitBlock');
     let { $from, $to } = state.selection;
     if (state.selection instanceof NodeSelection && state.selection.node.isBlock) {
       if (!$from.parentOffset || !canSplit(state.doc, $from.pos)) return false;
@@ -120,7 +113,6 @@ const commands = {
       }
       dispatch(tr.scrollIntoView());
     }
-    console.log('end: splitBlock');
     return true;
   },
   selectBlock: (state, dispatch) => {
