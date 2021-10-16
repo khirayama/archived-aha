@@ -128,6 +128,64 @@ const commands = {
     }
     return true;
   },
+  deleteSelection: () => {
+    if (state.selection.empty) return false;
+    if (dispatch) dispatch(state.tr.deleteSelection().scrollIntoView());
+    return true;
+  },
+  joinForward: () => {
+    let { $cursor } = state.selection;
+    if (
+      !$cursor ||
+      (view ? !view.endOfTextblock('forward', state) : $cursor.parentOffset < $cursor.parent.content.size)
+    )
+      return false;
+
+    let $cut = findCutAfter($cursor);
+
+    // If there is no node after this, there's nothing to do
+    if (!$cut) return false;
+
+    let after = $cut.nodeAfter;
+    // Try the joining algorithm
+    if (deleteBarrier(state, $cut, dispatch)) return true;
+
+    // If the node above has no content and the node below is
+    // selectable, delete the node above and select the one below.
+    if ($cursor.parent.content.size == 0 && (textblockAt(after, 'start') || NodeSelection.isSelectable(after))) {
+      if (dispatch) {
+        let tr = state.tr.deleteRange($cursor.before(), $cursor.after());
+        tr.setSelection(
+          textblockAt(after, 'start')
+            ? Selection.findFrom(tr.doc.resolve(tr.mapping.map($cut.pos)), 1)
+            : NodeSelection.create(tr.doc, tr.mapping.map($cut.pos)),
+        );
+        dispatch(tr.scrollIntoView());
+      }
+      return true;
+    }
+
+    // If the next node is an atom, delete it
+    if (after.isAtom && $cut.depth == $cursor.depth - 1) {
+      if (dispatch) dispatch(state.tr.delete($cut.pos, $cut.pos + after.nodeSize).scrollIntoView());
+      return true;
+    }
+
+    return false;
+  },
+  selectNodeForward: () => {
+    let { $head, empty } = state.selection,
+      $cut = $head;
+    if (!empty) return false;
+    if ($head.parent.isTextblock) {
+      if (view ? !view.endOfTextblock('forward', state) : $head.parentOffset < $head.parent.content.size) return false;
+      $cut = findCutAfter($head);
+    }
+    let node = $cut && $cut.nodeAfter;
+    if (!node || !NodeSelection.isSelectable(node)) return false;
+    if (dispatch) dispatch(state.tr.setSelection(NodeSelection.create(state.doc, $cut.pos)).scrollIntoView());
+    return true;
+  },
   indent: (state, dispatch, view) => {
     let tr = state.tr;
     state.doc.nodesBetween(state.selection.from, state.selection.to, (node, pos) => {
@@ -204,11 +262,27 @@ function Editor(props) {
           'Mod-y': redo,
           Tab: commands.indent,
           'Shift-Tab': commands.unindent,
+          Delete: commands.chainCommands(
+            commands.deleteSelection,
+            // commands.joinForward,
+            // commands.selectNodeForward,
+          ),
+          'Mod-Delete': commands.chainCommands(
+            commands.deleteSelection,
+            commands.joinForward,
+            commands.selectNodeForward,
+          ),
           // Escape: commands.selectBlock,
           Enter: commands.chainCommands(
-            commands.newlineInCode,
-            commands.createParagraphNear,
-            commands.liftEmptyBlock,
+            // commands.newlineInCode,
+            // commands.createParagraphNear,
+            // commands.liftEmptyBlock,
+            commands.splitBlock,
+          ),
+          'Mod-Enter': commands.chainCommands(
+            // commands.newlineInCode,
+            // commands.createParagraphNear,
+            // commands.liftEmptyBlock,
             commands.splitBlock,
           ),
         }),
