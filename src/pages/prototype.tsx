@@ -29,71 +29,15 @@ const commands = {
       return false;
     };
   },
-  newlineInCode: (state, dispatch) => {
-    const { $head, $anchor } = state.selection;
-
-    if (!$head.parent.type.spec.code || !$head.sameParent($anchor)) {
-      return false;
-    }
-
-    if (dispatch) {
-      dispatch(state.tr.insertText('\n').scrollIntoView());
-    }
-
-    return true;
-  },
-  createParagraphNear: (state, dispatch) => {
-    const sel = state.selection;
-    const { $from, $to } = sel;
-
-    if (sel instanceof AllSelection || $from.parent.inlineContent || $to.parent.inlineContent) {
-      return false;
-    }
-
-    const type = defaultBlockAt($to.parent.contentMatchAt($to.indexAfter()));
-
-    if (!type || !type.isTextblock) {
-      return false;
-    }
-
-    if (dispatch) {
-      const side = (!$from.parentOffset && $to.index() < $to.parent.childCount ? $from : $to).pos;
-      const tr = state.tr.insert(side, type.createAndFill());
-      tr.setSelection(TextSelection.create(tr.doc, side + 1));
-      dispatch(tr.scrollIntoView());
-    }
-    return true;
-  },
-  liftEmptyBlock: (state, dispatch) => {
-    let { $cursor } = state.selection;
-    if (!$cursor || $cursor.parent.content.size) return false;
-    if ($cursor.depth > 1 && $cursor.after() != $cursor.end(-1)) {
-      let before = $cursor.before();
-      if (canSplit(state.doc, before)) {
-        if (dispatch) dispatch(state.tr.split(before).scrollIntoView());
-        return true;
-      }
-    }
-    let range = $cursor.blockRange(),
-      target = range && liftTarget(range);
-    if (target == null) return false;
-    if (dispatch) dispatch(state.tr.lift(range, target).scrollIntoView());
-    return true;
-  },
   splitBlock: (state, dispatch) => {
     let { $from, $to } = state.selection;
-    if (state.selection instanceof NodeSelection && state.selection.node.isBlock) {
-      if (!$from.parentOffset || !canSplit(state.doc, $from.pos)) return false;
-      if (dispatch) dispatch(state.tr.split($from.pos).scrollIntoView());
-      return true;
-    }
-
-    if (!$from.parent.isBlock) return false;
 
     if (dispatch) {
       let atEnd = $to.parentOffset == $to.parent.content.size;
       let tr = state.tr;
-      if (state.selection instanceof TextSelection || state.selection instanceof AllSelection) tr.deleteSelection();
+      if (state.selection instanceof TextSelection || state.selection instanceof AllSelection) {
+        tr.deleteSelection();
+      }
       const node = $from.node();
       let deflt = $from.depth == 0 ? null : defaultBlockAt($from.node(-1).contentMatchAt($from.indexAfter(-1)));
       let types = atEnd && deflt ? [{ type: deflt, attrs: { indent: node.attrs.indent } }] : null;
@@ -262,29 +206,15 @@ function Editor(props) {
           'Mod-y': redo,
           Tab: commands.indent,
           'Shift-Tab': commands.unindent,
-          Delete: commands.chainCommands(
-            commands.deleteSelection,
-            // commands.joinForward,
-            // commands.selectNodeForward,
-          ),
+          Delete: commands.chainCommands(commands.deleteSelection, commands.joinForward, commands.selectNodeForward),
           'Mod-Delete': commands.chainCommands(
             commands.deleteSelection,
             commands.joinForward,
             commands.selectNodeForward,
           ),
-          // Escape: commands.selectBlock,
-          Enter: commands.chainCommands(
-            // commands.newlineInCode,
-            // commands.createParagraphNear,
-            // commands.liftEmptyBlock,
-            commands.splitBlock,
-          ),
-          'Mod-Enter': commands.chainCommands(
-            // commands.newlineInCode,
-            // commands.createParagraphNear,
-            // commands.liftEmptyBlock,
-            commands.splitBlock,
-          ),
+          Enter: commands.splitBlock,
+          'Mod-Enter': commands.splitBlock,
+          Escape: commands.selectBlock,
         }),
       ],
     });
