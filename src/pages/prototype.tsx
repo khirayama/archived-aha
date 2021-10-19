@@ -21,6 +21,17 @@ function defaultBlockAt(match) {
   return null;
 }
 
+function findCutAfter($pos) {
+  if (!$pos.parent.type.spec.isolating) {
+    for (let i = $pos.depth - 1; i >= 0; i--) {
+      let parent = $pos.node(i);
+      if ($pos.index(i) + 1 < parent.childCount) return $pos.doc.resolve($pos.after(i + 1));
+      if (parent.type.spec.isolating) break;
+    }
+  }
+  return null;
+}
+
 // https://github.com/ProseMirror/prosemirror-commands/blob/98044bfbff967a323d5c03734a8bf3b5863d3352/src/commands.js
 const commands = {
   chainCommands: (...commands) => {
@@ -72,32 +83,47 @@ const commands = {
     }
     return true;
   },
-  deleteSelection: () => {
-    if (state.selection.empty) return false;
-    if (dispatch) dispatch(state.tr.deleteSelection().scrollIntoView());
+  deleteSelection: (state, dispatch, view) => {
+    console.log('deleteSelection: call');
+    if (state.selection.empty) {
+      console.log(state.selection);
+      console.log('deleteSelection: selection empty case');
+      return false;
+    }
+    if (dispatch) {
+      console.log('deleteSelection: dispatch case');
+      dispatch(state.tr.deleteSelection().scrollIntoView());
+    }
+    console.log('deleteSelection: return true');
     return true;
   },
-  joinForward: () => {
+  joinForward: (state, dispatch, view) => {
+    console.log('joinForward: call');
     let { $cursor } = state.selection;
     if (
       !$cursor ||
       (view ? !view.endOfTextblock('forward', state) : $cursor.parentOffset < $cursor.parent.content.size)
-    )
+    ) {
+      console.log('joinForward: not head case');
       return false;
+    }
 
     let $cut = findCutAfter($cursor);
 
-    // If there is no node after this, there's nothing to do
-    if (!$cut) return false;
+    if (!$cut) {
+      console.log('joinForward: not cut case');
+      return false;
+    }
 
     let after = $cut.nodeAfter;
-    // Try the joining algorithm
-    if (deleteBarrier(state, $cut, dispatch)) return true;
+    if (deleteBarrier(state, $cut, dispatch)) {
+      console.log('joinForward: not cut case');
+      return true;
+    }
 
-    // If the node above has no content and the node below is
-    // selectable, delete the node above and select the one below.
     if ($cursor.parent.content.size == 0 && (textblockAt(after, 'start') || NodeSelection.isSelectable(after))) {
       if (dispatch) {
+        console.log('joinForward: dispatch case');
         let tr = state.tr.deleteRange($cursor.before(), $cursor.after());
         tr.setSelection(
           textblockAt(after, 'start')
@@ -106,28 +132,49 @@ const commands = {
         );
         dispatch(tr.scrollIntoView());
       }
+
+      console.log('joinForward: return true with content zero');
       return true;
     }
 
-    // If the next node is an atom, delete it
     if (after.isAtom && $cut.depth == $cursor.depth - 1) {
-      if (dispatch) dispatch(state.tr.delete($cut.pos, $cut.pos + after.nodeSize).scrollIntoView());
+      if (dispatch) {
+        console.log('joinForward: dispatch case');
+        dispatch(state.tr.delete($cut.pos, $cut.pos + after.nodeSize).scrollIntoView());
+      }
+      console.log('joinForward: return true with atom');
       return true;
     }
 
+    console.log('joinForward: return false');
     return false;
   },
-  selectNodeForward: () => {
-    let { $head, empty } = state.selection,
-      $cut = $head;
-    if (!empty) return false;
+  selectNodeForward: (state, dispatch, view) => {
+    console.log('selectNodeForward: call');
+    const { $head, empty } = state.selection;
+    const $cut = $head;
+    if (!empty) {
+      console.log('selectNodeForward: not empty case');
+      return false;
+    }
     if ($head.parent.isTextblock) {
-      if (view ? !view.endOfTextblock('forward', state) : $head.parentOffset < $head.parent.content.size) return false;
+      console.log('selectNodeForward: isTextBlock case');
+      if (view ? !view.endOfTextblock('forward', state) : $head.parentOffset < $head.parent.content.size) {
+        console.log('selectNodeForward: state case');
+        return false;
+      }
       $cut = findCutAfter($head);
     }
     let node = $cut && $cut.nodeAfter;
-    if (!node || !NodeSelection.isSelectable(node)) return false;
-    if (dispatch) dispatch(state.tr.setSelection(NodeSelection.create(state.doc, $cut.pos)).scrollIntoView());
+    if (!node || !NodeSelection.isSelectable(node)) {
+      console.log('selectNodeForward: false return');
+      return false;
+    }
+    if (dispatch) {
+      console.log('selectNodeForward: dispatch');
+      dispatch(state.tr.setSelection(NodeSelection.create(state.doc, $cut.pos)).scrollIntoView());
+    }
+    console.log('selectNodeForward: true return');
     return true;
   },
   indent: (state, dispatch, view) => {
@@ -185,12 +232,18 @@ const schema = new Schema({
 let preventTabKeyPlugin = new Plugin({
   props: {
     handleKeyDown(view, event) {
-      if (event.keyCode === 9 /* TAB */) {
+      if (event.keyCode === 9 /* Tab */) {
         event.preventDefault();
       }
     },
   },
 });
+
+const del = commands.chainCommands(
+  commands.deleteSelection,
+  // commands.joinForward,
+  // commands.selectNodeForward,
+);
 
 function Editor(props) {
   const ref = useRef();
@@ -201,20 +254,19 @@ function Editor(props) {
       plugins: [
         preventTabKeyPlugin,
         history(),
+        keymap(baseKeymap),
         keymap({
           'Mod-z': undo,
           'Mod-y': redo,
           Tab: commands.indent,
           'Shift-Tab': commands.unindent,
-          Delete: commands.chainCommands(commands.deleteSelection, commands.joinForward, commands.selectNodeForward),
-          'Mod-Delete': commands.chainCommands(
-            commands.deleteSelection,
-            commands.joinForward,
-            commands.selectNodeForward,
-          ),
+          Delete: del,
+          Backspace: del,
+          'Mod-Delete': del,
+          'Mod-Backspace': del,
           Enter: commands.splitBlock,
           'Mod-Enter': commands.splitBlock,
-          Escape: commands.selectBlock,
+          // Escape: commands.selectBlock,
         }),
       ],
     });
