@@ -7,7 +7,7 @@ import React, { useEffect, useRef } from 'react';
 
 // import { dropCursor } from 'prosemirror-dropcursor';
 // import { schema } from "prosemirror-schema-basic";
-// import { baseKeymap } from "prosemirror-commands"
+import { baseKeymap } from 'prosemirror-commands';
 
 import { Schema } from 'prosemirror-model';
 
