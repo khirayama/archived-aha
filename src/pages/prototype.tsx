@@ -245,8 +245,9 @@ const del = commands.chainCommands(
   // commands.selectNodeForward,
 );
 // console.log(baseKeymap);
-baseKeymap['Delete'] = undefined;
-baseKeymap['Backspace'] = undefined;
+// baseKeymap['Delete'] = undefined;
+// baseKeymap['Backspace'] = undefined;
+baseKeymap['Enter'] = undefined;
 
 function Editor(props) {
   const ref = useRef();
@@ -263,10 +264,6 @@ function Editor(props) {
           'Mod-y': redo,
           Tab: commands.indent,
           'Shift-Tab': commands.unindent,
-          Delete: del,
-          Backspace: del,
-          'Mod-Delete': del,
-          'Mod-Backspace': del,
           Enter: commands.splitBlock,
           'Mod-Enter': commands.splitBlock,
           // Escape: commands.selectBlock,
