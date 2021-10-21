@@ -244,6 +244,9 @@ const del = commands.chainCommands(
   // commands.joinForward,
   // commands.selectNodeForward,
 );
+// console.log(baseKeymap);
+baseKeymap['Delete'] = undefined;
+baseKeymap['Backspace'] = undefined;
 
 function Editor(props) {
   const ref = useRef();
