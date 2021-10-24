@@ -217,25 +217,27 @@ const schema = new Schema({
       },
       toDOM: (node) => {
         return [
-          'paragraph',
+          'div',
           {
-            class: styles[`indent-${node.attrs.indent}`],
+            type: 'paragraph',
             indent: node.attrs.indent,
+            class: styles[`indent-${node.attrs.indent}`],
           },
           0,
         ];
       },
-      parseDOM: [
-        {
-          tag: 'paragraph',
-          getAttrs: (dom) => {
-            console.log(dom.getAttribute('indent'));
-            return {
-              indent: dom.indent,
-            };
-          },
-        },
-      ],
+      // parseDOM: [
+      //   {
+      //     tag: 'div',
+      //     getAttrs: (dom) => {
+      //       console.log(dom.getAttribute('indent'));
+      //       return {
+      //         type: 'paragraph',
+      //         indent: dom.indent,
+      //       };
+      //     },
+      //   },
+      // ],
     },
     text: {},
   },
