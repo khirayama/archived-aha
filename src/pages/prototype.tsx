@@ -278,7 +278,7 @@ function Editor(props) {
           Tab: commands.indent,
           'Shift-Tab': commands.unindent,
           Enter: commands.splitBlock,
-          'Mod-Enter': commands.splitBlock,
+          // 'Mod-Enter': commands.splitBlock,
           // Escape: commands.selectBlock,
         }),
       ],
