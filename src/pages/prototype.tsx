@@ -262,7 +262,7 @@ const del = commands.chainCommands(
 // baseKeymap['Delete'] = undefined;
 // baseKeymap['Backspace'] = undefined;
 baseKeymap['Enter'] = undefined;
-baseKeymap['Mod-Enter'] = undefined;
+// baseKeymap['Mod-Enter'] = undefined;
 
 function Editor(props) {
   const ref = useRef();
