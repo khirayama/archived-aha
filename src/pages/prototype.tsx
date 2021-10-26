@@ -226,18 +226,20 @@ const schema = new Schema({
           0,
         ];
       },
-      // parseDOM: [
-      //   {
-      //     tag: 'div',
-      //     getAttrs: (dom) => {
-      //       console.log(dom.getAttribute('indent'));
-      //       return {
-      //         type: 'paragraph',
-      //         indent: dom.indent,
-      //       };
-      //     },
-      //   },
-      // ],
+      parseDOM: [
+        {
+          tag: 'div',
+          attrs: {
+            type: 'paragraph',
+          },
+          getAttrs: (dom) => {
+            console.log(dom.getAttribute('indent'));
+            return {
+              indent: dom.indent,
+            };
+          },
+        },
+      ],
     },
     text: {},
   },
