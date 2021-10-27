@@ -239,7 +239,6 @@ const schema = new Schema({
             type: 'paragraph',
           },
           getAttrs: (dom) => {
-            console.log(dom.getAttribute('indent'));
             return {
               indent: dom.indent,
             };
