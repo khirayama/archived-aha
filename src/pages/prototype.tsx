@@ -14,7 +14,7 @@ import { Schema } from 'prosemirror-model';
 import styles from './prototype.module.scss';
 
 /*
- * - [ ] Indent / Outdent
+ * - [x] Indent / Outdent
  * - [ ] Copy / Past
  *   - https://prosemirror.net/docs/ref/#view.EditorProps.handlePaste
  */
