@@ -5,7 +5,7 @@ import { keymap } from 'prosemirror-keymap';
 import React, { useEffect, useRef } from 'react';
 
 import { customKeymap } from './prototype-commands';
-import { schema } from './prototype-prototype-schema';
+import { schema } from './prototype-schema';
 
 import styles from './prototype.module.scss';
 
