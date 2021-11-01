@@ -1,4 +1,13 @@
-import { baseKeymap, chainCommands, newlineInCode, createParagraphNear, liftEmptyBlock } from 'prosemirror-commands';
+import {
+  baseKeymap,
+  chainCommands,
+  newlineInCode,
+  createParagraphNear,
+  liftEmptyBlock,
+  deleteSelection,
+  joinBackward,
+  selectNodeBackward,
+} from 'prosemirror-commands';
 import { AllSelection, TextSelection } from 'prosemirror-state';
 import { canSplit } from 'prosemirror-transform';
 
@@ -67,9 +76,13 @@ export function outdent(state, dispatch, view) {
   view.dispatch(tr);
 }
 
+let backspace = chainCommands(deleteSelection, joinBackward, selectNodeBackward);
+
 export const customKeymap = {
   ...baseKeymap,
   Enter: chainCommands(newlineInCode, createParagraphNear, liftEmptyBlock, splitBlock),
+  Backspace: backspace,
+  'Mod-Backspace': backspace,
   Tab: indent,
   'Shift-Tab': outdent,
 };
