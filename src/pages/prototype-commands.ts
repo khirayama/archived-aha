@@ -76,7 +76,18 @@ export function outdent(state, dispatch, view) {
   view.dispatch(tr);
 }
 
-const backspace = chainCommands(deleteSelection, joinBackward, selectNodeBackward);
+function outdentWithEmpty(state, dispatch, view) {
+  let isStopPropagation = false;
+  state.doc.nodesBetween(state.selection.from, state.selection.to, (node, pos) => {
+    if (node.content.size === 0 && node.attrs.indent) {
+      outdent(state, dispatch, view);
+      isStopPropagation = true;
+    }
+  });
+  return isStopPropagation;
+}
+
+const backspace = chainCommands(deleteSelection, outdentWithEmpty, joinBackward, selectNodeBackward);
 
 export const customKeymap = {
   ...baseKeymap,
