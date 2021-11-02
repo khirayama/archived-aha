@@ -76,7 +76,7 @@ export function outdent(state, dispatch, view) {
   view.dispatch(tr);
 }
 
-let backspace = chainCommands(deleteSelection, joinBackward, selectNodeBackward);
+const backspace = chainCommands(deleteSelection, joinBackward, selectNodeBackward);
 
 export const customKeymap = {
   ...baseKeymap,
