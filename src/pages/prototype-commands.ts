@@ -103,6 +103,7 @@ function splitBlockKeepIndent(state, dispatch, view) {
     state,
     dispatch &&
       ((tr) => {
+        // TODO support indent
         let marks = state.storedMarks || (state.selection.$to.parentOffset && state.selection.$from.marks());
         if (marks) tr.ensureMarks(marks);
         dispatch(tr);
