@@ -35,7 +35,7 @@ export const schema = new Schema({
           },
           getAttrs: (dom) => {
             return {
-              indent: dom.indent,
+              indent: Number(dom.getAttribute('indent')),
             };
           },
         },
