@@ -16,17 +16,6 @@ export const schema = new Schema({
           default: 0,
         },
       },
-      toDOM: (node) => {
-        return [
-          'div',
-          {
-            type: 'paragraph',
-            indent: node.attrs.indent,
-            class: styles[`indent-${node.attrs.indent}`],
-          },
-          0,
-        ];
-      },
       parseDOM: [
         {
           tag: 'div',
@@ -40,6 +29,17 @@ export const schema = new Schema({
           },
         },
       ],
+      toDOM: (node) => {
+        return [
+          'div',
+          {
+            type: 'paragraph',
+            indent: node.attrs.indent,
+            class: styles[`indent-${node.attrs.indent}`],
+          },
+          0,
+        ];
+      },
     },
     text: {},
   },
