@@ -9,12 +9,6 @@ import { schema } from './prototype-schema';
 
 import styles from './prototype.module.scss';
 
-/*
- * - [x] Indent / Outdent
- * - [ ] Copy / Past
- *   - https://prosemirror.net/docs/ref/#view.EditorProps.handlePaste
- */
-
 let preventTabKeyPlugin = new Plugin({
   props: {
     handleKeyDown(view, event) {
