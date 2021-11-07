@@ -23,8 +23,9 @@ export const schema = new Schema({
             type: 'paragraph',
           },
           getAttrs: (dom) => {
+            const indent = Number(dom.getAttribute('indent'));
             return {
-              indent: Number(dom.getAttribute('indent')),
+              indent,
             };
           },
         },
