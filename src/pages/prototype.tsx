@@ -9,6 +9,14 @@ import { schema } from './prototype-schema';
 
 import styles from './prototype.module.scss';
 
+/*
+ * - Export as markdown like text file
+ *   - Local file sync
+ *    - How to solve conflict?
+ * - Support copy and paste with indent
+ *  - 2 spaces or tab?
+ */
+
 let preventTabKeyPlugin = new Plugin({
   props: {
     handleKeyDown(view, event) {
