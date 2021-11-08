@@ -17,7 +17,7 @@ import styles from './prototype.module.scss';
  *  - 2 spaces or tab?
  */
 
-let preventTabKeyPlugin = new Plugin({
+const preventTabKeyPlugin = new Plugin({
   props: {
     handleKeyDown(view, event) {
       if (event.keyCode === 9 /* Tab */) {
