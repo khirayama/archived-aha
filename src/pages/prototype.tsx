@@ -21,8 +21,28 @@ import styles from './prototype.module.scss';
 const preventTabKeyPlugin = new Plugin({
   props: {
     handleKeyDown(view, event) {
-      if (event.keyCode === 9 /* Tab */) {
+      if (event.code === 'Tab') {
         event.preventDefault();
+      }
+    },
+  },
+});
+
+const detectKeyword = new Plugin({
+  props: {
+    handleKeyDown(view, event) {
+      if (event.code === 'Space') {
+        const text = event.target.innerText;
+        console.log(view);
+        let tr = view.tr;
+        // view.doc.nodesBetween(view.selection.from, view.selection.to, (node, pos) => {
+        //   if (node.type.attrs.indent) {
+        //     tr.setNodeMarkup(pos, null, {
+        //       indent: Math.min(node.attrs.indent + 1, 8),
+        //     });
+        //   }
+        // });
+        view.dispatch(tr);
       }
     },
   },
@@ -36,6 +56,7 @@ function Editor(props) {
       schema,
       plugins: [
         preventTabKeyPlugin,
+        detectKeyword,
         history(),
         keymap(customKeymap),
         keymap({
