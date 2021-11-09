@@ -42,6 +42,8 @@ export const schema = new Schema({
         ];
       },
     },
-    text: {},
+    text: {
+      inline: true,
+    },
   },
 });

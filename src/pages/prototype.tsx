@@ -10,11 +10,12 @@ import { schema } from './prototype-schema';
 import styles from './prototype.module.scss';
 
 /*
+ * - Detect keyword
  * - Export as markdown like text file
  *   - Local file sync
- *    - How to solve conflict?
+ *     - How to solve conflict?
  * - Support copy and paste with indent
- *  - 2 spaces or tab?
+ *   - 2 spaces or tab?
  */
 
 const preventTabKeyPlugin = new Plugin({
