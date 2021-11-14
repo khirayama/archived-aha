@@ -33,15 +33,15 @@ const detectKeyword = new Plugin({
     handleKeyDown(view, event) {
       if (event.code === 'Space') {
         const text = event.target.innerText;
-        console.log(view);
-        let tr = view.tr;
-        // view.doc.nodesBetween(view.selection.from, view.selection.to, (node, pos) => {
-        //   if (node.type.attrs.indent) {
-        //     tr.setNodeMarkup(pos, null, {
-        //       indent: Math.min(node.attrs.indent + 1, 8),
-        //     });
-        //   }
-        // });
+        const state = view.state;
+        const tr = state.tr;
+        state.doc.nodesBetween(state.selection.from, state.selection.to, (node, pos) => {
+          if (node.type.attrs.indent) {
+            tr.setNodeMarkup(pos, null, {
+              indent: Math.min(node.attrs.indent + 1, 8),
+            });
+          }
+        });
         view.dispatch(tr);
       }
     },
