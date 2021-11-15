@@ -1,5 +1,7 @@
 import { Schema } from 'prosemirror-model';
 
+import { orderedList, bulletList, listItem, listGroup, itemContent, add } from './prototype-schema-list';
+
 import styles from './prototype.module.scss';
 
 export const schema = new Schema({
@@ -42,6 +44,9 @@ export const schema = new Schema({
         ];
       },
     },
+    ordered_list: add(orderedList, { content: 'list_item+', group: listGroup }),
+    bullet_list: add(bulletList, { content: 'list_item+', group: listGroup }),
+    list_item: add(listItem, { content: itemContent }),
     text: {
       inline: true,
     },
