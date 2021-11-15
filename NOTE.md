@@ -9,3 +9,8 @@
 
 - マウスでの操作は可能か
 - 複数行ブロックも対応しているか
+
+## References
+
+- [ProseMirrorドキュメント読みメモ](https://zenn.dev/pirosikick/scraps/cd7250743efd76)
+- [PierBover/prosemirror-cookbook: A series of examples for understanding ProseMirror](https://github.com/PierBover/prosemirror-cookbook)
