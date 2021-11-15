@@ -39,7 +39,7 @@ export const schema = new Schema({
           {
             type: 'paragraph',
             indent: node.attrs.indent,
-            class: 'paragraph ' + styles[`indent-${node.attrs.indent}`],
+            class: [styles['paragraph'], styles[`indent-${node.attrs.indent}`]].join(' '),
           },
           0,
         ];
@@ -74,7 +74,7 @@ export const schema = new Schema({
           {
             type: 'blockquote',
             indent: node.attrs.indent,
-            class: 'blockquote ' + styles[`indent-${node.attrs.indent}`],
+            class: [styles['blockquote'], styles[`indent-${node.attrs.indent}`]].join(' '),
           },
           0,
         ];
