@@ -1,14 +1,16 @@
 import { Schema } from 'prosemirror-model';
+import { findWrapping } from 'prosemirror-transform';
 import { schema as basicSchema } from 'prosemirror-schema-basic';
 import {
   InputRule,
   inputRules,
-  wrappingInputRule,
+  // wrappingInputRule,
   textblockTypeInputRule,
   smartQuotes,
   emDash,
   ellipsis,
 } from 'prosemirror-inputrules';
+import { wrapIn } from 'prosemirror-commands';
 
 import styles from './prototype.module.scss';
 
@@ -95,6 +97,35 @@ export const schema = new Schema({
   },
 });
 
+function wrappingInputRule(regexp, nodeType, getAttrs, joinPredicate) {
+  return new InputRule(regexp, (state, match, start, end) => {
+    console.log('--- 0 ---');
+    let attrs = getAttrs instanceof Function ? getAttrs(match) : getAttrs;
+    let tr = state.tr.delete(start, end);
+    let $start = tr.doc.resolve(start);
+    const range = $start.blockRange();
+    console.log('range', range);
+    // const wrapping = range && findWrapping(range, nodeType, attrs);
+    const wrapping = range;
+    console.log('--- 1 ---');
+    if (!wrapping) return null;
+    // tr.wrap(range, wrapping);
+    let before = tr.doc.resolve(start - 1).nodeBefore;
+    console.log('--- 2 ---');
+    if (
+      before &&
+      before.type == nodeType &&
+      canJoin(tr.doc, start - 1) &&
+      (!joinPredicate || joinPredicate(match, before))
+    ) {
+      console.log('--- 3 ---');
+      tr.join(start - 1);
+    }
+    console.log('--- 4 ---');
+    return tr;
+  });
+}
+
 function blockQuoteRule(nodeType) {
   console.log('hi, blockQuoteRule', nodeType);
   // return wrappingInputRule(/^\s*>\s$/, nodeType);
@@ -107,12 +138,15 @@ export function buildInputRules() {
   // console.log(schema.nodes.blockquote);
   return inputRules({
     rules: [
-      // new InputRule(/^\s*>\s$/, () => {
-      //   console.log('hi');
-      // }),
-      wrappingInputRule(/>\s$/, schema.nodes.blockquote, () => {
-        console.log('match!');
+      new InputRule(/^\s*>\s$/, (state) => {
+        console.log('hi');
+        console.log(state);
+        wrapIn(schema.nodes.blockquote);
+        return state.tr;
       }),
+      // wrappingInputRule(/>\s$/, schema.nodes.blockquote, () => {
+      //   console.log('match!');
+      // }),
     ],
   });
 }
