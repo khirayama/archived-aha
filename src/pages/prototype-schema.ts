@@ -1,5 +1,14 @@
 import { Schema } from 'prosemirror-model';
 import { schema as basicSchema } from 'prosemirror-schema-basic';
+import {
+  InputRule,
+  inputRules,
+  wrappingInputRule,
+  textblockTypeInputRule,
+  smartQuotes,
+  emDash,
+  ellipsis,
+} from 'prosemirror-inputrules';
 
 import styles from './prototype.module.scss';
 
@@ -85,3 +94,25 @@ export const schema = new Schema({
     },
   },
 });
+
+function blockQuoteRule(nodeType) {
+  console.log('hi, blockQuoteRule', nodeType);
+  // return wrappingInputRule(/^\s*>\s$/, nodeType);
+  return wrappingInputRule(/>\s$/, nodeType);
+}
+
+export function buildInputRules() {
+  // let rules = smartQuotes.concat();
+  // rules.push(blockQuoteRule(schema.nodes.blockquote));
+  // console.log(schema.nodes.blockquote);
+  return inputRules({
+    rules: [
+      // new InputRule(/^\s*>\s$/, () => {
+      //   console.log('hi');
+      // }),
+      wrappingInputRule(/>\s$/, schema.nodes.blockquote, () => {
+        console.log('match!');
+      }),
+    ],
+  });
+}
