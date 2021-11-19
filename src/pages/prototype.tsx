@@ -5,7 +5,7 @@ import { keymap } from 'prosemirror-keymap';
 import React, { useEffect, useRef } from 'react';
 
 import { customKeymap } from './prototype-commands';
-import { schema } from './prototype-schema';
+import { schema, buildInputRules } from './prototype-schema';
 
 import styles from './prototype.module.scss';
 
@@ -28,26 +28,6 @@ const preventTabKeyPlugin = new Plugin({
   },
 });
 
-const detectKeyword = new Plugin({
-  props: {
-    handleKeyDown(view, event) {
-      if (event.code === 'Space') {
-        const text = event.target.innerText;
-        const state = view.state;
-        const tr = state.tr;
-        state.doc.nodesBetween(state.selection.from, state.selection.to, (node, pos) => {
-          if (node.type.attrs.indent) {
-            tr.setNodeMarkup(pos, null, {
-              indent: Math.min(node.attrs.indent + 1, 8),
-            });
-          }
-        });
-        view.dispatch(tr);
-      }
-    },
-  },
-});
-
 function Editor(props) {
   const ref = useRef();
 
@@ -55,8 +35,8 @@ function Editor(props) {
     const state = EditorState.create({
       schema,
       plugins: [
+        buildInputRules(),
         preventTabKeyPlugin,
-        detectKeyword,
         history(),
         keymap(customKeymap),
         keymap({
