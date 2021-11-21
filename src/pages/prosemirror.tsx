@@ -15,6 +15,8 @@ console.log(schema);
 
 import { Schema } from 'prosemirror-model';
 
+import styles from './prototype.module.scss';
+
 /*
  * - [Lightweight React integration example - Show - discuss.ProseMirror](https://discuss.prosemirror.net/t/lightweight-react-integration-example/2680)
  * - [ProseMirror Guide](https://prosemirror.net/docs/guide/)
@@ -32,39 +34,68 @@ import { Schema } from 'prosemirror-model';
  * - Popup window
  */
 
-// const schema = new Schema({
-//   nodes: {
-//     doc: {
-//       content: 'block+',
-//     },
-//     paragraph: {
-//       group: 'block',
-//       content: 'text*',
-//       draggable: true,
-//       toDOM: (node) => {
-//         return ['div', 0];
-//       },
-//     },
-//     blockgroup: {
-//       group: 'block',
-//       content: 'block*',
-//       draggable: true,
-//       toDOM: (node) => {
-//         return ['div', 0];
-//       },
-//     },
-//     text: {},
-//   },
-// });
+const mySchema = new Schema({
+  nodes: {
+    doc: {
+      content: 'block+',
+    },
+    paragraph: {
+      group: 'block',
+      content: 'text*',
+      parseDOM: [
+        {
+          tag: 'div',
+          attrs: {
+            type: 'paragraph',
+          },
+        },
+      ],
+      toDOM: (node) => {
+        return [
+          'div',
+          {
+            type: 'paragraph',
+            class: styles['paragraph'],
+          },
+          0,
+        ];
+      },
+    },
+    blockgroup: {
+      group: 'block',
+      content: 'block+',
+      defining: true,
+      parseDOM: [
+        {
+          tag: 'div',
+          attrs: {
+            type: 'blockgroup',
+          },
+        },
+      ],
+      toDOM: (node) => {
+        return [
+          'div',
+          {
+            type: 'blockgroup',
+            class: styles['blockgroup'],
+          },
+          0,
+        ];
+      },
+    },
+    text: {},
+  },
+});
 
 function Editor(props) {
   const ref = useRef();
 
   useEffect(() => {
     const state = EditorState.create({
-      schema,
+      schema: mySchema,
       plugins: [
-        ...exampleSetup({ schema }),
+        ...exampleSetup({ schema: mySchema }),
         keymap({
           'Ctrl-<': lift,
         }),
