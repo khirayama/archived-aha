@@ -1,19 +1,18 @@
-import 'prosemirror-menu/style/menu.css';
-import 'prosemirror-view/style/prosemirror.css';
-import 'prosemirror-example-setup/style/style.css';
+import React, { useEffect, useRef } from 'react';
 
 import { EditorState, Selection, Plugin } from 'prosemirror-state';
 import { EditorView } from 'prosemirror-view';
+import { Schema } from 'prosemirror-model';
 import { schema } from 'prosemirror-schema-basic';
 import { undo, redo, history } from 'prosemirror-history';
-import { keymap } from 'prosemirror-keymap';
-import { baseKeymap } from 'prosemirror-commands';
-import React, { useEffect, useRef } from 'react';
-import { exampleSetup } from 'prosemirror-example-setup';
-import { lift, joinUp, selectParentNode, wrapIn, setBlockType } from 'prosemirror-commands';
-console.log(schema);
 
-import { Schema } from 'prosemirror-model';
+import { keymap } from 'prosemirror-keymap';
+import { baseKeymap, lift, joinUp, selectParentNode, wrapIn, setBlockType } from 'prosemirror-commands';
+import { exampleSetup } from 'prosemirror-example-setup';
+
+import 'prosemirror-menu/style/menu.css';
+import 'prosemirror-view/style/prosemirror.css';
+import 'prosemirror-example-setup/style/style.css';
 
 import styles from './prototype.module.scss';
 
