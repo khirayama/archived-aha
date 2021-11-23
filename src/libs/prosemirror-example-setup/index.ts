@@ -1,16 +1,17 @@
-import {keymap} from "prosemirror-keymap"
-import {history} from "prosemirror-history"
-import {baseKeymap} from "prosemirror-commands"
-import {Plugin} from "prosemirror-state"
-import {dropCursor} from "prosemirror-dropcursor"
-import {gapCursor} from "prosemirror-gapcursor"
-import {menuBar} from "prosemirror-menu"
+import { history } from 'prosemirror-history';
+import { Plugin } from 'prosemirror-state';
+import { dropCursor } from 'prosemirror-dropcursor';
+import { gapCursor } from 'prosemirror-gapcursor';
+import { menuBar } from 'prosemirror-menu';
 
-import {buildMenuItems} from "./menu"
-import {buildKeymap} from "./keymap"
-import {buildInputRules} from "./inputrules"
+import { keymap } from '../prosemirror-keymap/keymap';
+import { baseKeymap } from '../prosemirror-commands/commands';
 
-export {buildMenuItems, buildKeymap, buildInputRules}
+import { buildMenuItems } from './menu';
+import { buildKeymap } from './keymap';
+import { buildInputRules } from './inputrules';
+
+export { buildMenuItems, buildKeymap, buildInputRules };
 
 // !! This module exports helper functions for deriving a set of basic
 // menu items, input rules, or key bindings from a schema. These
@@ -54,17 +55,22 @@ export function exampleSetup(options) {
     keymap(buildKeymap(options.schema, options.mapKeys)),
     keymap(baseKeymap),
     dropCursor(),
-    gapCursor()
-  ]
+    gapCursor(),
+  ];
   if (options.menuBar !== false)
-    plugins.push(menuBar({floating: options.floatingMenu !== false,
-                          content: options.menuContent || buildMenuItems(options.schema).fullMenu}))
-  if (options.history !== false)
-    plugins.push(history())
+    plugins.push(
+      menuBar({
+        floating: options.floatingMenu !== false,
+        content: options.menuContent || buildMenuItems(options.schema).fullMenu,
+      }),
+    );
+  if (options.history !== false) plugins.push(history());
 
-  return plugins.concat(new Plugin({
-    props: {
-      attributes: {class: "ProseMirror-example-setup-style"}
-    }
-  }))
+  return plugins.concat(
+    new Plugin({
+      props: {
+        attributes: { class: 'ProseMirror-example-setup-style' },
+      },
+    }),
+  );
 }

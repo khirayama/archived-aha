@@ -1,5 +1,6 @@
-import {InputRule} from "./inputrules"
-import {findWrapping, canJoin} from "prosemirror-transform"
+import { findWrapping, canJoin } from 'prosemirror-transform';
+
+import { InputRule } from './inputrules';
 
 // :: (RegExp, NodeType, ?union<Object, ([string]) → ?Object>, ?([string], Node) → bool) → InputRule
 // Build an input rule for automatically wrapping a textblock when a
@@ -19,17 +20,23 @@ import {findWrapping, canJoin} from "prosemirror-transform"
 // return a boolean to indicate whether a join should happen.
 export function wrappingInputRule(regexp, nodeType, getAttrs, joinPredicate) {
   return new InputRule(regexp, (state, match, start, end) => {
-    let attrs = getAttrs instanceof Function ? getAttrs(match) : getAttrs
-    let tr = state.tr.delete(start, end)
-    let $start = tr.doc.resolve(start), range = $start.blockRange(), wrapping = range && findWrapping(range, nodeType, attrs)
-    if (!wrapping) return null
-    tr.wrap(range, wrapping)
-    let before = tr.doc.resolve(start - 1).nodeBefore
-    if (before && before.type == nodeType && canJoin(tr.doc, start - 1) &&
-        (!joinPredicate || joinPredicate(match, before)))
-      tr.join(start - 1)
-    return tr
-  })
+    let attrs = getAttrs instanceof Function ? getAttrs(match) : getAttrs;
+    let tr = state.tr.delete(start, end);
+    let $start = tr.doc.resolve(start),
+      range = $start.blockRange(),
+      wrapping = range && findWrapping(range, nodeType, attrs);
+    if (!wrapping) return null;
+    tr.wrap(range, wrapping);
+    let before = tr.doc.resolve(start - 1).nodeBefore;
+    if (
+      before &&
+      before.type == nodeType &&
+      canJoin(tr.doc, start - 1) &&
+      (!joinPredicate || joinPredicate(match, before))
+    )
+      tr.join(start - 1);
+    return tr;
+  });
 }
 
 // :: (RegExp, NodeType, ?union<Object, ([string]) → ?Object>) → InputRule
@@ -41,11 +48,9 @@ export function wrappingInputRule(regexp, nodeType, getAttrs, joinPredicate) {
 // `wrappingInputRule` function.
 export function textblockTypeInputRule(regexp, nodeType, getAttrs) {
   return new InputRule(regexp, (state, match, start, end) => {
-    let $start = state.doc.resolve(start)
-    let attrs = getAttrs instanceof Function ? getAttrs(match) : getAttrs
-    if (!$start.node(-1).canReplaceWith($start.index(-1), $start.indexAfter(-1), nodeType)) return null
-    return state.tr
-      .delete(start, end)
-      .setBlockType(start, start, nodeType, attrs)
-  })
+    let $start = state.doc.resolve(start);
+    let attrs = getAttrs instanceof Function ? getAttrs(match) : getAttrs;
+    if (!$start.node(-1).canReplaceWith($start.index(-1), $start.indexAfter(-1), nodeType)) return null;
+    return state.tr.delete(start, end).setBlockType(start, start, nodeType, attrs);
+  });
 }
