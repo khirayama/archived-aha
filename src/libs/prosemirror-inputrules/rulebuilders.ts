@@ -22,10 +22,12 @@ export function wrappingInputRule(regexp, nodeType, getAttrs, joinPredicate) {
   return new InputRule(regexp, (state, match, start, end) => {
     let attrs = getAttrs instanceof Function ? getAttrs(match) : getAttrs;
     let tr = state.tr.delete(start, end);
-    let $start = tr.doc.resolve(start),
-      range = $start.blockRange(),
-      wrapping = range && findWrapping(range, nodeType, attrs);
-    if (!wrapping) return null;
+    let $start = tr.doc.resolve(start);
+    let range = $start.blockRange();
+    let wrapping = range && findWrapping(range, nodeType, attrs);
+    if (!wrapping) {
+      return null;
+    }
     tr.wrap(range, wrapping);
     let before = tr.doc.resolve(start - 1).nodeBefore;
     if (
