@@ -81,8 +81,8 @@ const mySchema = new Schema({
     },
     indentation: {
       group: 'block',
-      content: 'block+',
-      defining: true,
+      // content: 'block+',
+      content: 'block',
       parseDOM: [
         {
           tag: 'div',
@@ -106,6 +106,16 @@ const mySchema = new Schema({
   },
 });
 
+const preventTabKeyPlugin = new Plugin({
+  props: {
+    handleKeyDown(view, event) {
+      if (event.code === 'Tab') {
+        event.preventDefault();
+      }
+    },
+  },
+});
+
 function Editor(props) {
   const ref = useRef();
 
@@ -114,6 +124,7 @@ function Editor(props) {
       schema: mySchema,
       plugins: [
         history(),
+        preventTabKeyPlugin,
         buildInputRules(mySchema),
         keymap(buildKeymap(mySchema)),
         keymap(baseKeymap),
@@ -181,8 +192,8 @@ const mac = typeof navigator != 'undefined' ? /Mac/.test(navigator.platform) : f
 // argument, which maps key names (say `"Mod-B"` to either `false`, to
 // remove the binding, or a new key name string.
 export function buildKeymap(schema, mapKeys) {
-  let keys = {},
-    type;
+  let keys = {};
+  let typ;
   function bind(key, cmd) {
     if (mapKeys) {
       let mapped = mapKeys[key];
@@ -202,21 +213,24 @@ export function buildKeymap(schema, mapKeys) {
   bind('Mod-BracketLeft', lift);
   bind('Escape', selectParentNode);
 
-  if ((type = schema.marks.strong)) {
-    bind('Mod-b', toggleMark(type));
-    bind('Mod-B', toggleMark(type));
-  }
-  if ((type = schema.marks.em)) {
-    bind('Mod-i', toggleMark(type));
-    bind('Mod-I', toggleMark(type));
-  }
-  if ((type = schema.marks.code)) bind('Mod-`', toggleMark(type));
+  if ((typ = schema.nodes.indentation)) bind('Tab', wrapIn(typ));
+  if ((typ = schema.nodes.indentation)) bind('Shift-Tab', lift);
+  if ((typ = schema.nodes.indentation)) bind('Ctrl->', wrapIn(typ));
 
-  if ((type = schema.nodes.bullet_list)) bind('Shift-Ctrl-8', wrapInList(type));
-  if ((type = schema.nodes.ordered_list)) bind('Shift-Ctrl-9', wrapInList(type));
-  if ((type = schema.nodes.indentation)) bind('Ctrl->', wrapIn(type));
-  if ((type = schema.nodes.hard_break)) {
-    let br = type,
+  if ((typ = schema.marks.strong)) {
+    bind('Mod-b', toggleMark(typ));
+    bind('Mod-B', toggleMark(typ));
+  }
+  if ((typ = schema.marks.em)) {
+    bind('Mod-i', toggleMark(typ));
+    bind('Mod-I', toggleMark(typ));
+  }
+  if ((typ = schema.marks.code)) bind('Mod-`', toggleMark(typ));
+
+  if ((typ = schema.nodes.bullet_list)) bind('Shift-Ctrl-8', wrapInList(typ));
+  if ((typ = schema.nodes.ordered_list)) bind('Shift-Ctrl-9', wrapInList(typ));
+  if ((typ = schema.nodes.hard_break)) {
+    let br = typ,
       cmd = chainCommands(exitCode, (state, dispatch) => {
         dispatch(state.tr.replaceSelectionWith(br.create()).scrollIntoView());
         return true;
@@ -225,17 +239,17 @@ export function buildKeymap(schema, mapKeys) {
     bind('Shift-Enter', cmd);
     if (mac) bind('Ctrl-Enter', cmd);
   }
-  if ((type = schema.nodes.list_item)) {
-    bind('Enter', splitListItem(type));
-    bind('Mod-[', liftListItem(type));
-    bind('Mod-]', sinkListItem(type));
+  if ((typ = schema.nodes.list_item)) {
+    bind('Enter', splitListItem(typ));
+    bind('Mod-[', liftListItem(typ));
+    bind('Mod-]', sinkListItem(typ));
   }
-  if ((type = schema.nodes.paragraph)) bind('Shift-Ctrl-0', setBlockType(type));
-  if ((type = schema.nodes.code_block)) bind('Shift-Ctrl-\\', setBlockType(type));
-  if ((type = schema.nodes.heading))
-    for (let i = 1; i <= 6; i++) bind('Shift-Ctrl-' + i, setBlockType(type, { level: i }));
-  if ((type = schema.nodes.horizontal_rule)) {
-    let hr = type;
+  if ((typ = schema.nodes.paragraph)) bind('Shift-Ctrl-0', setBlockType(typ));
+  if ((typ = schema.nodes.code_block)) bind('Shift-Ctrl-\\', setBlockType(typ));
+  if ((typ = schema.nodes.heading))
+    for (let i = 1; i <= 6; i++) bind('Shift-Ctrl-' + i, setBlockType(typ, { level: i }));
+  if ((typ = schema.nodes.horizontal_rule)) {
+    let hr = typ;
     bind('Mod-_', (state, dispatch) => {
       dispatch(state.tr.replaceSelectionWith(hr.create()).scrollIntoView());
       return true;
@@ -249,7 +263,7 @@ export function buildKeymap(schema, mapKeys) {
 // : (NodeType) → InputRule
 // Given a indentation node type, returns an input rule that turns `"> "`
 // at the start of a textblock into a indentation.
-export function blockQuoteRule(nodeType) {
+export function indentationRule(nodeType) {
   return wrappingInputRule(/^\s*>\s$/, nodeType);
 }
 
@@ -295,12 +309,12 @@ export function headingRule(nodeType, maxLevel) {
 // A set of input rules for creating the basic block quotes, lists,
 // code blocks, and heading.
 export function buildInputRules(schema) {
-  let rules = smartQuotes.concat(ellipsis, emDash),
-    type;
-  if ((type = schema.nodes.indentation)) rules.push(blockQuoteRule(type));
-  if ((type = schema.nodes.ordered_list)) rules.push(orderedListRule(type));
-  if ((type = schema.nodes.bullet_list)) rules.push(bulletListRule(type));
-  if ((type = schema.nodes.code_block)) rules.push(codeBlockRule(type));
-  if ((type = schema.nodes.heading)) rules.push(headingRule(type, 6));
+  const rules = smartQuotes.concat(ellipsis, emDash);
+  let typ;
+  if ((typ = schema.nodes.indentation)) rules.push(indentationRule(typ));
+  if ((typ = schema.nodes.ordered_list)) rules.push(orderedListRule(typ));
+  if ((typ = schema.nodes.bullet_list)) rules.push(bulletListRule(typ));
+  if ((typ = schema.nodes.code_block)) rules.push(codeBlockRule(typ));
+  if ((typ = schema.nodes.heading)) rules.push(headingRule(typ, 6));
   return inputRules({ rules });
 }
