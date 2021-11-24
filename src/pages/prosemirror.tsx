@@ -6,9 +6,16 @@ import { Schema } from 'prosemirror-model';
 import { schema } from 'prosemirror-schema-basic';
 import { undo, redo, history } from 'prosemirror-history';
 
-import { keymap } from 'prosemirror-keymap';
-import { baseKeymap, lift, joinUp, selectParentNode, wrapIn, setBlockType } from 'prosemirror-commands';
-import { exampleSetup } from 'prosemirror-example-setup';
+import { keymap } from '../libs/prosemirror-keymap/keymap';
+import {
+  baseKeymap,
+  lift,
+  joinUp,
+  selectParentNode,
+  wrapIn,
+  setBlockType,
+} from '../libs/prosemirror-commands/commands';
+import { exampleSetup } from '../libs/prosemirror-example-setup';
 
 import 'prosemirror-menu/style/menu.css';
 import 'prosemirror-view/style/prosemirror.css';
@@ -92,9 +99,11 @@ function Editor(props) {
 
   useEffect(() => {
     const state = EditorState.create({
-      schema: mySchema,
+      // schema: mySchema,
+      schema,
       plugins: [
-        ...exampleSetup({ schema: mySchema }),
+        // ...exampleSetup({ schema: mySchema }),
+        ...exampleSetup({ schema }),
         keymap({
           'Ctrl-<': lift,
         }),
