@@ -79,10 +79,10 @@ export function outdent(state, dispatch, view) {
   view.dispatch(tr);
 }
 
-function outdentWithEmpty(state, dispatch, view) {
+function outdentWithHead(state, dispatch, view) {
   let isStopPropagation = false;
   state.doc.nodesBetween(state.selection.from, state.selection.to, (node, pos) => {
-    if (node.content.size === 0 && node.attrs.indent) {
+    if (!state.selection.$focus && state.selection.$anchor.parentOffset === 0 && node.attrs.indent) {
       outdent(state, dispatch, view);
       isStopPropagation = true;
     }
@@ -91,7 +91,7 @@ function outdentWithEmpty(state, dispatch, view) {
 }
 
 const enter = chainCommands(newlineInCode, createParagraphNear, liftEmptyBlock, splitBlockKeepIndent);
-const backspace = chainCommands(deleteSelection, outdentWithEmpty, joinBackward, selectNodeBackward);
+const backspace = chainCommands(deleteSelection, joinBackward, outdentWithHead, selectNodeBackward);
 
 export const customKeymap = {
   ...baseKeymap,
