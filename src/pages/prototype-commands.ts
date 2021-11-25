@@ -33,7 +33,8 @@ export function splitBlockKeepIndent(state, dispatch) {
       tr.deleteSelection();
     }
     const node = $from.node();
-    let deflt = $from.depth == 0 ? null : defaultBlockAt($from.node(-1).contentMatchAt($from.indexAfter(-1)));
+    // let deflt = $from.depth == 0 ? null : defaultBlockAt($from.node(-1).contentMatchAt($from.indexAfter(-1)));
+    let deflt = node.type;
     let types = atEnd && deflt ? [{ type: deflt, attrs: { indent: node.attrs.indent } }] : null;
     let can = canSplit(tr.doc, tr.mapping.map($from.pos), 1, types);
     if (!types && !can && canSplit(tr.doc, tr.mapping.map($from.pos), 1, deflt && [{ type: deflt }])) {
