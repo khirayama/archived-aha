@@ -9,9 +9,9 @@ import {
   selectNodeBackward,
 } from 'prosemirror-commands';
 import { AllSelection, TextSelection } from 'prosemirror-state';
-import { Mark } from 'prosemirror-model';
 import { canSplit } from 'prosemirror-transform';
-import { disconnect } from 'cluster';
+
+import { schema } from './prototype-schema';
 
 // https://github.com/ProseMirror/prosemirror-commands/blob/master/src/commands.js#L236-L242
 function defaultBlockAt(match) {
