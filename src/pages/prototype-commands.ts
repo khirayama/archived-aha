@@ -82,8 +82,27 @@ export function outdent(state, dispatch, view) {
 function outdentWithHead(state, dispatch, view) {
   let isStopPropagation = false;
   state.doc.nodesBetween(state.selection.from, state.selection.to, (node, pos) => {
+    const tr = state.tr;
     if (!state.selection.$focus && state.selection.$anchor.parentOffset === 0 && node.attrs.indent) {
-      outdent(state, dispatch, view);
+      if (node.isBlcok && node.type.name !== 'paragraph') {
+        tr.setBlockType(state.selection.from, state.selection.to, schema.nodes.paragraph, node.attrs);
+        view.dispatch(tr);
+      } else {
+        outdent(state, dispatch, view);
+      }
+      isStopPropagation = true;
+    }
+  });
+  return isStopPropagation;
+}
+
+function turnIntoParagraphWithEmpty(state, dispatch, view) {
+  let isStopPropagation = false;
+  state.doc.nodesBetween(state.selection.from, state.selection.to, (node, pos) => {
+    const tr = state.tr;
+    if (node.isBlock && node.type.name !== 'paragraph' && node.content.size == 0) {
+      tr.setBlockType(state.selection.from, state.selection.to, schema.nodes.paragraph, node.attrs);
+      view.dispatch(tr);
       isStopPropagation = true;
     }
   });
