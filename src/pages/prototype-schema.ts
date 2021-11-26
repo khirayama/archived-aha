@@ -1,16 +1,6 @@
 import { Schema } from 'prosemirror-model';
-import { findWrapping } from 'prosemirror-transform';
 import { schema as basicSchema } from 'prosemirror-schema-basic';
-import {
-  InputRule,
-  inputRules,
-  wrappingInputRule,
-  textblockTypeInputRule,
-  smartQuotes,
-  emDash,
-  ellipsis,
-} from '../libs/prosemirror-inputrules';
-import { wrapIn } from '../libs/prosemirror-commands';
+import { InputRule, inputRules } from '../libs/prosemirror-inputrules';
 
 import styles from './prototype.module.scss';
 
@@ -50,15 +40,15 @@ export const schema = new Schema({
           {
             type: 'paragraph',
             indent: node.attrs.indent,
-            class: [styles['paragraph'], styles[`indent-${node.attrs.indent}`]].join(' '),
+            class: styles['paragraph'],
           },
           0,
         ];
       },
     },
-    blockquote: {
+    quote: {
       group: 'block',
-      content: 'block+',
+      content: 'text*',
       // draggable: true,
       attrs: {
         indent: {
@@ -69,7 +59,7 @@ export const schema = new Schema({
         {
           tag: 'div',
           attrs: {
-            type: 'blockquote',
+            type: 'quote',
           },
           getAttrs: (dom) => {
             const indent = Number(dom.getAttribute('indent'));
@@ -83,9 +73,9 @@ export const schema = new Schema({
         return [
           'div',
           {
-            type: 'blockquote',
+            type: 'quote',
             indent: node.attrs.indent,
-            class: [styles['blockquote'], styles[`indent-${node.attrs.indent}`]].join(' '),
+            class: styles['quote'],
           },
           0,
         ];
@@ -97,26 +87,14 @@ export const schema = new Schema({
   },
 });
 
-function blockQuoteRule(nodeType) {
-  console.log('hi, blockQuoteRule', nodeType);
-  // return wrappingInputRule(/^\s*>\s$/, nodeType);
-  return wrappingInputRule(/>\s$/, nodeType);
-}
-
 export function buildInputRules() {
-  // let rules = smartQuotes.concat();
-  // rules.push(blockQuoteRule(schema.nodes.blockquote));
-  // console.log(schema.nodes.blockquote);
   return inputRules({
     rules: [
-      // new InputRule(/^\s*>\s$/, (state) => {
-      //   console.log('hi');
-      //   console.log(state);
-      //   wrapIn(schema.nodes.blockquote);
-      //   return state.tr;
-      // }),
-      wrappingInputRule(/^\s*>\s$/, schema.nodes.blockquote, () => {
-        console.log('match!');
+      new InputRule(/^\s*>\s$/, (state, match, start, end) => {
+        const tr = state.tr.delete(start, end);
+        const node = state.selection.$from.node();
+        tr.setBlockType(start, end, schema.nodes.quote, node.attrs);
+        return tr;
       }),
     ],
   });
