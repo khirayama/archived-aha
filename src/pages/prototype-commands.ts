@@ -109,8 +109,15 @@ function turnIntoParagraphWithEmpty(state, dispatch, view) {
   return isStopPropagation;
 }
 
-const enter = chainCommands(newlineInCode, createParagraphNear, liftEmptyBlock, splitBlockKeepIndent);
-const backspace = chainCommands(deleteSelection, joinBackward, outdentWithHead, selectNodeBackward);
+const enter = chainCommands(
+  turnIntoParagraphWithEmpty,
+  newlineInCode,
+  createParagraphNear,
+  liftEmptyBlock,
+  splitBlockKeepIndent,
+);
+// TODO: paragraph以外のblockで先頭でdeleteするとblock typeをparagraphにする
+const backspace = chainCommands(deleteSelection, outdentWithHead, joinBackward, selectNodeBackward);
 
 export const customKeymap = {
   ...baseKeymap,
