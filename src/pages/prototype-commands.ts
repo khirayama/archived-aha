@@ -116,7 +116,6 @@ const enter = chainCommands(
   liftEmptyBlock,
   splitBlockKeepIndent,
 );
-// TODO: paragraph以外のblockで先頭でdeleteするとblock typeをparagraphにする
 const backspace = chainCommands(deleteSelection, outdentWithHead, joinBackward, selectNodeBackward);
 
 export const customKeymap = {
