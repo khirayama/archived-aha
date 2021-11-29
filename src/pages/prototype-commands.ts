@@ -84,7 +84,7 @@ function outdentWithHead(state, dispatch, view) {
   state.doc.nodesBetween(state.selection.from, state.selection.to, (node, pos) => {
     const tr = state.tr;
     if (!state.selection.$focus && state.selection.$anchor.parentOffset === 0 && node.attrs.indent) {
-      if (node.isBlcok && node.type.name !== 'paragraph') {
+      if (node.isBlock && node.type.name !== 'paragraph') {
         tr.setBlockType(state.selection.from, state.selection.to, schema.nodes.paragraph, node.attrs);
         view.dispatch(tr);
       } else {
