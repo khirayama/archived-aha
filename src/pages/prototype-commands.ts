@@ -116,7 +116,8 @@ const enter = chainCommands(
   liftEmptyBlock,
   splitBlockKeepIndent,
 );
-const backspace = chainCommands(deleteSelection, outdentWithHead, joinBackward, selectNodeBackward);
+
+const backspace = chainCommands(turnIntoParagraphWithEmpty, deleteSelection, outdentWithHead, joinBackward);
 
 export const customKeymap = {
   ...baseKeymap,
