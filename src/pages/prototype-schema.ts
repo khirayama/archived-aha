@@ -6,31 +6,53 @@ import styles from './prototype.module.scss';
 
 console.log(basicSchema);
 
+function createBlockNode(nodeSpec) {
+  const attrs = {
+    ...(nodeSpec.attrs || {}),
+    indent: {
+      default: 0,
+    },
+  };
+
+  const originalGetAttrs = nodeSpec.parseDOM[0].getAttrs || (() => ({}));
+  const getAttrs = (dom) => {
+    const indent = Number(dom.getAttribute('indent'));
+    return {
+      ...originalGetAttrs(dom),
+      indent,
+    };
+  };
+  nodeSpec.parseDOM[0].getAttrs = getAttrs;
+
+  const originalToDOM = nodeSpec.toDOM;
+  const toDOM = (node) => {
+    const dom = originalToDOM(node);
+    dom[1].indent = node.attrs.indent;
+    return dom;
+  };
+  nodeSpec.toDOM = toDOM;
+
+  return {
+    ...nodeSpec,
+    group: 'block',
+    content: 'text*',
+    draggable: true,
+    selectable: true,
+    attrs,
+  };
+}
+
 export const schema = new Schema({
   nodes: {
     doc: {
       content: 'block+',
     },
-    paragraph: {
-      group: 'block',
-      content: 'text*',
-      // draggable: true,
-      attrs: {
-        indent: {
-          default: 0,
-        },
-      },
+    paragraph: createBlockNode({
       parseDOM: [
         {
           tag: 'div',
           attrs: {
             type: 'paragraph',
-          },
-          getAttrs: (dom) => {
-            const indent = Number(dom.getAttribute('indent'));
-            return {
-              indent,
-            };
           },
         },
       ],
@@ -39,33 +61,18 @@ export const schema = new Schema({
           'div',
           {
             type: 'paragraph',
-            indent: node.attrs.indent,
             class: styles['paragraph'],
           },
           0,
         ];
       },
-    },
-    quote: {
-      group: 'block',
-      content: 'text*',
-      // draggable: true,
-      attrs: {
-        indent: {
-          default: 0,
-        },
-      },
+    }),
+    quote: createBlockNode({
       parseDOM: [
         {
           tag: 'div',
           attrs: {
             type: 'quote',
-          },
-          getAttrs: (dom) => {
-            const indent = Number(dom.getAttribute('indent'));
-            return {
-              indent,
-            };
           },
         },
       ],
@@ -74,13 +81,12 @@ export const schema = new Schema({
           'div',
           {
             type: 'quote',
-            indent: node.attrs.indent,
             class: styles['quote'],
           },
           0,
         ];
       },
-    },
+    }),
     text: {
       inline: true,
     },
