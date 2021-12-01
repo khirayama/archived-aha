@@ -36,7 +36,7 @@ function createBlockNode(nodeSpec) {
     ...nodeSpec,
     group: 'block',
     content: 'text*',
-    draggable: true,
+    // draggable: true,
     selectable: true,
     attrs,
   };
@@ -62,8 +62,15 @@ export const schema = new Schema({
           {
             type: 'paragraph',
             class: styles['paragraph'],
+            draggable: true,
           },
-          0,
+          [
+            'span',
+            {
+              class: styles['handle'],
+            },
+            ['span', 0],
+          ],
         ];
       },
     }),
@@ -82,8 +89,9 @@ export const schema = new Schema({
           {
             type: 'quote',
             class: styles['quote'],
+            draggable: true,
           },
-          0,
+          ['span', 0],
         ];
       },
     }),

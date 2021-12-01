@@ -6,8 +6,9 @@ import {
   liftEmptyBlock,
   deleteSelection,
   joinBackward,
-  selectNodeBackward,
-} from 'prosemirror-commands';
+  joinForward,
+  selectNodeForward,
+} from '../libs/prosemirror-commands/commands';
 import { AllSelection, TextSelection } from 'prosemirror-state';
 import { canSplit } from 'prosemirror-transform';
 

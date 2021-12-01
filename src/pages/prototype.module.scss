@@ -16,11 +16,25 @@
   padding-left: 0.5rem;
 }
 
+.handle {
+  background: red;
+  cursor: grab;
+  padding: 2rem;
+
+  span {
+    background: white;
+  }
+}
+
 @for $i from 0 through 8 {
   .quote,
   .paragraph {
     &[indent="#{$i}"] {
-      margin-left: $i * 1rem;
+      .handle {
+        span {
+          margin-left: $i * 1rem;
+        }
+      }
     }
   }
 }

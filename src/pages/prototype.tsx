@@ -18,6 +18,19 @@ import styles from './prototype.module.scss';
  *   - 2 spaces or tab?
  */
 
+// [prosemirror-test-custom-nodeview - CodeSandbox](https://codesandbox.io/s/vwcrt?file=/src/index.js)
+// [ProseMirror Guide](https://prosemirror.net/docs/guide/)
+// How to build custom node view
+
+let myPlugin = new Plugin({
+  props: {
+    handleKeyDown(view, event) {
+      console.log('A key was pressed!');
+      return false; // We did not handle this
+    },
+  },
+});
+
 const preventTabKeyPlugin = new Plugin({
   props: {
     handleKeyDown(view, event) {
@@ -35,6 +48,7 @@ function Editor(props) {
     const state = EditorState.create({
       schema,
       plugins: [
+        myPlugin,
         buildInputRules(),
         preventTabKeyPlugin,
         history(),
