@@ -3,6 +3,29 @@ import Head from 'next/head';
 
 import styles from './contenteditable-prototype.module.scss';
 
+function Text(props) {
+  const ref = React.useRef(null);
+  console.log(ref.current);
+  if (ref.current) {
+    console.log(`Unmatch contents: text is ${props.text} and innerText is ${ref.current.innerText}.`);
+    if (ref.current.innerText !== props.text) {
+      throw new Error(`Unmatch contents: text is ${props.text} and innerText is ${ref.current.innerText}.`);
+    }
+  }
+  return (
+    <span
+      ref={ref}
+      contentEditable
+      className={styles['text']}
+      dangerouslySetInnerHTML={{ __html: props.text }}
+      onKeyDown={props.onKeyDown || ((e) => {})}
+      onKeyPress={props.onKeyPress || ((e) => {})}
+      onKeyUp={props.onKeyUp || ((e) => {})}
+      onInput={props.onInput || ((e) => {})}
+    />
+  );
+}
+
 function Block(props) {
   const text = props.text;
   const ref = React.useRef(null);
@@ -43,13 +66,36 @@ function Block(props) {
       >
         HHH
       </span>
-      <span contentEditable className={styles['text']} dangerouslySetInnerHTML={{ __html: text }} />
+      <Text
+        text={text}
+        onKeyDown={props.onTextKeyDown}
+        onKeyPress={props.onTextKeyPress}
+        onKeyUp={props.onTextKeyUp}
+        onInput={props.onTextInput}
+      />
     </li>
   );
 }
 
-export default function ContentEditablePage(props) {
+export default function Blocks(props) {
   const [state, setState] = React.useState(['0000', '1111', '2222', '3333', '4444']);
+
+  const onTextKeyDown = React.useCallback((event) => {
+    const key = event.key;
+    const meta = event.metaKey;
+    const shift = event.shiftKey;
+    const ctrl = event.ctrlKey;
+    if ((key === 'b' && ctrl) || (key === 'i' && ctrl) || (key === 's' && ctrl)) {
+      event.preventDefault();
+    } else if (key === 'Enter') {
+      event.preventDefault();
+      console.log('Create and inter new block');
+    }
+  });
+
+  const onTextInput = React.useCallback((event) => {
+    console.log(event);
+  });
 
   return (
     <>
@@ -58,7 +104,7 @@ export default function ContentEditablePage(props) {
       </Head>
       <ul className={styles['ul']}>
         {state.map((text, i) => {
-          return <Block key={i} text={text} />;
+          return <Block key={i} text={text} onTextKeyDown={onTextKeyDown} onTextInput={onTextInput} />;
         })}
       </ul>
     </>
