@@ -78,7 +78,13 @@ function Block(props) {
 }
 
 export default function Blocks(props) {
-  const [state, setState] = React.useState(['0000', '1111', '2222', '3333', '4444']);
+  const [blocks, setBlocks] = React.useState([
+    { id: '0', text: '0000' },
+    { id: '1', text: '1111' },
+    { id: '2', text: '2222' },
+    { id: '3', text: '3333' },
+    { id: '4', text: '4444' },
+  ]);
 
   const onTextKeyDown = React.useCallback((event) => {
     const key = event.key;
