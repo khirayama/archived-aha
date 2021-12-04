@@ -17,17 +17,17 @@ function Text(props) {
       ref={ref}
       contentEditable
       className={styles['text']}
-      dangerouslySetInnerHTML={{ __html: props.text }}
-      onKeyDown={props.onKeyDown || ((e) => {})}
-      onKeyPress={props.onKeyPress || ((e) => {})}
-      onKeyUp={props.onKeyUp || ((e) => {})}
-      onInput={props.onInput || ((e) => {})}
+      dangerouslySetInnerHTML={{ __html: props.block.text }}
+      onKeyDown={(e) => props.onKeyDown(e, props)}
+      onKeyPress={(e) => props.onKeyPress(e, props)}
+      onKeyUp={(e) => props.onKeyUp(e, props)}
+      onInput={(e) => props.onInput(e, props)}
     />
   );
 }
 
 function Block(props) {
-  const text = props.text;
+  const block = props.block;
   const ref = React.useRef(null);
 
   const handleTouchStart = React.useCallback((event) => {
@@ -56,18 +56,25 @@ function Block(props) {
           // event.dataTransfer.setData('text/plain', null);
           event.target.parentNode.style.opacity = 0.5;
         }}
-        onPointerOver={(event) => {
-          event.preventDefault();
+        onTouchMove={(event) => {
+          console.log(event.type, props);
+          // event.preventDefault();
+          event.target.parentNode.style.opacity = 0.1;
+        }}
+        onPointerEnter={(event) => {
+          console.log(event.type, props);
+          // event.preventDefault();
           event.target.parentNode.style.opacity = 0.1;
         }}
         onPointerUp={(event) => {
+          console.log(event.type, props);
           event.target.parentNode.style.opacity = '';
         }}
       >
         HHH
       </span>
       <Text
-        text={text}
+        block={block}
         onKeyDown={props.onTextKeyDown}
         onKeyPress={props.onTextKeyPress}
         onKeyUp={props.onTextKeyUp}
@@ -86,7 +93,7 @@ export default function Blocks(props) {
     { id: '4', text: '4444' },
   ]);
 
-  const onTextKeyDown = React.useCallback((event) => {
+  const onTextKeyDown = React.useCallback((event, props, blocks) => {
     const key = event.key;
     const meta = event.metaKey;
     const shift = event.shiftKey;
@@ -99,8 +106,14 @@ export default function Blocks(props) {
     }
   });
 
-  const onTextInput = React.useCallback((event) => {
-    console.log(event);
+  const onTextInput = React.useCallback((event, props, blocks) => {
+    const value = event.target.innerText;
+    for (let i = 0; i < blocks.length; i += 1) {
+      if (blocks[i].id === props.block.id) {
+        blocks[i].text = value;
+      }
+    }
+    setBlocks(blocks);
   });
 
   return (
@@ -109,8 +122,17 @@ export default function Blocks(props) {
         <meta name="viewport" content="width=device-width,initial-scale=1" />
       </Head>
       <ul className={styles['ul']}>
-        {state.map((text, i) => {
-          return <Block key={i} text={text} onTextKeyDown={onTextKeyDown} onTextInput={onTextInput} />;
+        {blocks.map((block) => {
+          return (
+            <Block
+              key={block.id}
+              block={block}
+              onTextKeyDown={onTextKeyDown}
+              onTextKeyPress={() => {}}
+              onTextKeyUp={() => {}}
+              onTextInput={onTextInput}
+            />
+          );
         })}
       </ul>
     </>
