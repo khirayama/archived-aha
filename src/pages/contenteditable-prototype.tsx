@@ -106,14 +106,15 @@ export default function Blocks(props) {
     }
   });
 
-  const onTextInput = React.useCallback((event, props, blocks) => {
+  const onTextInput = React.useCallback((event, props, state) => {
     const value = event.target.innerText;
-    for (let i = 0; i < blocks.length; i += 1) {
-      if (blocks[i].id === props.block.id) {
-        blocks[i].text = value;
+    const newBlocks = blocks.concat();
+    for (let i = 0; i < newBlocks.length; i += 1) {
+      if (newBlocks[i].id === props.block.id) {
+        newBlocks[i].text = value;
       }
     }
-    setBlocks(blocks);
+    setBlocks(newBlocks);
   });
 
   return (
