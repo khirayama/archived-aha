@@ -4,14 +4,14 @@ import Head from 'next/head';
 import styles from './contenteditable-prototype.module.scss';
 
 function Text(props) {
+  const block = props.block;
   const ref = React.useRef(null);
-  console.log(ref.current);
   if (ref.current) {
-    console.log(`Unmatch contents: text is ${props.text} and innerText is ${ref.current.innerText}.`);
-    if (ref.current.innerText !== props.text) {
+    if (ref.current.innerText !== block.text) {
       throw new Error(`Unmatch contents: text is ${props.text} and innerText is ${ref.current.innerText}.`);
     }
   }
+
   return (
     <span
       ref={ref}
@@ -29,6 +29,18 @@ function Text(props) {
 function Block(props) {
   const block = props.block;
   const ref = React.useRef(null);
+  const textMemo = React.useMemo(
+    () => (
+      <Text
+        block={block}
+        onKeyDown={props.onTextKeyDown}
+        onKeyPress={props.onTextKeyPress}
+        onKeyUp={props.onTextKeyUp}
+        onInput={props.onTextInput}
+      />
+    ),
+    [block],
+  );
 
   const handleTouchStart = React.useCallback((event) => {
     if (event.target.classList.contains(styles['handle'])) {
@@ -73,13 +85,7 @@ function Block(props) {
       >
         HHH
       </span>
-      <Text
-        block={block}
-        onKeyDown={props.onTextKeyDown}
-        onKeyPress={props.onTextKeyPress}
-        onKeyUp={props.onTextKeyUp}
-        onInput={props.onTextInput}
-      />
+      {textMemo}
     </li>
   );
 }
