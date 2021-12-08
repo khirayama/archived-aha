@@ -104,11 +104,24 @@ export default function Blocks(props) {
     const meta = event.metaKey;
     const shift = event.shiftKey;
     const ctrl = event.ctrlKey;
+
     if ((key === 'b' && ctrl) || (key === 'i' && ctrl) || (key === 's' && ctrl)) {
       event.preventDefault();
     } else if (key === 'Enter') {
       event.preventDefault();
       console.log('Create and inter new block');
+    } else if (key == 'ArrowDown') {
+      const selection = document.getSelection();
+      if (selection.isCollapsed && selection.focusNode.length === selection.focusOffset) {
+        event.preventDefault();
+        console.log('Move next block head');
+      }
+    } else if (key == 'ArrowUp') {
+      const selection = document.getSelection();
+      if (selection.isCollapsed && selection.anchorOffset === 0) {
+        event.preventDefault();
+        console.log('Move prev block tail');
+      }
     }
   });
 
