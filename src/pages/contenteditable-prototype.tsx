@@ -3,6 +3,19 @@ import Head from 'next/head';
 
 import styles from './contenteditable-prototype.module.scss';
 
+const utils = {
+  findNextBlock: (currentBlockId, blocks) => {
+    return (
+      blocks.filter((block, i) => {
+        if (blocks[i - 1] && blocks[i - 1].id === currentBlockId) {
+          return true;
+        }
+        return false;
+      })[0] || null
+    );
+  },
+};
+
 function Text(props) {
   const block = props.block;
   const ref = React.useRef(null);
