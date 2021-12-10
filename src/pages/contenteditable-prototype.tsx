@@ -3,18 +3,33 @@ import Head from 'next/head';
 
 import styles from './contenteditable-prototype.module.scss';
 
-const utils = {
-  findNextBlock: (currentBlockId, blocks) => {
-    return (
-      blocks.filter((block, i) => {
-        if (blocks[i - 1] && blocks[i - 1].id === currentBlockId) {
-          return true;
+function findNextBlock(el) {
+  const els = [...document.querySelectorAll('.' + styles['text'])];
+  return (
+    els
+      .map((e, i) => {
+        if (el == e) {
+          return els[i + 1] || null;
         }
-        return false;
-      })[0] || null
-    );
-  },
-};
+        return null;
+      })
+      .filter((i) => !!i)[0] || null
+  );
+}
+
+function findPrevBlock(el) {
+  const els = [...document.querySelectorAll('.' + styles['text'])];
+  return (
+    els
+      .map((e, i) => {
+        if (el == e) {
+          return els[i - 1] || null;
+        }
+        return null;
+      })
+      .filter((i) => !!i)[0] || null
+  );
+}
 
 function Text(props) {
   const block = props.block;
