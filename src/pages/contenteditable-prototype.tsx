@@ -127,13 +127,17 @@ export default function Blocks(props) {
       const selection = document.getSelection();
       if (selection.isCollapsed && selection.focusNode.length === selection.focusOffset) {
         event.preventDefault();
-        console.log('Move next block head');
+        console.log(event.target, event.currentTarget);
+        event.currentTarget.nextElementSibling.focus();
+        console.log('Move next block head', props.block);
+        console.log(utils.findNextBlock(props.block.id, blocks));
       }
     } else if (key == 'ArrowUp') {
       const selection = document.getSelection();
       if (selection.isCollapsed && selection.anchorOffset === 0) {
         event.preventDefault();
-        console.log('Move prev block tail');
+        event.currentTarget.previousElementSibling.focus();
+        console.log('Move prev block tail', props.block);
       }
     }
   });
