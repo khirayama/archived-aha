@@ -128,6 +128,7 @@ export default function Blocks(props) {
   ]);
 
   const onTextKeyDown = React.useCallback((event, props, blocks) => {
+    const el = event.currentTarget;
     const key = event.key;
     const meta = event.metaKey;
     const shift = event.shiftKey;
@@ -142,17 +143,33 @@ export default function Blocks(props) {
       const selection = document.getSelection();
       if (selection.isCollapsed && selection.focusNode.length === selection.focusOffset) {
         event.preventDefault();
-        console.log(event.target, event.currentTarget);
-        event.currentTarget.nextElementSibling.focus();
-        console.log('Move next block head', props.block);
-        console.log(utils.findNextBlock(props.block.id, blocks));
+        const nextEl = findNextBlock(el);
+        if (nextEl) {
+          nextEl.focus();
+          const range = document.createRange();
+          const textNode = prevEl.childNodes[0];
+          range.setStart(textNode, 0);
+          range.setEnd(textNode, 0);
+          const sel = window.getSelection();
+          sel.removeAllRanges();
+          sel.addRange(range);
+        }
       }
     } else if (key == 'ArrowUp') {
       const selection = document.getSelection();
       if (selection.isCollapsed && selection.anchorOffset === 0) {
         event.preventDefault();
-        event.currentTarget.previousElementSibling.focus();
-        console.log('Move prev block tail', props.block);
+        const prevEl = findPrevBlock(el);
+        if (prevEl) {
+          prevEl.focus();
+          const range = document.createRange();
+          const textNode = prevEl.childNodes[0];
+          range.setStart(textNode, selection.focusNode.length);
+          range.setEnd(textNode, selection.focusNode.length);
+          const sel = window.getSelection();
+          sel.removeAllRanges();
+          sel.addRange(range);
+        }
       }
     }
   });
