@@ -147,7 +147,7 @@ export default function Blocks(props) {
         if (nextEl) {
           nextEl.focus();
           const range = document.createRange();
-          const textNode = prevEl.childNodes[0];
+          const textNode = nextEl.childNodes[0];
           range.setStart(textNode, 0);
           range.setEnd(textNode, 0);
           const sel = window.getSelection();
