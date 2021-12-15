@@ -1,5 +1,6 @@
 import * as React from 'react';
 import Head from 'next/head';
+import { v4 as uuid } from 'uuid';
 
 import styles from './contenteditable-prototype.module.scss';
 
@@ -122,70 +123,87 @@ function Block(props) {
 
 export default function Blocks(props) {
   const [blocks, setBlocks] = React.useState([
-    { id: '0', text: '0000' },
-    { id: '1', text: '1111' },
-    { id: '2', text: '2222' },
-    { id: '3', text: '3333' },
-    { id: '4', text: '4444' },
+    { id: uuid(), text: '0000' },
+    { id: uuid(), text: '1111' },
+    { id: uuid(), text: '2222' },
+    { id: uuid(), text: '3333' },
+    { id: uuid(), text: '4444' },
   ]);
+  console.log('render', blocks);
 
-  const onTextKeyDown = React.useCallback((event, props, blocks) => {
-    const el = event.currentTarget;
-    const key = event.key;
-    const meta = event.metaKey;
-    const shift = event.shiftKey;
-    const ctrl = event.ctrlKey;
+  const onTextKeyDown = React.useCallback(
+    (event, props, state) => {
+      const block = props.block;
+      const el = event.currentTarget;
+      const key = event.key;
+      const meta = event.metaKey;
+      const shift = event.shiftKey;
+      const ctrl = event.ctrlKey;
 
-    if ((key === 'b' && ctrl) || (key === 'i' && ctrl) || (key === 's' && ctrl)) {
-      event.preventDefault();
-    } else if (key === 'Enter') {
-      event.preventDefault();
-      console.log('Create and inter new block');
-    } else if (key == 'ArrowDown' && !shift) {
-      const selection = document.getSelection();
-      if (selection.isCollapsed && selection.focusNode.length === selection.focusOffset) {
+      if ((key === 'b' && ctrl) || (key === 'i' && ctrl) || (key === 's' && ctrl)) {
         event.preventDefault();
-        const nextEl = findNextBlock(el);
-        if (nextEl) {
-          nextEl.focus();
-          const range = document.createRange();
-          const textNode = nextEl.childNodes[0];
-          range.setStart(textNode, 0);
-          range.setEnd(textNode, 0);
-          const sel = window.getSelection();
-          sel.removeAllRanges();
-          sel.addRange(range);
+      } else if (key === 'Enter') {
+        event.preventDefault();
+        const l = blocks.length;
+        const text = '' + l + l + l + l;
+        const newBlocks = [...blocks];
+        for (let i = 0; i < l; i += 1) {
+          if (newBlocks[i].id === block.id) {
+            newBlocks.splice(i + 1, 0, { id: uuid(), text });
+            break;
+          }
+        }
+        setBlocks(newBlocks);
+      } else if (key == 'ArrowDown' && !shift) {
+        const selection = document.getSelection();
+        if (selection.isCollapsed && selection.focusNode.length === selection.focusOffset) {
+          event.preventDefault();
+          const nextEl = findNextBlock(el);
+          if (nextEl) {
+            nextEl.focus();
+            const range = document.createRange();
+            const textNode = nextEl.childNodes[0];
+            range.setStart(textNode, 0);
+            range.setEnd(textNode, 0);
+            const sel = window.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(range);
+          }
+        }
+      } else if (key == 'ArrowUp' && !shift) {
+        const selection = document.getSelection();
+        if (selection.isCollapsed && selection.anchorOffset === 0) {
+          event.preventDefault();
+          const prevEl = findPrevBlock(el);
+          if (prevEl) {
+            prevEl.focus();
+            const range = document.createRange();
+            const textNode = prevEl.childNodes[0];
+            range.setStart(textNode, selection.focusNode.length);
+            range.setEnd(textNode, selection.focusNode.length);
+            const sel = window.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(range);
+          }
         }
       }
-    } else if (key == 'ArrowUp' && !shift) {
-      const selection = document.getSelection();
-      if (selection.isCollapsed && selection.anchorOffset === 0) {
-        event.preventDefault();
-        const prevEl = findPrevBlock(el);
-        if (prevEl) {
-          prevEl.focus();
-          const range = document.createRange();
-          const textNode = prevEl.childNodes[0];
-          range.setStart(textNode, selection.focusNode.length);
-          range.setEnd(textNode, selection.focusNode.length);
-          const sel = window.getSelection();
-          sel.removeAllRanges();
-          sel.addRange(range);
+    },
+    [blocks],
+  );
+
+  const onTextInput = React.useCallback(
+    (event, props, state) => {
+      const value = event.target.innerText;
+      const newBlocks = [...blocks];
+      for (let i = 0; i < newBlocks.length; i += 1) {
+        if (newBlocks[i].id === props.block.id) {
+          newBlocks[i].text = value;
         }
       }
-    }
-  });
-
-  const onTextInput = React.useCallback((event, props, state) => {
-    const value = event.target.innerText;
-    const newBlocks = blocks.concat();
-    for (let i = 0; i < newBlocks.length; i += 1) {
-      if (newBlocks[i].id === props.block.id) {
-        newBlocks[i].text = value;
-      }
-    }
-    setBlocks(newBlocks);
-  });
+      setBlocks(newBlocks);
+    },
+    [blocks],
+  );
 
   return (
     <>
