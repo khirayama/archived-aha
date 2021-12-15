@@ -82,8 +82,10 @@ function Block(props) {
       ref.current.addEventListener('touchmove', handleTouchStart, { passive: false });
     }
     return () => {
-      ref.current.removeEventListener('touchstart', handleTouchStart);
-      ref.current.removeEventListener('touchmove', handleTouchStart);
+      if (ref.current) {
+        ref.current.removeEventListener('touchstart', handleTouchStart);
+        ref.current.removeEventListener('touchmove', handleTouchStart);
+      }
     };
   });
 
