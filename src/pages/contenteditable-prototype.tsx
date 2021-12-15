@@ -139,7 +139,7 @@ export default function Blocks(props) {
     } else if (key === 'Enter') {
       event.preventDefault();
       console.log('Create and inter new block');
-    } else if (key == 'ArrowDown') {
+    } else if (key == 'ArrowDown' && !shift) {
       const selection = document.getSelection();
       if (selection.isCollapsed && selection.focusNode.length === selection.focusOffset) {
         event.preventDefault();
@@ -155,7 +155,7 @@ export default function Blocks(props) {
           sel.addRange(range);
         }
       }
-    } else if (key == 'ArrowUp') {
+    } else if (key == 'ArrowUp' && !shift) {
       const selection = document.getSelection();
       if (selection.isCollapsed && selection.anchorOffset === 0) {
         event.preventDefault();
