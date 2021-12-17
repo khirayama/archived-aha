@@ -1,5 +1,4 @@
 import * as React from 'react';
-import Head from 'next/head';
 import { v4 as uuid } from 'uuid';
 
 import styles from './contenteditable-prototype.module.scss';
@@ -121,109 +120,107 @@ function Block(props) {
   );
 }
 
-export default function Blocks(props) {
-  const [blocks, setBlocks] = React.useState([
-    { id: uuid(), text: '0000' },
-    { id: uuid(), text: '1111' },
-    { id: uuid(), text: '2222' },
-    { id: uuid(), text: '3333' },
-    { id: uuid(), text: '4444' },
-  ]);
-  console.log('render', blocks);
+export default class Blocks extends React.Component {
+  private state: {
+    blocks: { id: string; text: string }[];
+  } = {
+    blocks: [{ id: uuid(), text: '', indent: 0 }],
+  };
 
-  const onTextKeyDown = React.useCallback(
-    (event, props, state) => {
-      const block = props.block;
-      const el = event.currentTarget;
-      const key = event.key;
-      const meta = event.metaKey;
-      const shift = event.shiftKey;
-      const ctrl = event.ctrlKey;
+  constructor(props) {
+    super(props);
+    this.onTextKeyDown = this.onTextKeyDown.bind(this);
+    this.onTextInput = this.onTextInput.bind(this);
+  }
 
-      if ((key === 'b' && ctrl) || (key === 'i' && ctrl) || (key === 's' && ctrl)) {
-        event.preventDefault();
-      } else if (key === 'Enter') {
-        event.preventDefault();
-        const l = blocks.length;
-        const text = '' + l + l + l + l;
-        const newBlocks = [...blocks];
-        for (let i = 0; i < l; i += 1) {
-          if (newBlocks[i].id === block.id) {
-            newBlocks.splice(i + 1, 0, { id: uuid(), text });
-            break;
-          }
-        }
-        setBlocks(newBlocks);
-      } else if (key == 'ArrowDown' && !shift) {
-        const selection = document.getSelection();
-        if (selection.isCollapsed && selection.focusNode.length === selection.focusOffset) {
-          event.preventDefault();
-          const nextEl = findNextBlock(el);
-          if (nextEl) {
-            nextEl.focus();
-            const range = document.createRange();
-            const textNode = nextEl.childNodes[0];
-            range.setStart(textNode, 0);
-            range.setEnd(textNode, 0);
-            const sel = window.getSelection();
-            sel.removeAllRanges();
-            sel.addRange(range);
-          }
-        }
-      } else if (key == 'ArrowUp' && !shift) {
-        const selection = document.getSelection();
-        if (selection.isCollapsed && selection.anchorOffset === 0) {
-          event.preventDefault();
-          const prevEl = findPrevBlock(el);
-          if (prevEl) {
-            prevEl.focus();
-            const range = document.createRange();
-            const textNode = prevEl.childNodes[0];
-            range.setStart(textNode, selection.focusNode.length);
-            range.setEnd(textNode, selection.focusNode.length);
-            const sel = window.getSelection();
-            sel.removeAllRanges();
-            sel.addRange(range);
-          }
-        }
-      }
-    },
-    [blocks],
-  );
+  private onTextKeyDown(event, props, state) {
+    const blocks = this.state.blocks;
+    const block = props.block;
 
-  const onTextInput = React.useCallback(
-    (event, props, state) => {
-      const value = event.target.innerText;
+    const el = event.currentTarget;
+    const key = event.key;
+    const meta = event.metaKey;
+    const shift = event.shiftKey;
+    const ctrl = event.ctrlKey;
+
+    if ((key === 'b' && ctrl) || (key === 'i' && ctrl) || (key === 's' && ctrl)) {
+      event.preventDefault();
+    } else if (key === 'Enter') {
+      event.preventDefault();
       const newBlocks = [...blocks];
-      for (let i = 0; i < newBlocks.length; i += 1) {
-        if (newBlocks[i].id === props.block.id) {
-          newBlocks[i].text = value;
+      for (let i = 0; i < blocks.length; i += 1) {
+        if (newBlocks[i].id === block.id) {
+          newBlocks.splice(i + 1, 0, { id: uuid(), text: '', indent: 0 });
+          break;
         }
       }
-      setBlocks(newBlocks);
-    },
-    [blocks],
-  );
+      this.setState({ blocks: newBlocks });
+    } else if (key == 'ArrowDown' && !shift) {
+      const selection = document.getSelection();
+      if (selection.isCollapsed && selection.focusNode.length === selection.focusOffset) {
+        event.preventDefault();
+        const nextEl = findNextBlock(el);
+        if (nextEl) {
+          nextEl.focus();
+          const range = document.createRange();
+          const textNode = nextEl.childNodes[0];
+          range.setStart(textNode, 0);
+          range.setEnd(textNode, 0);
+          const sel = window.getSelection();
+          sel.removeAllRanges();
+          sel.addRange(range);
+        }
+      }
+    } else if (key == 'ArrowUp' && !shift) {
+      const selection = document.getSelection();
+      if (selection.isCollapsed && selection.anchorOffset === 0) {
+        event.preventDefault();
+        const prevEl = findPrevBlock(el);
+        if (prevEl) {
+          prevEl.focus();
+          const range = document.createRange();
+          const textNode = prevEl.childNodes[0];
+          range.setStart(textNode, selection.focusNode.length);
+          range.setEnd(textNode, selection.focusNode.length);
+          const sel = window.getSelection();
+          sel.removeAllRanges();
+          sel.addRange(range);
+        }
+      }
+    }
+  }
 
-  return (
-    <>
-      <Head>
-        <meta name="viewport" content="width=device-width,initial-scale=1" />
-      </Head>
+  private onTextInput(event, props, state) {
+    const blocks = this.state.blocks;
+
+    const value = event.target.innerText;
+    const newBlocks = [...blocks];
+    for (let i = 0; i < newBlocks.length; i += 1) {
+      if (newBlocks[i].id === props.block.id) {
+        newBlocks[i].text = value;
+      }
+    }
+    this.setState({ blocks: newBlocks });
+  }
+
+  public render() {
+    const blocks = this.state.blocks;
+
+    return (
       <ul className={styles['ul']}>
         {blocks.map((block) => {
           return (
             <Block
               key={block.id}
               block={block}
-              onTextKeyDown={onTextKeyDown}
+              onTextKeyDown={this.onTextKeyDown}
               onTextKeyPress={() => {}}
               onTextKeyUp={() => {}}
-              onTextInput={onTextInput}
+              onTextInput={this.onTextInput}
             />
           );
         })}
       </ul>
-    </>
-  );
+    );
+  }
 }
