@@ -34,16 +34,12 @@ function findPrevBlock(el) {
 function Text(props) {
   const block = props.block;
   const ref = React.useRef(null);
-  if (ref.current) {
-    if (ref.current.innerText !== block.text) {
-      throw new Error(`Unmatch contents: text is ${props.text} and innerText is ${ref.current.innerText}.`);
-    }
-  }
 
   return (
     <span
       ref={ref}
       contentEditable
+      indent={block.indent}
       className={styles['text']}
       dangerouslySetInnerHTML={{ __html: props.block.text || '&#8203;' }}
       onKeyDown={(e) => props.onKeyDown(e, props)}
@@ -150,7 +146,7 @@ export default class Blocks extends React.Component {
       const newBlocks = [...blocks];
       for (let i = 0; i < blocks.length; i += 1) {
         if (newBlocks[i].id === block.id) {
-          newBlocks.splice(i + 1, 0, { id: uuid(), text: '', indent: 0 });
+          newBlocks.splice(i + 1, 0, { id: uuid(), text: '', indent: block.indent });
           break;
         }
       }

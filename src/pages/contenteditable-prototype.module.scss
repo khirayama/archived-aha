@@ -13,6 +13,13 @@
 
     .text {
       padding: 0 8px;
+      transition: margin-left 120ms ease-in-out;
+
+      @for $i from 0 through 8 {
+        &[indent="#{$i}"] {
+          margin-left: $i * 1rem;
+        }
+      }
     }
   }
 }
