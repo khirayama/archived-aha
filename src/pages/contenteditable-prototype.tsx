@@ -165,6 +165,17 @@ export default class Blocks extends React.Component {
           sel.addRange(range);
         }
       });
+    } else if (key === 'Tab') {
+      event.preventDefault();
+      const newBlocks = blocks.map((b) => {
+        if (b.id === block.id) {
+          b.indent += 1;
+        }
+        return {
+          ...b,
+        };
+      });
+      this.setState({ blocks: newBlocks });
     } else if (key == 'ArrowDown' && !shift) {
       const selection = document.getSelection();
       if (selection.isCollapsed && selection.focusNode.length === selection.focusOffset) {
