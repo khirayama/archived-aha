@@ -45,7 +45,7 @@ function Text(props) {
       ref={ref}
       contentEditable
       className={styles['text']}
-      dangerouslySetInnerHTML={{ __html: props.block.text }}
+      dangerouslySetInnerHTML={{ __html: props.block.text || '&#8203;' }}
       onKeyDown={(e) => props.onKeyDown(e, props)}
       onKeyPress={(e) => props.onKeyPress(e, props)}
       onKeyUp={(e) => props.onKeyUp(e, props)}
