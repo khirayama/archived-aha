@@ -155,6 +155,20 @@ export default class Blocks extends React.Component {
         }
       }
       this.setState({ blocks: newBlocks });
+
+      setTimeout(() => {
+        const nextEl = findNextBlock(el);
+        if (nextEl) {
+          nextEl.focus();
+          const range = document.createRange();
+          const textNode = nextEl.childNodes[0];
+          range.setStart(textNode, 0);
+          range.setEnd(textNode, 0);
+          const sel = window.getSelection();
+          sel.removeAllRanges();
+          sel.addRange(range);
+        }
+      });
     } else if (key == 'ArrowDown' && !shift) {
       const selection = document.getSelection();
       if (selection.isCollapsed && selection.focusNode.length === selection.focusOffset) {
