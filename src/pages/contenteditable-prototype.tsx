@@ -41,6 +41,14 @@ class Text extends React.Component {
     this.ref = React.createRef(null);
   }
 
+  public componentDidMount() {
+    const el = this.ref.current;
+    if (el.childNodes.length === 0) {
+      const textNode = document.createTextNode('');
+      el.appendChild(textNode);
+    }
+  }
+
   public shouldComponentUpdate(nextProps) {
     this.manualDiffPatch(nextProps);
     return false;
@@ -67,7 +75,7 @@ class Text extends React.Component {
         className={styles['text']}
         indent={block.indent}
         contentEditable
-        dangerouslySetInnerHTML={{ __html: block.text || '&#8203;' }}
+        dangerouslySetInnerHTML={{ __html: block.text }}
         onKeyDown={(e) => this.props.onKeyDown(e, this.props)}
         onKeyPress={(e) => this.props.onKeyPress(e, this.props)}
         onKeyUp={(e) => this.props.onKeyUp(e, this.props)}
