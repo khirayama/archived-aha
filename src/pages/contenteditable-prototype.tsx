@@ -3,6 +3,10 @@ import { v4 as uuid } from 'uuid';
 
 import styles from './contenteditable-prototype.module.scss';
 
+function afterRendering(callback: Function) {
+  setTimeout(callback, 0);
+}
+
 function findNextBlock(el) {
   const els = [...document.querySelectorAll('.' + styles['text'])];
   return (
@@ -31,40 +35,51 @@ function findPrevBlock(el) {
   );
 }
 
-function Text(props) {
-  const block = props.block;
-  const ref = React.useRef(null);
+class Text extends React.Component {
+  constructor(props) {
+    super(props);
+    this.ref = React.createRef(null);
+  }
 
-  return (
-    <span
-      ref={ref}
-      contentEditable
-      indent={block.indent}
-      className={styles['text']}
-      dangerouslySetInnerHTML={{ __html: props.block.text || '&#8203;' }}
-      onKeyDown={(e) => props.onKeyDown(e, props)}
-      onKeyPress={(e) => props.onKeyPress(e, props)}
-      onKeyUp={(e) => props.onKeyUp(e, props)}
-      onInput={(e) => props.onInput(e, props)}
-    />
-  );
+  public shouldComponentUpdate(nextProps) {
+    this.manualDiffPatch(nextProps);
+    return false;
+  }
+
+  private manualDiffPatch(nextProps) {
+    const el = this.ref.current;
+    const block = {
+      id: el.parentNode.getAttribute('blockid'),
+      indent: Number(el.getAttribute('indent')),
+    };
+    const nextBlock = nextProps.block;
+    if (nextBlock.indent !== block.indent) {
+      el.setAttribute('indent', nextBlock.indent);
+    }
+  }
+
+  public render() {
+    const block = this.props.block;
+
+    return (
+      <span
+        ref={this.ref}
+        className={styles['text']}
+        indent={block.indent}
+        contentEditable
+        dangerouslySetInnerHTML={{ __html: block.text || '&#8203;' }}
+        onKeyDown={(e) => this.props.onKeyDown(e, this.props)}
+        onKeyPress={(e) => this.props.onKeyPress(e, this.props)}
+        onKeyUp={(e) => this.props.onKeyUp(e, this.props)}
+        onInput={(e) => this.props.onInput(e, this.props)}
+      />
+    );
+  }
 }
 
 function Block(props) {
   const block = props.block;
   const ref = React.useRef(null);
-  const textMemo = React.useMemo(
-    () => (
-      <Text
-        block={block}
-        onKeyDown={props.onTextKeyDown}
-        onKeyPress={props.onTextKeyPress}
-        onKeyUp={props.onTextKeyUp}
-        onInput={props.onTextInput}
-      />
-    ),
-    [block],
-  );
 
   const handleTouchStart = React.useCallback((event) => {
     if (event.target.classList.contains(styles['handle'])) {
@@ -86,7 +101,7 @@ function Block(props) {
   });
 
   return (
-    <li className={styles['li']} ref={ref}>
+    <li className={styles['li']} ref={ref} blockid={block.id}>
       <span
         className={styles['handle']}
         onPointerDown={(event) => {
@@ -111,7 +126,13 @@ function Block(props) {
       >
         HHH
       </span>
-      {textMemo}
+      <Text
+        block={block}
+        onKeyDown={props.onTextKeyDown}
+        onKeyPress={props.onTextKeyPress}
+        onKeyUp={props.onTextKeyUp}
+        onInput={props.onTextInput}
+      />
     </li>
   );
 }
@@ -120,11 +141,12 @@ export default class Blocks extends React.Component {
   private state: {
     blocks: { id: string; text: string }[];
   } = {
-    blocks: [{ id: uuid(), text: '', indent: 0 }],
+    blocks: [],
   };
 
   constructor(props) {
     super(props);
+    this.state = { ...props };
     this.onTextKeyDown = this.onTextKeyDown.bind(this);
     this.onTextInput = this.onTextInput.bind(this);
   }
@@ -143,16 +165,20 @@ export default class Blocks extends React.Component {
       event.preventDefault();
     } else if (key === 'Enter') {
       event.preventDefault();
+      const newBlock = {
+        id: uuid(),
+        text: '',
+        indent: block.indent,
+      };
       const newBlocks = [...blocks];
       for (let i = 0; i < blocks.length; i += 1) {
         if (newBlocks[i].id === block.id) {
-          newBlocks.splice(i + 1, 0, { id: uuid(), text: '', indent: block.indent });
+          newBlocks.splice(i + 1, 0, newBlock);
           break;
         }
       }
       this.setState({ blocks: newBlocks });
-
-      setTimeout(() => {
+      afterRendering(() => {
         const nextEl = findNextBlock(el);
         if (nextEl) {
           nextEl.focus();
@@ -165,11 +191,22 @@ export default class Blocks extends React.Component {
           sel.addRange(range);
         }
       });
-    } else if (key === 'Tab') {
+    } else if (key === 'Tab' && !shift) {
       event.preventDefault();
       const newBlocks = blocks.map((b) => {
         if (b.id === block.id) {
-          b.indent += 1;
+          b.indent = Math.min(b.indent + 1, 8);
+        }
+        return {
+          ...b,
+        };
+      });
+      this.setState({ blocks: newBlocks });
+    } else if (key === 'Tab' && shift) {
+      event.preventDefault();
+      const newBlocks = blocks.map((b) => {
+        if (b.id === block.id) {
+          b.indent = Math.max(b.indent - 1, 0);
         }
         return {
           ...b,
@@ -244,4 +281,17 @@ export default class Blocks extends React.Component {
       </ul>
     );
   }
+}
+
+export function getServerSideProps() {
+  const block = {
+    id: uuid(),
+    text: '',
+    indent: 0,
+  };
+  return {
+    props: {
+      blocks: [block],
+    },
+  };
 }
