@@ -81,9 +81,9 @@ class Text extends React.Component {
     return (
       <span
         ref={this.ref}
+        contentEditable
         className={styles['text']}
         indent={block.indent}
-        contentEditable
         dangerouslySetInnerHTML={{ __html: block.text }}
         onKeyDown={(e) => this.props.onKeyDown(e, this.props)}
         onKeyPress={(e) => this.props.onKeyPress(e, this.props)}
