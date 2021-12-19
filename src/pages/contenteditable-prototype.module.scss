@@ -3,7 +3,7 @@
   padding: 12px;
 
   .li {
-    width: 100%;
+    display: flex;
     padding: 4px 0 4px 24px;
 
     .handle {
@@ -12,8 +12,9 @@
     }
 
     .text {
+      flex: 1;
       padding: 0 8px;
-      transition: margin-left 120ms ease-in-out;
+      transition: margin-left 80ms ease-in-out;
 
       @for $i from 0 through 8 {
         &[indent="#{$i}"] {
