@@ -59,8 +59,17 @@ class Text extends React.Component {
     const block = {
       id: el.parentNode.getAttribute('blockid'),
       indent: Number(el.getAttribute('indent')),
+      text: el.innerText,
     };
     const nextBlock = nextProps.block;
+
+    /* block.text */
+    if (nextBlock.text !== block.text) {
+      el.blur();
+      el.innerText = nextBlock.text;
+    }
+
+    /* block.indent */
     if (nextBlock.indent !== block.indent) {
       el.setAttribute('indent', nextBlock.indent);
     }
@@ -173,14 +182,23 @@ export default class Blocks extends React.Component {
       event.preventDefault();
     } else if (key === 'Enter') {
       event.preventDefault();
+
+      const sel = window.getSelection();
+      const textArr = Array.from(block.text);
+      const s = Math.min(sel.anchorOffset, sel.focusOffset);
+      const e = Math.max(sel.anchorOffset, sel.focusOffset);
+      const newText = textArr.splice(e, textArr.length - e);
+      textArr.splice(s, e - s);
+
       const newBlock = {
         id: uuid(),
-        text: '',
+        text: newText.join(''),
         indent: block.indent,
       };
       const newBlocks = [...blocks];
       for (let i = 0; i < blocks.length; i += 1) {
         if (newBlocks[i].id === block.id) {
+          newBlocks[i].text = textArr.join('');
           newBlocks.splice(i + 1, 0, newBlock);
           break;
         }
@@ -194,7 +212,6 @@ export default class Blocks extends React.Component {
           const textNode = nextEl.childNodes[0];
           range.setStart(textNode, 0);
           range.setEnd(textNode, 0);
-          const sel = window.getSelection();
           sel.removeAllRanges();
           sel.addRange(range);
         }
