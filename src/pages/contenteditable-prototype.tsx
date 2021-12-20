@@ -118,7 +118,7 @@ function Block(props) {
   });
 
   return (
-    <li className={styles['li']} ref={ref} blockid={block.id}>
+    <li className={`${styles['li']} ${styles[block.type]}`} ref={ref} blockid={block.id}>
       <span
         className={styles['handle']}
         onPointerDown={(event) => {
@@ -190,11 +190,10 @@ export default class Blocks extends React.Component {
       const newText = textArr.splice(e, textArr.length - e);
       textArr.splice(s, e - s);
 
-      const newBlock = {
-        id: uuid(),
+      const newBlock = createBlock(block.type, {
         text: newText.join(''),
         indent: block.indent,
-      };
+      });
       const newBlocks = [...blocks];
       for (let i = 0; i < blocks.length; i += 1) {
         if (newBlocks[i].id === block.id) {
@@ -312,25 +311,58 @@ type BaseBlock = {
   id: string;
   text: string | null;
   indent: number;
-}
-
-type ParagraphBlock = BaseBlock & {
-  type: 'paragraph'
 };
 
-type ListBlock = BaseBlock & {
-  type: 'list'
-};
-
-export function getServerSideProps() {
-  const block = {
+function createBaseBlock(block: Partial<BaseBlock> = {}): Required<BaseBlock> {
+  return {
     id: uuid(),
     text: '',
     indent: 0,
+    ...block,
   };
+}
+
+type ParagraphBlock = BaseBlock & {
+  type: 'paragraph';
+};
+
+function createParagraphBlock(block: Partial<ParagraphBlock> = {}): Required<ParagraphBlock> {
+  return {
+    ...createBaseBlock(block),
+    type: 'paragraph',
+  };
+}
+
+type ListBlock = BaseBlock & {
+  type: 'list';
+};
+
+function createListBlock(block: Partial<ListBlock> = {}): Required<ListBlock> {
+  return {
+    ...createBaseBlock(block),
+    type: 'list',
+  };
+}
+
+type Block = ParagraphBlock | ListBlock;
+
+function createBlock(type: Block['type'], block: Partial<Block> = {}): Required<Block> {
+  const typ = type || block.type || 'paragraph';
+
+  switch (typ) {
+    case 'list': {
+      return createListBlock(block);
+    }
+    default: {
+      return createParagraphBlock(block);
+    }
+  }
+}
+
+export function getServerSideProps() {
   return {
     props: {
-      blocks: [block],
+      blocks: [createParagraphBlock()],
     },
   };
 }
