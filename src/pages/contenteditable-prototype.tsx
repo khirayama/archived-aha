@@ -308,6 +308,20 @@ export default class Blocks extends React.Component {
   }
 }
 
+type BaseBlock = {
+  id: string;
+  text: string | null;
+  indent: number;
+}
+
+type ParagraphBlock = BaseBlock & {
+  type: 'paragraph'
+};
+
+type ListBlock = BaseBlock & {
+  type: 'list'
+};
+
 export function getServerSideProps() {
   const block = {
     id: uuid(),
