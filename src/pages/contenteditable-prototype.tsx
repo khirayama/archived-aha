@@ -118,7 +118,7 @@ function Block(props) {
   });
 
   return (
-    <li className={`${styles['li']} ${styles[block.type]}`} ref={ref} blockid={block.id}>
+    <div className={`${styles['block']} ${styles[block.type]}`} ref={ref} blockid={block.id}>
       <span
         className={styles['handle']}
         onPointerDown={(event) => {
@@ -150,7 +150,7 @@ function Block(props) {
         onKeyUp={props.onTextKeyUp}
         onInput={props.onTextInput}
       />
-    </li>
+    </div>
   );
 }
 
@@ -289,7 +289,7 @@ export default class Blocks extends React.Component {
     const blocks = this.state.blocks;
 
     return (
-      <ul className={styles['ul']}>
+      <div className={styles['blocks']}>
         {blocks.map((block) => {
           return (
             <Block
@@ -302,7 +302,7 @@ export default class Blocks extends React.Component {
             />
           );
         })}
-      </ul>
+      </div>
     );
   }
 }

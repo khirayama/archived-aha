@@ -1,10 +1,10 @@
-.ul {
+.blocks {
   width: 100%;
-  padding: 12px;
+  padding: 8px;
 
-  .li {
+  .block {
     display: flex;
-    padding: 4px 0 4px 24px;
+    padding: 4px 0;
 
     &.paragraph {
     }
