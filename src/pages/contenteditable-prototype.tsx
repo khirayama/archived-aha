@@ -180,6 +180,17 @@ export default class Blocks extends React.Component {
 
     if ((key === 'b' && ctrl) || (key === 'i' && ctrl) || (key === 's' && ctrl)) {
       event.preventDefault();
+    } else if (key === 'm' && ctrl) {
+      event.preventDefault();
+      const newBlocks = [...blocks].map((b) => {
+        if (block.id === b.id) {
+          return createListBlock(b);
+        }
+        return {
+          ...b,
+        };
+      });
+      this.setState({ blocks: newBlocks });
     } else if (key === 'Enter') {
       event.preventDefault();
 
