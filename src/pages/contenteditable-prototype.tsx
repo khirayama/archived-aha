@@ -94,6 +94,7 @@ class Text extends React.Component {
 
 function Block(props) {
   const block = props.block;
+  const schm = schema.find(block.type);
   const ref = React.useRef(null);
 
   const handleTouchStart = React.useCallback((event) => {
@@ -116,7 +117,7 @@ function Block(props) {
   });
 
   return (
-    <div className={`${styles['block']} ${styles[block.type]}`} ref={ref} blockid={block.id}>
+    <div className={styles['block']} ref={ref} blockid={block.id}>
       <span
         className={styles['handle']}
         onPointerDown={(event) => {
@@ -141,13 +142,7 @@ function Block(props) {
       >
         HHH
       </span>
-      <Text
-        block={block}
-        onKeyDown={props.onTextKeyDown}
-        onKeyPress={props.onTextKeyPress}
-        onKeyUp={props.onTextKeyUp}
-        onInput={props.onTextInput}
-      />
+      {schm.component(props)}
     </div>
   );
 }
@@ -182,7 +177,7 @@ export default class Blocks extends React.Component {
       event.preventDefault();
       const newBlocks = [...blocks].map((b) => {
         if (block.id === b.id) {
-          return createListBlock(b);
+          return schema.createBlock('list', b);
         }
         return {
           ...b,
@@ -199,7 +194,7 @@ export default class Blocks extends React.Component {
       const newText = textArr.splice(e, textArr.length - e);
       textArr.splice(s, e - s);
 
-      const newBlock = createBlock(block.type, {
+      const newBlock = schema.createBlock(block.type, {
         text: newText.join(''),
         indent: block.indent,
       });
@@ -324,47 +319,80 @@ function createBaseBlock(block: Partial<BaseBlock> = {}): Required<BaseBlock> {
   };
 }
 
+function createSchema<T>(
+  schema: { type: string; component?: React.Component; attrs?: {}; action?: Function | null } = {
+    type: '',
+    component: null,
+    attrs: {},
+    action: null,
+  },
+) {
+  return {
+    create: (block: Partial<T> = {}): Required<T> => {
+      return {
+        ...createBaseBlock(block),
+        type: schema.type,
+      };
+    },
+    component: (props) => {
+      return <Text block={props.block} onKeyDown={props.onTextKeyDown} onInput={props.onTextInput} />;
+    },
+    ...schema,
+  };
+}
+
 type ParagraphBlock = BaseBlock & {
   type: 'paragraph';
 };
 
-function createParagraphBlock(block: Partial<ParagraphBlock> = {}): Required<ParagraphBlock> {
-  return {
-    ...createBaseBlock(block),
-    type: 'paragraph',
-  };
-}
+const paragraphSchema = createSchema<ParagraphBlock>({
+  type: 'paragraph',
+  component: (props) => {
+    return <Text block={props.block} onKeyDown={props.onTextKeyDown} onInput={props.onTextInput} />;
+  },
+});
 
 type ListBlock = BaseBlock & {
   type: 'list';
 };
 
-function createListBlock(block: Partial<ListBlock> = {}): Required<ListBlock> {
-  return {
-    ...createBaseBlock(block),
-    type: 'list',
-  };
-}
+const listSchema = createSchema<ListBlock>({
+  type: 'list',
+  component: (props) => {
+    return (
+      <div>
+        <span>LIST </span>
+        <Text block={props.block} onKeyDown={props.onTextKeyDown} onInput={props.onTextInput} />
+      </div>
+    );
+  },
+});
 
 type Block = ParagraphBlock | ListBlock;
 
-function createBlock(type: Block['type'], block: Partial<Block> = {}): Required<Block> {
-  const typ = type || block.type || 'paragraph';
+class Schema {
+  constructor(schemas: any[]) {
+    this.schemas = schemas;
+  }
 
-  switch (typ) {
-    case 'list': {
-      return createListBlock(block);
-    }
-    default: {
-      return createParagraphBlock(block);
-    }
+  public createBlock(typ: Block['type'], block: Partial<Block> = {}): Required<Block> {
+    typ = typ || block.type || 'paragraph';
+    const schema = this.find(typ) || this.schemas[0];
+
+    return schema.create(block);
+  }
+
+  public find(typ: Block['type']) {
+    return this.schemas.filter((s) => s.type == typ)[0] || null;
   }
 }
+
+const schema = new Schema([paragraphSchema, listSchema]);
 
 export function getServerSideProps() {
   return {
     props: {
-      blocks: [createParagraphBlock()],
+      blocks: [schema.createBlock()],
     },
   };
 }
