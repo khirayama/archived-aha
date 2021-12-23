@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { v4 as uuid } from 'uuid';
 
-import styles from './contenteditable-prototype.module.scss';
+import styles from './index.module.scss';
 
 function afterRendering(callback: Function) {
   setTimeout(callback, 0);
