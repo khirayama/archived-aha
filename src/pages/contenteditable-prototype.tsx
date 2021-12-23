@@ -86,8 +86,6 @@ class Text extends React.Component {
         indent={block.indent}
         dangerouslySetInnerHTML={{ __html: block.text }}
         onKeyDown={(e) => this.props.onKeyDown(e, this.props)}
-        onKeyPress={(e) => this.props.onKeyPress(e, this.props)}
-        onKeyUp={(e) => this.props.onKeyUp(e, this.props)}
         onInput={(e) => this.props.onInput(e, this.props)}
       />
     );
@@ -303,14 +301,7 @@ export default class Blocks extends React.Component {
       <div className={styles['blocks']}>
         {blocks.map((block) => {
           return (
-            <Block
-              key={block.id}
-              block={block}
-              onTextKeyDown={this.onTextKeyDown}
-              onTextKeyPress={() => {}}
-              onTextKeyUp={() => {}}
-              onTextInput={this.onTextInput}
-            />
+            <Block key={block.id} block={block} onTextKeyDown={this.onTextKeyDown} onTextInput={this.onTextInput} />
           );
         })}
       </div>
