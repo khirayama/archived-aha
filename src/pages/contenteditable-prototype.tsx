@@ -175,6 +175,7 @@ export default class Blocks extends React.Component {
       event.preventDefault();
     } else if (key === 'm' && ctrl) {
       event.preventDefault();
+      // TODO: Keep selection position
       const newBlocks = [...blocks].map((b) => {
         if (block.id === b.id) {
           return schema.createBlock('list', b);
@@ -184,6 +185,7 @@ export default class Blocks extends React.Component {
         };
       });
       this.setState({ blocks: newBlocks });
+      // TODO: Projection selection position
     } else if (key === 'Enter') {
       event.preventDefault();
 
