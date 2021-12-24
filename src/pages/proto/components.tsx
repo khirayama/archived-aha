@@ -143,6 +143,8 @@ export class Blocks extends React.Component {
     const shift = event.shiftKey;
     const ctrl = event.ctrlKey;
 
+    const sel = window.getSelection();
+
     if ((key === 'b' && ctrl) || (key === 'i' && ctrl) || (key === 's' && ctrl)) {
       event.preventDefault();
     } else if (key === 'm' && ctrl) {
@@ -161,7 +163,6 @@ export class Blocks extends React.Component {
     } else if (key === 'Enter') {
       event.preventDefault();
 
-      const sel = window.getSelection();
       const textArr = Array.from(block.text);
       const s = Math.min(sel.anchorOffset, sel.focusOffset);
       const e = Math.max(sel.anchorOffset, sel.focusOffset);
@@ -194,8 +195,10 @@ export class Blocks extends React.Component {
         }
       });
     } else if (key === 'Backspace') {
-      /* TODO */
-      console.log('Backspace');
+      if (sel.isCollapsed && sel.anchorOffset == 0) {
+        /* TODO */
+        console.log('Do something');
+      }
     } else if (key === 'Tab' && !shift) {
       event.preventDefault();
       const newBlocks = blocks.map((b) => {
@@ -229,7 +232,6 @@ export class Blocks extends React.Component {
           const textNode = nextEl.childNodes[0];
           range.setStart(textNode, 0);
           range.setEnd(textNode, 0);
-          const sel = window.getSelection();
           sel.removeAllRanges();
           sel.addRange(range);
         }
@@ -245,7 +247,6 @@ export class Blocks extends React.Component {
           const textNode = prevEl.childNodes[0];
           range.setStart(textNode, selection.focusNode.length);
           range.setEnd(textNode, selection.focusNode.length);
-          const sel = window.getSelection();
           sel.removeAllRanges();
           sel.addRange(range);
         }
