@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import { Schema, Block } from './schema';
+import { Schema, SchemaType, Block } from './schema';
 import { afterRendering, findNextBlock, findPrevBlock } from './utils';
 
 import styles from './pages/index.module.scss';
@@ -141,7 +141,7 @@ export class BlocksComponent extends React.Component<
     blocks: [],
   };
 
-  private schema: any;
+  private schema: SchemaType;
 
   constructor(props) {
     super(props);

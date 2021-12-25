@@ -2,7 +2,7 @@ import { v4 as uuid } from 'uuid';
 
 import { TextComponent } from './components';
 
-type SchemaType = {
+export type SchemaType = {
   type: string;
   component?: React.Component | React.FC;
   attrs?: {};
