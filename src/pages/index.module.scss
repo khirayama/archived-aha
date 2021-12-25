@@ -24,7 +24,7 @@
       transition: margin-left 80ms ease-in-out;
 
       @for $i from 0 through 8 {
-        &[indent="#{$i}"] {
+        &[data-indent="#{$i}"] {
           margin-left: $i * 1rem;
         }
       }

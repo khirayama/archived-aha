@@ -1,13 +1,20 @@
 import * as React from 'react';
 
+import { Schema, Block } from './schema';
 import { afterRendering, findNextBlock, findPrevBlock } from './utils';
 
-import styles from './index.module.scss';
+import styles from './pages/index.module.scss';
 
-export class Text extends React.Component {
+interface Node {
+  length: number;
+}
+
+export class TextComponent extends React.Component<{ block: Partial<Block>; onKeyDown: Function; onInput: Function }> {
+  private ref: React.RefObject<HTMLSpanElement>;
+
   constructor(props) {
     super(props);
-    this.ref = React.createRef(null);
+    this.ref = React.createRef<HTMLSpanElement>();
   }
 
   public componentDidMount() {
@@ -26,8 +33,8 @@ export class Text extends React.Component {
   private manualDiffPatch(nextProps) {
     const el = this.ref.current;
     const block = {
-      id: el.parentNode.getAttribute('blockid'),
-      indent: Number(el.getAttribute('indent')),
+      id: el.parentElement.dataset.blockid,
+      indent: Number(el.dataset.indent),
       text: el.innerText,
     };
     const nextBlock = nextProps.block;
@@ -40,7 +47,8 @@ export class Text extends React.Component {
 
     /* block.indent */
     if (nextBlock.indent !== block.indent) {
-      el.setAttribute('indent', nextBlock.indent);
+      // el.setAttribute('indent', nextBlock.indent);
+      el.dataset.indent = nextBlock.indent;
     }
   }
 
@@ -52,7 +60,7 @@ export class Text extends React.Component {
         ref={this.ref}
         contentEditable
         className={styles['text']}
-        indent={block.indent}
+        data-indent={block.indent}
         dangerouslySetInnerHTML={{ __html: block.text }}
         onKeyDown={(e) => this.props.onKeyDown(e, this.props)}
         onInput={(e) => this.props.onInput(e, this.props)}
@@ -61,16 +69,16 @@ export class Text extends React.Component {
   }
 }
 
-export function Block(props) {
+export function BlockComponent(props) {
   const block = props.block;
   const schm = props.schema.find(block.type);
   const ref = React.useRef(null);
 
-  const handleTouchStart = React.useCallback((event) => {
+  const handleTouchStart = (event) => {
     if (event.target.classList.contains(styles['handle'])) {
       event.preventDefault();
     }
-  });
+  };
 
   React.useEffect(() => {
     if (ref.current) {
@@ -86,27 +94,31 @@ export function Block(props) {
   });
 
   return (
-    <div className={styles['block']} ref={ref} blockid={block.id}>
+    <div className={styles['block']} ref={ref} data-blockid={block.id}>
       <span
         className={styles['handle']}
         onPointerDown={(event) => {
           event.preventDefault();
+          const el = event.target as HTMLSpanElement;
           // event.dataTransfer.setData('text/plain', null);
-          event.target.parentNode.style.opacity = 0.5;
+          el.parentElement.style.opacity = '0.5';
         }}
         onTouchMove={(event) => {
           console.log(event.type, props);
+          const el = event.target as HTMLSpanElement;
           // event.preventDefault();
-          event.target.parentNode.style.opacity = 0.1;
+          el.parentElement.style.opacity = '0.1';
         }}
         onPointerEnter={(event) => {
           console.log(event.type, props);
+          const el = event.target as HTMLSpanElement;
           // event.preventDefault();
-          event.target.parentNode.style.opacity = 0.1;
+          el.parentElement.style.opacity = '0.1';
         }}
         onPointerUp={(event) => {
           console.log(event.type, props);
-          event.target.parentNode.style.opacity = '';
+          const el = event.target as HTMLSpanElement;
+          el.parentElement.style.opacity = '';
         }}
       >
         HHH
@@ -116,9 +128,15 @@ export function Block(props) {
   );
 }
 
-export class Blocks extends React.Component {
-  private state: {
-    blocks: { id: string; text: string }[];
+export class BlocksComponent extends React.Component<
+  {
+    schema: Schema;
+    blocks: Block[];
+  },
+  { blocks: Block[] }
+> {
+  public state: {
+    blocks: Block[];
   } = {
     blocks: [],
   };
@@ -145,7 +163,7 @@ export class Blocks extends React.Component {
     const shift = event.shiftKey;
     const ctrl = event.ctrlKey;
 
-    const sel = window.getSelection();
+    const sel = window.getSelection() as any; /* TODO focusNode.length is undefined? */
 
     if ((key === 'b' && ctrl) || (key === 'i' && ctrl) || (key === 's' && ctrl)) {
       event.preventDefault();
@@ -231,8 +249,7 @@ export class Blocks extends React.Component {
       });
       this.setState({ blocks: newBlocks });
     } else if (key == 'ArrowDown' && !shift) {
-      const selection = document.getSelection();
-      if (selection.isCollapsed && selection.focusNode.length === selection.focusOffset) {
+      if (sel.isCollapsed && sel.focusNode.length === sel.focusOffset) {
         event.preventDefault();
         const nextEl = findNextBlock(el);
         if (nextEl) {
@@ -246,16 +263,15 @@ export class Blocks extends React.Component {
         }
       }
     } else if (key == 'ArrowUp' && !shift) {
-      const selection = document.getSelection();
-      if (selection.isCollapsed && selection.anchorOffset === 0) {
+      if (sel.isCollapsed && sel.anchorOffset === 0) {
         event.preventDefault();
         const prevEl = findPrevBlock(el);
         if (prevEl) {
           prevEl.focus();
           const range = document.createRange();
           const textNode = prevEl.childNodes[0];
-          range.setStart(textNode, selection.focusNode.length);
-          range.setEnd(textNode, selection.focusNode.length);
+          range.setStart(textNode, sel.focusNode.length);
+          range.setEnd(textNode, sel.focusNode.length);
           sel.removeAllRanges();
           sel.addRange(range);
         }
@@ -283,7 +299,7 @@ export class Blocks extends React.Component {
       <div className={styles['blocks']}>
         {blocks.map((block) => {
           return (
-            <Block
+            <BlockComponent
               key={block.id}
               schema={this.schema}
               block={block}

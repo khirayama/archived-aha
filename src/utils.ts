@@ -1,11 +1,11 @@
-import styles from './index.module.scss';
+import styles from './pages/index.module.scss';
 
 export function afterRendering(callback: Function) {
-  setTimeout(callback, 0);
+  window.setTimeout(callback, 0);
 }
 
-export function findNextBlock(el) {
-  const els = [...document.querySelectorAll('.' + styles['text'])];
+export function findNextBlock(el): HTMLElement | null {
+  const els = [...Array.from(document.querySelectorAll('.' + styles['text']))] as HTMLElement[];
   return (
     els
       .map((e, i) => {
@@ -18,8 +18,8 @@ export function findNextBlock(el) {
   );
 }
 
-export function findPrevBlock(el) {
-  const els = [...document.querySelectorAll('.' + styles['text'])];
+export function findPrevBlock(el): HTMLElement | null {
+  const els = [...Array.from(document.querySelectorAll('.' + styles['text']))] as HTMLElement[];
   return (
     els
       .map((e, i) => {
