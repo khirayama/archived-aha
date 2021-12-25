@@ -230,13 +230,44 @@ export class BlocksComponent extends React.Component<BlocksComponentProps, Block
     } else if (key === 'Backspace') {
       if (sel.isCollapsed && sel.anchorOffset == 0) {
         /* TODO */
-        console.log('Do something', block, defaultSchema);
         if (block.type !== defaultSchema.type) {
-          console.log('change to default schema.');
+          /* Turn into paragraph block */
+          const newBlocks = blocks.map((b) => {
+            if (block.id === b.id) {
+              return this.schema.createBlock('paragraph', b);
+            }
+            return {
+              ...b,
+            };
+          });
+          this.setState({ blocks: newBlocks });
         } else if (block.indent > 0) {
-          console.log('outdent');
+          /* Outdent */
+          const newBlocks = blocks.map((b) => {
+            if (b.id === block.id) {
+              b.indent = Math.max(b.indent - 1, 0);
+            }
+            return {
+              ...b,
+            };
+          });
+          this.setState({ blocks: newBlocks });
         } else {
-          console.log('combine to prev block');
+          /* Combine prev block */
+          const newBlocks = [...blocks]
+            .map((b, i) => {
+              if (blocks[i + 1] && block.id === blocks[i + 1].id) {
+                return {
+                  ...b,
+                  text: b.text + blocks[i + 1].text,
+                };
+              } else if (block.id === b.id) {
+                return null;
+              }
+              return { ...b };
+            })
+            .filter((b) => !!b);
+          this.setState({ blocks: newBlocks });
         }
       }
     } else if (key === 'Tab' && !shift) {
