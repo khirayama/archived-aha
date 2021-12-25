@@ -85,4 +85,8 @@ export class Schema {
   public find(typ: Block['type']) {
     return this.schemas.filter((s) => s.type == typ)[0] || null;
   }
+
+  public defaultSchema() {
+    return this.schemas[0] || null;
+  }
 }

@@ -137,6 +137,8 @@ export class Blocks extends React.Component {
     const blocks = this.state.blocks;
     const block = props.block;
 
+    const defaultSchema = this.schema.defaultSchema();
+
     const el = event.currentTarget;
     const key = event.key;
     const meta = event.metaKey;
@@ -197,7 +199,14 @@ export class Blocks extends React.Component {
     } else if (key === 'Backspace') {
       if (sel.isCollapsed && sel.anchorOffset == 0) {
         /* TODO */
-        console.log('Do something');
+        console.log('Do something', block, defaultSchema);
+        if (block.type !== defaultSchema.type) {
+          console.log('change to default schema.');
+        } else if (block.indent > 0) {
+          console.log('outdent');
+        } else {
+          console.log('combine to prev block');
+        }
       }
     } else if (key === 'Tab' && !shift) {
       event.preventDefault();
