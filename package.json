@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "next dev -p 3001",
+    "build": "next build ./src",
     "test": ""
   },
   "keywords": [],
