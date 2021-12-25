@@ -4,7 +4,8 @@ import { TextComponent } from './components';
 
 export type SchemaType = {
   type: string;
-  component?: React.Component | React.FC;
+  // component?: React.Component | React.FC;
+  component?: React.FC;
   attrs?: {};
   action?: Function | null;
   create: Function;

@@ -76,6 +76,7 @@ type BlockComponentProps = {
   schema: Schema;
   onTextKeyDown: Function;
   onTextInput: Function;
+  children?: React.ReactNode;
 };
 
 export function BlockComponent(props: BlockComponentProps) {
