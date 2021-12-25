@@ -1,18 +1,20 @@
 import * as React from 'react';
 
-import { Schema, SchemaType, Block } from './schema';
+import { Schema, Block } from './schema';
 import { afterRendering, findNextBlock, findPrevBlock } from './utils';
 
 import styles from './pages/index.module.scss';
 
-interface Node {
-  length: number;
-}
+type TextComponentProps = {
+  block: Partial<Block>;
+  onKeyDown: Function;
+  onInput: Function;
+};
 
-export class TextComponent extends React.Component<{ block: Partial<Block>; onKeyDown: Function; onInput: Function }> {
+export class TextComponent extends React.Component<TextComponentProps> {
   private ref: React.RefObject<HTMLSpanElement>;
 
-  constructor(props) {
+  constructor(props: TextComponentProps) {
     super(props);
     this.ref = React.createRef<HTMLSpanElement>();
   }
@@ -25,12 +27,12 @@ export class TextComponent extends React.Component<{ block: Partial<Block>; onKe
     }
   }
 
-  public shouldComponentUpdate(nextProps) {
+  public shouldComponentUpdate(nextProps: TextComponentProps) {
     this.manualDiffPatch(nextProps);
     return false;
   }
 
-  private manualDiffPatch(nextProps) {
+  private manualDiffPatch(nextProps: TextComponentProps) {
     const el = this.ref.current;
     const block = {
       id: el.parentElement.dataset.blockid,
@@ -48,7 +50,7 @@ export class TextComponent extends React.Component<{ block: Partial<Block>; onKe
     /* block.indent */
     if (nextBlock.indent !== block.indent) {
       // el.setAttribute('indent', nextBlock.indent);
-      el.dataset.indent = nextBlock.indent;
+      el.dataset.indent = String(nextBlock.indent);
     }
   }
 
@@ -69,12 +71,19 @@ export class TextComponent extends React.Component<{ block: Partial<Block>; onKe
   }
 }
 
-export function BlockComponent(props) {
+type BlockComponentProps = {
+  block: Block;
+  schema: Schema;
+  onTextKeyDown: Function;
+  onTextInput: Function;
+};
+
+export function BlockComponent(props: BlockComponentProps) {
   const block = props.block;
   const schm = props.schema.find(block.type);
   const ref = React.useRef(null);
 
-  const handleTouchStart = (event) => {
+  const handleTouchStart = (event: any /* TODO */) => {
     if (event.target.classList.contains(styles['handle'])) {
       event.preventDefault();
     }
@@ -128,22 +137,25 @@ export function BlockComponent(props) {
   );
 }
 
-export class BlocksComponent extends React.Component<
-  {
-    schema: Schema;
-    blocks: Block[];
-  },
-  { blocks: Block[] }
-> {
+type BlocksComponentProps = {
+  schema: Schema;
+  blocks: Block[];
+};
+
+type BlocksComponentState = {
+  blocks: Block[];
+};
+
+export class BlocksComponent extends React.Component<BlocksComponentProps, BlocksComponentState> {
   public state: {
     blocks: Block[];
   } = {
     blocks: [],
   };
 
-  private schema: SchemaType;
+  private schema: Schema;
 
-  constructor(props) {
+  constructor(props: BlocksComponentProps) {
     super(props);
     this.state = { blocks: props.blocks };
     this.schema = props.schema;
@@ -151,7 +163,7 @@ export class BlocksComponent extends React.Component<
     this.onTextInput = this.onTextInput.bind(this);
   }
 
-  private onTextKeyDown(event, props, state) {
+  private onTextKeyDown(event: React.KeyboardEvent<HTMLSpanElement>, props: TextComponentProps) {
     const blocks = this.state.blocks;
     const block = props.block;
 
@@ -159,7 +171,7 @@ export class BlocksComponent extends React.Component<
 
     const el = event.currentTarget;
     const key = event.key;
-    const meta = event.metaKey;
+    // const meta = event.metaKey;
     const shift = event.shiftKey;
     const ctrl = event.ctrlKey;
 
@@ -279,10 +291,10 @@ export class BlocksComponent extends React.Component<
     }
   }
 
-  private onTextInput(event, props, state) {
+  private onTextInput(event: React.KeyboardEvent<HTMLSpanElement>, props: TextComponentProps) {
     const blocks = this.state.blocks;
 
-    const value = event.target.innerText;
+    const value = event.currentTarget.innerText;
     const newBlocks = [...blocks];
     for (let i = 0; i < newBlocks.length; i += 1) {
       if (newBlocks[i].id === props.block.id) {
