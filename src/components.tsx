@@ -1,6 +1,7 @@
 import * as React from 'react';
 
 import { Schema, Block } from './schema';
+import { Paper } from '../model';
 import { afterRendering, keepSelectionPosition, findNextTextElement, findPrevTextElement } from './utils';
 
 import styles from './pages/index.module.scss';
@@ -136,7 +137,7 @@ export function BlockComponent(props: BlockComponentProps) {
 
 type PaperComponentProps = {
   schema: Schema;
-  blocks: Block[];
+  paper: Paper;
 };
 
 type PaperComponentState = {
@@ -154,13 +155,27 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
 
   constructor(props: PaperComponentProps) {
     super(props);
-    this.state = { blocks: props.blocks };
+    this.state = { blocks: props.paper.blocks };
     this.schema = props.schema;
+    this.onPaperChange = this.onPaperChange.bind(this);
     this.onTextKeyDown = this.onTextKeyDown.bind(this);
     this.onTextInput = this.onTextInput.bind(this);
   }
 
+  public componentDidMount() {
+    this.props.paper.onChange(this.onPaperChange);
+  }
+
+  public componentWillUnmount() {
+    this.props.paper.offChange(this.onPaperChange);
+  }
+
+  private onPaperChange(p) {
+    this.setState({ blocks: p.blocks });
+  }
+
   private onTextKeyDown(event: React.KeyboardEvent<HTMLSpanElement>, props: TextComponentProps) {
+    const paper = this.props.paper;
     const blocks = this.state.blocks;
     const block = props.block;
 
@@ -179,50 +194,35 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
     } else if (key === 'm' && ctrl) {
       event.preventDefault();
       keepSelectionPosition();
-      const newBlocks = [...blocks].map((b) => {
-        if (block.id === b.id) {
-          return this.schema.createBlock('list', b);
-        }
-        return {
-          ...b,
-        };
-      });
-      this.setState({ blocks: newBlocks });
-    } else if (key === 'Enter') {
-      event.preventDefault();
-      if (block.type !== defaultSchema.type && block.text === '') {
-        /* Turn into paragraph block */
-        keepSelectionPosition();
-        const newBlocks = blocks.map((b) => {
+      paper.tr(() => {
+        const newBlocks = [...blocks].map((b) => {
           if (block.id === b.id) {
-            return this.schema.createBlock('paragraph', b);
+            return this.schema.createBlock('list', b);
           }
           return {
             ...b,
           };
         });
-        this.setState({ blocks: newBlocks });
+        paper.setBlocks(newBlocks);
+      });
+    } else if (key === 'Enter') {
+      event.preventDefault();
+      if (block.type !== defaultSchema.type && block.text === '') {
+        /* Turn into paragraph block */
+        keepSelectionPosition();
+        paper.tr(() => {
+          const newBlocks = blocks.map((b) => {
+            if (block.id === b.id) {
+              return this.schema.createBlock('paragraph', b);
+            }
+            return {
+              ...b,
+            };
+          });
+          paper.setBlocks(newBlocks);
+        });
       } else {
         /* Split block */
-        const textArr = Array.from(block.text);
-        const s = Math.min(sel.anchorOffset, sel.focusOffset);
-        const e = Math.max(sel.anchorOffset, sel.focusOffset);
-        const newText = textArr.splice(e, textArr.length - e);
-        textArr.splice(s, e - s);
-
-        const newBlock = this.schema.createBlock(block.type, {
-          text: newText.join(''),
-          indent: block.indent,
-        });
-        const newBlocks = [...blocks];
-        for (let i = 0; i < blocks.length; i += 1) {
-          if (newBlocks[i].id === block.id) {
-            newBlocks[i].text = textArr.join('');
-            newBlocks.splice(i + 1, 0, newBlock);
-            break;
-          }
-        }
-        this.setState({ blocks: newBlocks });
         afterRendering(() => {
           const nextEl = findNextTextElement(el);
           if (nextEl) {
@@ -235,33 +235,58 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
             sel.addRange(range);
           }
         });
+        paper.tr(() => {
+          const textArr = Array.from(block.text);
+          const s = Math.min(sel.anchorOffset, sel.focusOffset);
+          const e = Math.max(sel.anchorOffset, sel.focusOffset);
+          const newText = textArr.splice(e, textArr.length - e);
+          textArr.splice(s, e - s);
+
+          const newBlock = this.schema.createBlock(block.type, {
+            text: newText.join(''),
+            indent: block.indent,
+          });
+          const newBlocks = [...blocks];
+          for (let i = 0; i < blocks.length; i += 1) {
+            if (newBlocks[i].id === block.id) {
+              newBlocks[i].text = textArr.join('');
+              newBlocks.splice(i + 1, 0, newBlock);
+              break;
+            }
+          }
+          paper.setBlocks(newBlocks);
+        });
       }
     } else if (key === 'Backspace') {
       if (sel.isCollapsed && sel.anchorOffset == 0) {
         if (block.type !== defaultSchema.type) {
           /* Turn into paragraph block */
           keepSelectionPosition();
-          const newBlocks = blocks.map((b) => {
-            if (block.id === b.id) {
-              return this.schema.createBlock('paragraph', b);
-            }
-            return {
-              ...b,
-            };
+          paper.tr(() => {
+            const newBlocks = blocks.map((b) => {
+              if (block.id === b.id) {
+                return this.schema.createBlock('paragraph', b);
+              }
+              return {
+                ...b,
+              };
+            });
+            paper.setBlocks(newBlocks);
           });
-          this.setState({ blocks: newBlocks });
         } else if (block.indent > 0) {
           /* Outdent */
           keepSelectionPosition();
-          const newBlocks = blocks.map((b) => {
-            if (b.id === block.id) {
-              b.indent = Math.max(b.indent - 1, 0);
-            }
-            return {
-              ...b,
-            };
+          paper.tr(() => {
+            const newBlocks = blocks.map((b) => {
+              if (b.id === block.id) {
+                b.indent = Math.max(b.indent - 1, 0);
+              }
+              return {
+                ...b,
+              };
+            });
+            paper.setBlocks(newBlocks);
           });
-          this.setState({ blocks: newBlocks });
         } else {
           /* Combine prev block */
           const prevEl = findPrevTextElement(el);
@@ -276,45 +301,51 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
             sel.addRange(range);
 
             keepSelectionPosition();
-            const newBlocks = [...blocks]
-              .map((b, i) => {
-                if (blocks[i + 1] && block.id === blocks[i + 1].id) {
-                  return {
-                    ...b,
-                    text: b.text + blocks[i + 1].text,
-                  };
-                } else if (block.id === b.id) {
-                  return null;
-                }
-                return { ...b };
-              })
-              .filter((b) => !!b);
-            this.setState({ blocks: newBlocks });
+            paper.tr(() => {
+              const newBlocks = [...blocks]
+                .map((b, i) => {
+                  if (blocks[i + 1] && block.id === blocks[i + 1].id) {
+                    return {
+                      ...b,
+                      text: b.text + blocks[i + 1].text,
+                    };
+                  } else if (block.id === b.id) {
+                    return null;
+                  }
+                  return { ...b };
+                })
+                .filter((b) => !!b);
+              paper.setBlocks(newBlocks);
+            });
           }
         }
       }
     } else if (key === 'Tab' && !shift) {
       event.preventDefault();
-      const newBlocks = blocks.map((b) => {
-        if (b.id === block.id) {
-          b.indent = Math.min(b.indent + 1, 8);
-        }
-        return {
-          ...b,
-        };
+      paper.tr(() => {
+        const newBlocks = blocks.map((b) => {
+          if (b.id === block.id) {
+            b.indent = Math.min(b.indent + 1, 8);
+          }
+          return {
+            ...b,
+          };
+        });
+        paper.setBlocks(newBlocks);
       });
-      this.setState({ blocks: newBlocks });
     } else if (key === 'Tab' && shift) {
       event.preventDefault();
-      const newBlocks = blocks.map((b) => {
-        if (b.id === block.id) {
-          b.indent = Math.max(b.indent - 1, 0);
-        }
-        return {
-          ...b,
-        };
+      paper.tr(() => {
+        const newBlocks = blocks.map((b) => {
+          if (b.id === block.id) {
+            b.indent = Math.max(b.indent - 1, 0);
+          }
+          return {
+            ...b,
+          };
+        });
+        paper.setBlocks(newBlocks);
       });
-      this.setState({ blocks: newBlocks });
     } else if (key == 'ArrowDown' && !shift) {
       if (sel.isCollapsed && sel.focusNode.length === sel.focusOffset) {
         event.preventDefault();
@@ -344,19 +375,25 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
         }
       }
     }
+    paper.commit();
   }
 
   private onTextInput(event: React.KeyboardEvent<HTMLSpanElement>, props: TextComponentProps) {
+    const paper = this.props.paper;
     const blocks = this.state.blocks;
 
-    const value = event.currentTarget.innerText;
-    const newBlocks = [...blocks];
-    for (let i = 0; i < newBlocks.length; i += 1) {
-      if (newBlocks[i].id === props.block.id) {
-        newBlocks[i].text = value;
-      }
-    }
-    this.setState({ blocks: newBlocks });
+    paper
+      .tr(() => {
+        const value = event.currentTarget.innerText;
+        const newBlocks = [...blocks];
+        for (let i = 0; i < newBlocks.length; i += 1) {
+          if (newBlocks[i].id === props.block.id) {
+            newBlocks[i].text = value;
+          }
+        }
+        paper.setBlocks(newBlocks);
+      })
+      .commit();
   }
 
   public render() {

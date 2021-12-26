@@ -1,10 +1,9 @@
 import * as React from 'react';
 
 import { PaperComponent } from '../components';
-import { Schema, Block, paragraphSchema, listSchema } from '../schema';
+import { Schema, paragraphSchema, listSchema } from '../schema';
+import { Paper } from '../model';
 import { keepSelectionPosition } from '../utils';
-
-const schema = new Schema([paragraphSchema, listSchema]);
 
 export function getServerSideProps() {
   return {
@@ -16,6 +15,7 @@ export function getServerSideProps() {
 
 export function CommandButton(props) {
   let blockElement = null;
+
   return (
     <button
       onMouseDown={() => {
@@ -29,9 +29,8 @@ export function CommandButton(props) {
         }
       }}
       onClick={(event) => {
-        console.log(blockElement);
         const blockId = blockElement.dataset.blockid;
-        const block = props.blocks.filter((b) => b.id === blockId)[0];
+        const block = props.paper.blocks.filter((b) => b.id === blockId)[0];
         props.onClick(event, block);
       }}
     >
@@ -40,53 +39,24 @@ export function CommandButton(props) {
   );
 }
 
-class Paper {
-  private listeners: Function[] = [];
-
-  private transactions: Function[] = [];
-
-  public blocks: Block[];
-
-  constructor(blocks = []) {
-    this.blocks = blocks;
-  }
-
-  public onChange(callback: Function) {
-    this.listeners.push(callback);
-  }
-
-  public offChange(callback: Function) {
-    this.listeners = this.listeners.filter((cb) => cb !== callback);
-  }
-
-  public tr(tr: Function) {
-    this.transactions.push(tr);
-  }
-
-  public commit() {
-    this.transactions.forEach((tr) => {
-      tr(this);
-    });
-    this.transactions = [];
-    this.listeners.forEach((callback) => {
-      callback(this);
-    });
-  }
-}
+const schema = new Schema([paragraphSchema, listSchema]);
+const paper = new Paper();
 
 export default function ProtoPage(props) {
+  paper.setBlocks(props.blocks);
+
   return (
     <div>
       <CommandButton
         schema={schema}
-        blocks={props.blocks}
+        paper={paper}
         onClick={(event, block) => {
           console.log('Do something', block);
         }}
       >
         IIIII
       </CommandButton>
-      <PaperComponent schema={schema} blocks={props.blocks} />
+      <PaperComponent schema={schema} paper={paper} />
     </div>
   );
 }
