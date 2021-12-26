@@ -30,7 +30,7 @@ export function keepSelectionPosition() {
   });
 }
 
-export function findNextBlock(el): HTMLElement | null {
+export function findNextTextElement(el): HTMLElement | null {
   const els = [...Array.from(document.querySelectorAll('.' + styles['text']))] as HTMLElement[];
   return (
     els
@@ -44,7 +44,7 @@ export function findNextBlock(el): HTMLElement | null {
   );
 }
 
-export function findPrevBlock(el): HTMLElement | null {
+export function findPrevTextElement(el): HTMLElement | null {
   const els = [...Array.from(document.querySelectorAll('.' + styles['text']))] as HTMLElement[];
   return (
     els

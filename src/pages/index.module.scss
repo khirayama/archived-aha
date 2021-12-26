@@ -6,6 +6,17 @@
     display: flex;
     padding: 4px 0;
 
+    .indentation {
+      display: inline-block;
+      transition: width 80ms ease-in-out;
+
+      @for $i from 0 through 8 {
+        &[data-indent="#{$i}"] {
+          width: $i * 1rem;
+        }
+      }
+    }
+
     &.paragraph {
     }
 
@@ -19,15 +30,9 @@
     }
 
     .text {
+      display: inline-block;
       flex: 1;
       padding: 0 8px;
-      transition: margin-left 80ms ease-in-out;
-
-      @for $i from 0 through 8 {
-        &[data-indent="#{$i}"] {
-          margin-left: $i * 1rem;
-        }
-      }
     }
   }
 }

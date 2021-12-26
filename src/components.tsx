@@ -1,9 +1,13 @@
 import * as React from 'react';
 
 import { Schema, Block } from './schema';
-import { afterRendering, keepSelectionPosition, findNextBlock, findPrevBlock } from './utils';
+import { afterRendering, keepSelectionPosition, findNextTextElement, findPrevTextElement } from './utils';
 
 import styles from './pages/index.module.scss';
+
+export function IndentationComponent(props: { block: Block }) {
+  return <span className={styles['indentation']} data-indent={props.block.indent} />;
+}
 
 type TextComponentProps = {
   block: Partial<Block>;
@@ -36,7 +40,6 @@ export class TextComponent extends React.Component<TextComponentProps> {
     const el = this.ref.current;
     const block = {
       id: el.parentElement.dataset.blockid,
-      indent: Number(el.dataset.indent),
       text: el.innerText,
     };
     const nextBlock = nextProps.block;
@@ -45,12 +48,6 @@ export class TextComponent extends React.Component<TextComponentProps> {
     if (nextBlock.text !== block.text) {
       el.blur();
       el.innerText = nextBlock.text;
-    }
-
-    /* block.indent */
-    if (nextBlock.indent !== block.indent) {
-      // el.setAttribute('indent', nextBlock.indent);
-      el.dataset.indent = String(nextBlock.indent);
     }
   }
 
@@ -62,7 +59,6 @@ export class TextComponent extends React.Component<TextComponentProps> {
         ref={this.ref}
         contentEditable
         className={styles['text']}
-        data-indent={block.indent}
         dangerouslySetInnerHTML={{ __html: block.text }}
         onKeyDown={(e) => this.props.onKeyDown(e, this.props)}
         onInput={(e) => this.props.onInput(e, this.props)}
@@ -228,7 +224,7 @@ export class BlocksComponent extends React.Component<BlocksComponentProps, Block
         }
         this.setState({ blocks: newBlocks });
         afterRendering(() => {
-          const nextEl = findNextBlock(el);
+          const nextEl = findNextTextElement(el);
           if (nextEl) {
             nextEl.focus();
             const range = document.createRange();
@@ -268,7 +264,7 @@ export class BlocksComponent extends React.Component<BlocksComponentProps, Block
           this.setState({ blocks: newBlocks });
         } else {
           /* Combine prev block */
-          const prevEl = findPrevBlock(el);
+          const prevEl = findPrevTextElement(el);
           if (prevEl) {
             event.preventDefault();
             prevEl.focus();
@@ -322,7 +318,7 @@ export class BlocksComponent extends React.Component<BlocksComponentProps, Block
     } else if (key == 'ArrowDown' && !shift) {
       if (sel.isCollapsed && sel.focusNode.length === sel.focusOffset) {
         event.preventDefault();
-        const nextEl = findNextBlock(el);
+        const nextEl = findNextTextElement(el);
         if (nextEl) {
           nextEl.focus();
           const range = document.createRange();
@@ -336,7 +332,7 @@ export class BlocksComponent extends React.Component<BlocksComponentProps, Block
     } else if (key == 'ArrowUp' && !shift) {
       if (sel.isCollapsed && sel.anchorOffset === 0) {
         event.preventDefault();
-        const prevEl = findPrevBlock(el);
+        const prevEl = findPrevTextElement(el);
         if (prevEl) {
           prevEl.focus();
           const range = document.createRange();
