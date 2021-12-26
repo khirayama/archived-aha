@@ -418,16 +418,3 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
     );
   }
 }
-
-export function BoardComponent(props: { children: React.Node }) {
-  /* FYI It's for keeping focus even if do something like click on other element */
-  return (
-    <form
-      onSubmit={(event) => {
-        event.preventDefault();
-      }}
-    >
-      {props.children}
-    </form>
-  );
-}
