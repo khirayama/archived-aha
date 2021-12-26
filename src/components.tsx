@@ -134,16 +134,16 @@ export function BlockComponent(props: BlockComponentProps) {
   );
 }
 
-type BlocksComponentProps = {
+type PaperComponentProps = {
   schema: Schema;
   blocks: Block[];
 };
 
-type BlocksComponentState = {
+type PaperComponentState = {
   blocks: Block[];
 };
 
-export class BlocksComponent extends React.Component<BlocksComponentProps, BlocksComponentState> {
+export class PaperComponent extends React.Component<PaperComponentProps, PaperComponentState> {
   public state: {
     blocks: Block[];
   } = {
@@ -152,7 +152,7 @@ export class BlocksComponent extends React.Component<BlocksComponentProps, Block
 
   private schema: Schema;
 
-  constructor(props: BlocksComponentProps) {
+  constructor(props: PaperComponentProps) {
     super(props);
     this.state = { blocks: props.blocks };
     this.schema = props.schema;
