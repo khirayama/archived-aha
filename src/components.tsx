@@ -70,6 +70,7 @@ export class TextComponent extends React.Component<TextComponentProps> {
 
 type BlockComponentProps = {
   block: Block;
+  paper: Paper;
   schema: Schema;
   onTextKeyDown: Function;
   onTextInput: Function;
@@ -405,6 +406,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
           return (
             <BlockComponent
               key={block.id}
+              paper={this.props.paper}
               schema={this.schema}
               block={block}
               onTextKeyDown={this.onTextKeyDown}

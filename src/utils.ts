@@ -7,6 +7,10 @@ export function afterRendering(callback: Function) {
 export function keepSelectionPosition() {
   const sel = window.getSelection();
 
+  if (sel.anchorNode === null) {
+    return;
+  }
+
   let blockElement = sel.anchorNode.parentElement;
   while (!blockElement.dataset.blockid) {
     blockElement = blockElement.parentElement;
