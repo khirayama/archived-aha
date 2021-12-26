@@ -47,7 +47,7 @@ export class TextComponent extends React.Component<TextComponentProps> {
 
     /* block.text */
     if (nextBlock.text !== block.text) {
-      el.blur();
+      // el.blur();
       el.innerText = nextBlock.text;
     }
   }
