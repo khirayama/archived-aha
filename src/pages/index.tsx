@@ -1,8 +1,7 @@
 import * as React from 'react';
-import { v4 as uuid } from 'uuid';
 
 import { PaperComponent } from '../components';
-import { Schema, paragraphSchema, listSchema } from '../schema';
+import { Schema, Block, paragraphSchema, listSchema } from '../schema';
 import { keepSelectionPosition } from '../utils';
 
 const schema = new Schema([paragraphSchema, listSchema]);
@@ -39,6 +38,40 @@ export function CommandButton(props) {
       {props.children}
     </button>
   );
+}
+
+class Paper {
+  private listeners: Function[] = [];
+
+  private transactions: Function[] = [];
+
+  public blocks: Block[];
+
+  constructor(blocks = []) {
+    this.blocks = blocks;
+  }
+
+  public onChange(callback: Function) {
+    this.listeners.push(callback);
+  }
+
+  public offChange(callback: Function) {
+    this.listeners = this.listeners.filter((cb) => cb !== callback);
+  }
+
+  public tr(tr: Function) {
+    this.transactions.push(tr);
+  }
+
+  public commit() {
+    this.transactions.forEach((tr) => {
+      tr(this);
+    });
+    this.transactions = [];
+    this.listeners.forEach((callback) => {
+      callback(this);
+    });
+  }
 }
 
 export default function ProtoPage(props) {
