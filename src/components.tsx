@@ -224,18 +224,6 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
         });
       } else {
         /* Split block */
-        afterRendering(() => {
-          const nextEl = findNextTextElement(el);
-          if (nextEl) {
-            nextEl.focus();
-            const range = document.createRange();
-            const textNode = nextEl.childNodes[0];
-            range.setStart(textNode, 0);
-            range.setEnd(textNode, 0);
-            sel.removeAllRanges();
-            sel.addRange(range);
-          }
-        });
         paper.tr(() => {
           const textArr = Array.from(block.text);
           const s = Math.min(sel.anchorOffset, sel.focusOffset);
@@ -256,6 +244,18 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
             }
           }
           paper.setBlocks(newBlocks);
+        });
+        afterRendering(() => {
+          const nextEl = findNextTextElement(el);
+          if (nextEl) {
+            // nextEl.focus();
+            const range = document.createRange();
+            const textNode = nextEl.childNodes[0];
+            range.setStart(textNode, 0);
+            range.setEnd(textNode, 0);
+            sel.removeAllRanges();
+            sel.addRange(range);
+          }
         });
       }
     } else if (key === 'Backspace') {
