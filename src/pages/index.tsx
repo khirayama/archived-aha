@@ -47,30 +47,48 @@ export function CommandButton(props) {
   );
 }
 
-const schema = new Schema([paragraphSchema, listSchema]);
-const paper = new Paper();
-
-export default function ProtoPage(props) {
-  paper.setBlocks(props.blocks);
+function FloatingNav(props: { children: React.Node }) {
+  const ref = React.useRef();
 
   React.useEffect(() => {
     function viewportHandler(event) {
       requestAnimationFrame(() => {
-        const el = document.querySelector('.' + styles['floating-nav']);
-        if (el && (navigator.platform.indexOf('iOS') !== -1 || navigator.platform.indexOf('iPad') !== -1)) {
-          el.style.bottom = window.innerHeight - window.visualViewport.height + 'px';
+        if (ref.current) {
+          const el = ref.current;
+          /* TODO Update iOS and iPad condition */
+          if (navigator.platform.indexOf('iOS') !== -1 || navigator.platform.indexOf('iPad') !== -1) {
+            el.style.bottom = window.innerHeight - window.visualViewport.height + 'px';
+          }
         }
       });
     }
 
     window.visualViewport.addEventListener('scroll', viewportHandler, { passive: true });
     window.visualViewport.addEventListener('resize', viewportHandler, { passive: true });
-  }, []);
+
+    return () => {
+      window.visualViewport.removeEventListener('scroll', viewportHandler);
+      window.visualViewport.removeEventListener('resize', viewportHandler);
+    };
+  });
+
+  return (
+    <div ref={ref} className={styles['floating-nav']}>
+      {props.children}
+    </div>
+  );
+}
+
+const schema = new Schema([paragraphSchema, listSchema]);
+const paper = new Paper();
+
+export default function ProtoPage(props) {
+  paper.setBlocks(props.blocks);
 
   return (
     <div className={styles['container']}>
       <PaperComponent schema={schema} paper={paper} />
-      <div className={styles['floating-nav']}>
+      <FloatingNav>
         <CommandButton
           schema={schema}
           paper={paper}
@@ -113,7 +131,7 @@ export default function ProtoPage(props) {
         >
           Outdent
         </CommandButton>
-      </div>
+      </FloatingNav>
     </div>
   );
 }
