@@ -10,7 +10,11 @@ import styles from './index.module.scss';
 export function getServerSideProps() {
   return {
     props: {
-      blocks: [schema.createBlock()],
+      blocks: [
+        schema.createBlock('paragraph', { text: '111' }),
+        schema.createBlock('paragraph', { text: '222' }),
+        schema.createBlock('paragraph', { text: '333' }),
+      ],
     },
   };
 }
