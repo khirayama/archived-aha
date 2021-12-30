@@ -4,17 +4,17 @@
 
   .block {
     display: flex;
-    padding: 4px 0;
+    padding: 0.5rem 0;
 
     .handle {
       display: inline-block;
-      width: 1rem;
+      width: 2rem;
       background: red;
       cursor: grab;
       user-select: none;
       touch-action: none;
-      background: url(/handle.svg) no-repeat;
-      background-position: center 0.25rem;
+      background: url(/handle.svg) no-repeat center 0;
+      background-size: 1.5rem;
 
       &.is_handling {
         cursor: grabbing;
@@ -30,13 +30,6 @@
           width: $i * 1rem;
         }
       }
-    }
-
-    &.paragraph {
-    }
-
-    &.list {
-      background: red;
     }
 
     .text {
