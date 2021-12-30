@@ -1,6 +1,6 @@
 import { v4 as uuid } from 'uuid';
 
-import { TextComponent, IndentationComponent } from './components';
+import { TextComponent, IndentationComponent, HandleComponent } from './components';
 
 export type SchemaType = {
   type: string;
@@ -41,6 +41,7 @@ export const paragraphSchema = {
     return (
       <>
         <IndentationComponent block={props.block} />
+        <HandleComponent block={props.block} />
         <TextComponent block={props.block} onKeyDown={props.onTextKeyDown} onInput={props.onTextInput} />
       </>
     );

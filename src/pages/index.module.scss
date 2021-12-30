@@ -24,15 +24,10 @@
       background: red;
     }
 
-    .handle {
-      user-select: none;
-      touch-action: none;
-    }
-
     .text {
       display: inline-block;
       flex: 1;
-      padding: 0 8px;
+      padding: 0 0.25rem;
     }
   }
 }
@@ -46,5 +41,4 @@
   position: fixed;
   left: 0;
   bottom: 0;
-  transition: bottom 200ms ease-in-out;
 }

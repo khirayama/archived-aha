@@ -6,6 +6,10 @@ import { afterRendering, keepSelectionPosition, findNextTextElement, findPrevTex
 
 import styles from './pages/index.module.scss';
 
+export function HandleComponent(props: { block: Block }) {
+  return <span className={styles['handle']} />;
+}
+
 export function IndentationComponent(props: { block: Block }) {
   return <span className={styles['indentation']} data-indent={props.block.indent} />;
 }
@@ -103,34 +107,6 @@ export function BlockComponent(props: BlockComponentProps) {
 
   return (
     <div className={styles['block']} ref={ref} data-blockid={block.id}>
-      <span
-        className={styles['handle']}
-        onPointerDown={(event) => {
-          event.preventDefault();
-          const el = event.target as HTMLSpanElement;
-          // event.dataTransfer.setData('text/plain', null);
-          el.parentElement.style.opacity = '0.5';
-        }}
-        onTouchMove={(event) => {
-          console.log(event.type, props);
-          const el = event.target as HTMLSpanElement;
-          // event.preventDefault();
-          el.parentElement.style.opacity = '0.1';
-        }}
-        onPointerEnter={(event) => {
-          console.log(event.type, props);
-          const el = event.target as HTMLSpanElement;
-          // event.preventDefault();
-          el.parentElement.style.opacity = '0.1';
-        }}
-        onPointerUp={(event) => {
-          console.log(event.type, props);
-          const el = event.target as HTMLSpanElement;
-          el.parentElement.style.opacity = '';
-        }}
-      >
-        HHH
-      </span>
       {schm.component(props)}
     </div>
   );
