@@ -6,6 +6,21 @@
     display: flex;
     padding: 4px 0;
 
+    .handle {
+      display: inline-block;
+      width: 1rem;
+      background: red;
+      cursor: grab;
+      user-select: none;
+      touch-action: none;
+      background: url(/handle.svg) no-repeat;
+      background-position: center 0.25rem;
+
+      &.is_handling {
+        cursor: grabbing;
+      }
+    }
+
     .indentation {
       display: inline-block;
       transition: width 80ms ease-in-out;
