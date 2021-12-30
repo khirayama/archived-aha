@@ -6,8 +6,38 @@ import { afterRendering, keepSelectionPosition, findNextTextElement, findPrevTex
 
 import styles from './pages/index.module.scss';
 
-export function HandleComponent(props: { block: Block }) {
-  return <span className={styles['handle']} />;
+type HanldeComponentProps = {
+  block: Block;
+  onPointerDown: Function;
+};
+
+const tmp = {
+  target: null,
+  to: null,
+};
+
+export function HandleComponent(props: HanldeComponentProps) {
+  return (
+    <span
+      className={styles['handle']}
+      onPointerDown={props.onPointerDown}
+      onPointerMove={(event) => {
+        console.log(event.type);
+        if (tmp.target) {
+          tmp.to = props.block;
+          console.log(props.block.text);
+        }
+      }}
+      onPointerUp={(event) => {
+        console.log(event.type);
+        if (tmp.target && tmp.to) {
+          window.alert(`${tmp.target.text} moves to ${tmp.to.text} position`);
+          tmp.target = null;
+          tmp.to = null;
+        }
+      }}
+    />
+  );
 }
 
 export function IndentationComponent(props: { block: Block }) {
@@ -76,6 +106,7 @@ type BlockComponentProps = {
   block: Block;
   paper: Paper;
   schema: Schema;
+  onHandlePointerDown: Function;
   onTextKeyDown: Function;
   onTextInput: Function;
   children?: React.ReactNode;
@@ -85,25 +116,6 @@ export function BlockComponent(props: BlockComponentProps) {
   const block = props.block;
   const schm = props.schema.find(block.type);
   const ref = React.useRef(null);
-
-  const handleTouchStart = (event: any /* TODO */) => {
-    if (event.target.classList.contains(styles['handle'])) {
-      event.preventDefault();
-    }
-  };
-
-  React.useEffect(() => {
-    if (ref.current) {
-      ref.current.addEventListener('touchstart', handleTouchStart, { passive: false });
-      ref.current.addEventListener('touchmove', handleTouchStart, { passive: false });
-    }
-    return () => {
-      if (ref.current) {
-        ref.current.removeEventListener('touchstart', handleTouchStart);
-        ref.current.removeEventListener('touchmove', handleTouchStart);
-      }
-    };
-  });
 
   return (
     <div className={styles['block']} ref={ref} data-blockid={block.id}>
@@ -135,6 +147,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
     this.state = { blocks: props.paper.blocks };
     this.schema = props.schema;
     this.onPaperChange = this.onPaperChange.bind(this);
+    this.onHandlePointerDown = this.onHandlePointerDown.bind(this);
     this.onTextKeyDown = this.onTextKeyDown.bind(this);
     this.onTextInput = this.onTextInput.bind(this);
   }
@@ -150,6 +163,8 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
   private onPaperChange(p) {
     this.setState({ blocks: p.blocks });
   }
+
+  private onHandlePointerDown(event: React.MouseEvent<HTMLSpanElement>, props: HanldeComponentProps) {}
 
   private onTextKeyDown(event: React.KeyboardEvent<HTMLSpanElement>, props: TextComponentProps) {
     const paper = this.props.paper;
@@ -385,6 +400,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
               paper={this.props.paper}
               schema={this.schema}
               block={block}
+              onHandlePointerDown={this.onHandlePointerDown}
               onTextKeyDown={this.onTextKeyDown}
               onTextInput={this.onTextInput}
             />
