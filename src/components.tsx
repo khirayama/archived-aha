@@ -153,6 +153,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
 
   private onPointerMove(event: React.MouseEvent<HTMLSpanElement>, props: BlockComponentProps) {
     if (this.tmp.target) {
+      // TODO Add ref to PaperComponent and call querySelectorAll from paper el
       const els = Array.from(document.querySelectorAll('.' + styles['block']));
       for (let i = 0; i < els.length - 1; i += 1) {
         const el0 = els[i];
@@ -170,22 +171,27 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
     const paper = this.props.paper;
     const blocks = this.state.blocks;
 
-    const targetBlock = blocks.filter((block) => block.id === this.tmp.target)[0];
-    const toBlock = blocks.filter((block) => block.id === this.tmp.to)[0];
-    if (targetBlock && toBlock) {
-      console.log(`${targetBlock.text} moves to ${toBlock.text}`);
-      paper.tr(() => {
-        const newBlocks = blocks.filter((b) => b.id !== targetBlock.id);
-        for (let i = 0; i < newBlocks.length; i += 1) {
-          if (newBlocks[i].id === toBlock.id) {
-            newBlocks.splice(i + 1, 0, targetBlock);
-            break;
-          }
+    paper.tr(() => {
+      let targetIndex = 0;
+      let toIndex = 0;
+
+      for (let i = 0; i < blocks.length; i += 1) {
+        if (this.tmp.target === blocks[i].id) {
+          targetIndex = i;
         }
-        paper.setBlocks(newBlocks);
-      });
-      paper.commit();
-    }
+
+        if (this.tmp.to === blocks[i].id) {
+          toIndex = i;
+        }
+      }
+
+      const newBlocks = [...blocks];
+      const tmp = newBlocks.splice(targetIndex, 1)[0];
+      newBlocks.splice(toIndex, 0, tmp);
+      paper.setBlocks(newBlocks);
+    });
+    paper.commit();
+
     this.tmp.target = null;
     this.tmp.to = null;
   }
