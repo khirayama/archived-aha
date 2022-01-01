@@ -70,6 +70,10 @@ type BlockComponentProps = {
   block: Block;
   paper: Paper;
   schema: Schema;
+  sort: {
+    target: string;
+    to: string;
+  };
   onHandlePointerDown: Function;
   onPointerMove: Function;
   onPointerUp: Function;
@@ -114,9 +118,15 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
 
   private schema: Schema;
 
-  private tmp: {
-    target: string | null;
-    to: string | null;
+  private sort: {
+    target: {
+      el: any /* TODO */;
+      id: string | null;
+    } | null;
+    to: {
+      el: any /* TODO */;
+      id: string | null;
+    } | null;
   } = {
     target: null,
     to: null,
@@ -147,21 +157,31 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
   }
 
   private onHandlePointerDown(event: React.MouseEvent<HTMLSpanElement>, props: BlockComponentProps) {
-    // console.log(props);
-    this.tmp.target = props.block.id;
+    let el = document.querySelector(`[data-blockid="${props.block.id}"]`);
+    el.classList.add(styles['is_handling']);
+    this.sort.target = {
+      el,
+      id: props.block.id,
+    };
   }
 
   private onPointerMove(event: React.MouseEvent<HTMLSpanElement>, props: BlockComponentProps) {
-    if (this.tmp.target) {
+    if (this.sort.target) {
       // TODO Add ref to PaperComponent and call querySelectorAll from paper el
       const els = Array.from(document.querySelectorAll('.' + styles['block']));
       for (let i = 0; i < els.length - 1; i += 1) {
-        const el0 = els[i];
-        const el1 = els[i + 1];
+        const el0 = els[i] as HTMLSpanElement;
+        const el1 = els[i + 1] as HTMLSpanElement;
         if (el0.getBoundingClientRect().y <= event.pageY && event.pageY < el1.getBoundingClientRect().y) {
-          this.tmp.to = el0.dataset.blockid;
+          this.sort.to = {
+            el: el0,
+            id: el0.dataset.blockid,
+          };
         } else if (el1.getBoundingClientRect().y <= event.pageY) {
-          this.tmp.to = el1.dataset.blockid;
+          this.sort.to = {
+            el: el1,
+            id: el1.dataset.blockid,
+          };
         }
       }
     }
@@ -171,29 +191,30 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
     const paper = this.props.paper;
     const blocks = this.state.blocks;
 
-    paper.tr(() => {
-      let targetIndex = 0;
-      let toIndex = 0;
+    paper
+      .tr(() => {
+        let targetIndex = 0;
+        let toIndex = 0;
 
-      for (let i = 0; i < blocks.length; i += 1) {
-        if (this.tmp.target === blocks[i].id) {
-          targetIndex = i;
+        for (let i = 0; i < blocks.length; i += 1) {
+          if (this.sort.target.id === blocks[i].id) {
+            targetIndex = i;
+          }
+
+          if (this.sort.to.id === blocks[i].id) {
+            toIndex = i;
+          }
         }
 
-        if (this.tmp.to === blocks[i].id) {
-          toIndex = i;
-        }
-      }
+        const newBlocks = [...blocks];
+        const sort = newBlocks.splice(targetIndex, 1)[0];
+        newBlocks.splice(toIndex, 0, sort);
+        paper.setBlocks(newBlocks);
+      })
+      .commit();
 
-      const newBlocks = [...blocks];
-      const tmp = newBlocks.splice(targetIndex, 1)[0];
-      newBlocks.splice(toIndex, 0, tmp);
-      paper.setBlocks(newBlocks);
-    });
-    paper.commit();
-
-    this.tmp.target = null;
-    this.tmp.to = null;
+    this.sort.target = null;
+    this.sort.to = null;
   }
 
   private onTextKeyDown(event: React.KeyboardEvent<HTMLSpanElement>, props: BlockComponentProps) {
