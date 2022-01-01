@@ -40,9 +40,9 @@ export const paragraphSchema = {
   component: (props) => {
     return (
       <>
-        <IndentationComponent block={props.block} />
-        <HandleComponent block={props.block} />
-        <TextComponent block={props.block} onKeyDown={props.onTextKeyDown} onInput={props.onTextInput} />
+        <IndentationComponent {...props} />
+        <HandleComponent {...props} />
+        <TextComponent {...props} />
       </>
     );
   },

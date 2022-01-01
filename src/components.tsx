@@ -6,54 +6,18 @@ import { afterRendering, keepSelectionPosition, findNextTextElement, findPrevTex
 
 import styles from './pages/index.module.scss';
 
-type HanldeComponentProps = {
-  block: Block;
-  onPointerDown: Function;
-};
-
-const tmp = {
-  target: null,
-  to: null,
-};
-
-export function HandleComponent(props: HanldeComponentProps) {
-  return (
-    <span
-      className={styles['handle']}
-      onPointerDown={props.onPointerDown}
-      onPointerMove={(event) => {
-        console.log(event.type);
-        if (tmp.target) {
-          tmp.to = props.block;
-          console.log(props.block.text);
-        }
-      }}
-      onPointerUp={(event) => {
-        console.log(event.type);
-        if (tmp.target && tmp.to) {
-          window.alert(`${tmp.target.text} moves to ${tmp.to.text} position`);
-          tmp.target = null;
-          tmp.to = null;
-        }
-      }}
-    />
-  );
+export function HandleComponent(props: BlockComponentProps) {
+  return <span className={styles['handle']} onPointerDown={(e) => props.onHandlePointerDown(e, props)} />;
 }
 
-export function IndentationComponent(props: { block: Block }) {
+export function IndentationComponent(props: BlockComponentProps) {
   return <span className={styles['indentation']} data-indent={props.block.indent} />;
 }
 
-type TextComponentProps = {
-  block: Partial<Block>;
-  onKeyDown: Function;
-  onInput: Function;
-};
-
-export class TextComponent extends React.Component<TextComponentProps> {
+export class TextComponent extends React.Component<BlockComponentProps> {
   private ref: React.RefObject<HTMLSpanElement>;
 
-  constructor(props: TextComponentProps) {
+  constructor(props: BlockComponentProps) {
     super(props);
     this.ref = React.createRef<HTMLSpanElement>();
   }
@@ -66,12 +30,12 @@ export class TextComponent extends React.Component<TextComponentProps> {
     }
   }
 
-  public shouldComponentUpdate(nextProps: TextComponentProps) {
+  public shouldComponentUpdate(nextProps: BlockComponentProps) {
     this.manualDiffPatch(nextProps);
     return false;
   }
 
-  private manualDiffPatch(nextProps: TextComponentProps) {
+  private manualDiffPatch(nextProps: BlockComponentProps) {
     const el = this.ref.current;
     const block = {
       id: el.parentElement.dataset.blockid,
@@ -95,8 +59,8 @@ export class TextComponent extends React.Component<TextComponentProps> {
         contentEditable
         className={styles['text']}
         dangerouslySetInnerHTML={{ __html: block.text }}
-        onKeyDown={(e) => this.props.onKeyDown(e, this.props)}
-        onInput={(e) => this.props.onInput(e, this.props)}
+        onKeyDown={(e) => this.props.onTextKeyDown(e, this.props)}
+        onInput={(e) => this.props.onTextInput(e, this.props)}
       />
     );
   }
@@ -107,6 +71,8 @@ type BlockComponentProps = {
   paper: Paper;
   schema: Schema;
   onHandlePointerDown: Function;
+  onPointerMove: Function;
+  onPointerUp: Function;
   onTextKeyDown: Function;
   onTextInput: Function;
   children?: React.ReactNode;
@@ -118,7 +84,13 @@ export function BlockComponent(props: BlockComponentProps) {
   const ref = React.useRef(null);
 
   return (
-    <div className={styles['block']} ref={ref} data-blockid={block.id}>
+    <div
+      className={styles['block']}
+      ref={ref}
+      data-blockid={block.id}
+      onPointerMove={(e) => props.onPointerMove(e, props)}
+      onPointerUp={(e) => props.onPointerUp(e, props)}
+    >
       {schm.component(props)}
     </div>
   );
@@ -142,12 +114,22 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
 
   private schema: Schema;
 
+  private tmp: {
+    target: string | null;
+    to: string | null;
+  } = {
+    target: null,
+    to: null,
+  };
+
   constructor(props: PaperComponentProps) {
     super(props);
     this.state = { blocks: props.paper.blocks };
     this.schema = props.schema;
     this.onPaperChange = this.onPaperChange.bind(this);
     this.onHandlePointerDown = this.onHandlePointerDown.bind(this);
+    this.onPointerMove = this.onPointerMove.bind(this);
+    this.onPointerUp = this.onPointerUp.bind(this);
     this.onTextKeyDown = this.onTextKeyDown.bind(this);
     this.onTextInput = this.onTextInput.bind(this);
   }
@@ -164,9 +146,51 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
     this.setState({ blocks: p.blocks });
   }
 
-  private onHandlePointerDown(event: React.MouseEvent<HTMLSpanElement>, props: HanldeComponentProps) {}
+  private onHandlePointerDown(event: React.MouseEvent<HTMLSpanElement>, props: BlockComponentProps) {
+    // console.log(props);
+    this.tmp.target = props.block.id;
+  }
 
-  private onTextKeyDown(event: React.KeyboardEvent<HTMLSpanElement>, props: TextComponentProps) {
+  private onPointerMove(event: React.MouseEvent<HTMLSpanElement>, props: BlockComponentProps) {
+    if (this.tmp.target) {
+      const els = Array.from(document.querySelectorAll('.' + styles['block']));
+      for (let i = 0; i < els.length - 1; i += 1) {
+        const el0 = els[i];
+        const el1 = els[i + 1];
+        if (el0.getBoundingClientRect().y <= event.pageY && event.pageY < el1.getBoundingClientRect().y) {
+          this.tmp.to = el0.dataset.blockid;
+        } else if (el1.getBoundingClientRect().y <= event.pageY) {
+          this.tmp.to = el1.dataset.blockid;
+        }
+      }
+    }
+  }
+
+  private onPointerUp(event: React.MouseEvent<HTMLSpanElement>, props: BlockComponentProps) {
+    const paper = this.props.paper;
+    const blocks = this.state.blocks;
+
+    const targetBlock = blocks.filter((block) => block.id === this.tmp.target)[0];
+    const toBlock = blocks.filter((block) => block.id === this.tmp.to)[0];
+    if (targetBlock && toBlock) {
+      console.log(`${targetBlock.text} moves to ${toBlock.text}`);
+      paper.tr(() => {
+        const newBlocks = blocks.filter((b) => b.id !== targetBlock.id);
+        for (let i = 0; i < newBlocks.length; i += 1) {
+          if (newBlocks[i].id === toBlock.id) {
+            newBlocks.splice(i + 1, 0, targetBlock);
+            break;
+          }
+        }
+        paper.setBlocks(newBlocks);
+      });
+      paper.commit();
+    }
+    this.tmp.target = null;
+    this.tmp.to = null;
+  }
+
+  private onTextKeyDown(event: React.KeyboardEvent<HTMLSpanElement>, props: BlockComponentProps) {
     const paper = this.props.paper;
     const blocks = this.state.blocks;
     const block = props.block;
@@ -370,7 +394,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
     paper.commit();
   }
 
-  private onTextInput(event: React.KeyboardEvent<HTMLSpanElement>, props: TextComponentProps) {
+  private onTextInput(event: React.KeyboardEvent<HTMLSpanElement>, props: BlockComponentProps) {
     const paper = this.props.paper;
     const blocks = this.state.blocks;
 
@@ -401,6 +425,8 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
               schema={this.schema}
               block={block}
               onHandlePointerDown={this.onHandlePointerDown}
+              onPointerMove={this.onPointerMove}
+              onPointerUp={this.onPointerUp}
               onTextKeyDown={this.onTextKeyDown}
               onTextInput={this.onTextInput}
             />
