@@ -1,7 +1,7 @@
 import * as React from 'react';
 
 import { Schema, Block } from './schema';
-import { Paper } from '../model';
+import { Paper } from './model';
 import { afterRendering, keepSelectionPosition, findNextTextElement, findPrevTextElement } from './utils';
 
 import styles from './pages/index.module.scss';
