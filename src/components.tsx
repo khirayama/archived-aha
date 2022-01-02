@@ -148,6 +148,21 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
     this.props.paper.offChange(this.onPaperChange);
   }
 
+  private findTargetBlocks(block: Block): Block[] {
+    const blocks = [];
+    let isSameBlock = false;
+    for (let i = 0; i < this.props.paper.blocks.length; i += 1) {
+      const b = this.props.paper.blocks[i];
+      if (b.id === block.id || (isSameBlock && block.indent < b.indent)) {
+        isSameBlock = true;
+        blocks.push(b);
+      } else {
+        isSameBlock = false;
+      }
+    }
+    return blocks;
+  }
+
   private onPaperChange(p) {
     this.setState({ blocks: p.blocks });
   }
