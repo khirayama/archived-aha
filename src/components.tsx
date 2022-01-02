@@ -70,10 +70,6 @@ type BlockComponentProps = {
   block: Block;
   paper: Paper;
   schema: Schema;
-  sort: {
-    target: string;
-    to: string;
-  };
   onHandlePointerDown: Function;
   onPointerMove: Function;
   onPointerUp: Function;
@@ -158,15 +154,19 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
 
   private onHandlePointerDown(event: React.MouseEvent<HTMLSpanElement>, props: BlockComponentProps) {
     let el = document.querySelector(`[data-blockid="${props.block.id}"]`);
-    el.classList.add(styles['is_handling']);
     this.sort.target = {
       el,
       id: props.block.id,
     };
+    this.sort.target.el.classList.add(styles['is_handling']);
   }
 
   private onPointerMove(event: React.MouseEvent<HTMLSpanElement>, props: BlockComponentProps) {
     if (this.sort.target) {
+      if (this.sort.to) {
+        this.sort.to.el.classList.remove(styles['is_hover']);
+      }
+
       // TODO Add ref to PaperComponent and call querySelectorAll from paper el
       const els = Array.from(document.querySelectorAll('.' + styles['block']));
       for (let i = 0; i < els.length - 1; i += 1) {
@@ -184,6 +184,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
           };
         }
       }
+      this.sort.to.el.classList.add(styles['is_hover']);
     }
   }
 
@@ -191,27 +192,36 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
     const paper = this.props.paper;
     const blocks = this.state.blocks;
 
-    paper
-      .tr(() => {
-        let targetIndex = 0;
-        let toIndex = 0;
+    if (this.sort.target && this.sort.to) {
+      paper
+        .tr(() => {
+          let targetIndex = 0;
+          let toIndex = 0;
 
-        for (let i = 0; i < blocks.length; i += 1) {
-          if (this.sort.target.id === blocks[i].id) {
-            targetIndex = i;
+          for (let i = 0; i < blocks.length; i += 1) {
+            if (this.sort.target.id === blocks[i].id) {
+              targetIndex = i;
+            }
+
+            if (this.sort.to.id === blocks[i].id) {
+              toIndex = i;
+            }
           }
 
-          if (this.sort.to.id === blocks[i].id) {
-            toIndex = i;
-          }
-        }
+          const newBlocks = [...blocks];
+          const sort = newBlocks.splice(targetIndex, 1)[0];
+          newBlocks.splice(toIndex, 0, sort);
+          paper.setBlocks(newBlocks);
+        })
+        .commit();
+    }
 
-        const newBlocks = [...blocks];
-        const sort = newBlocks.splice(targetIndex, 1)[0];
-        newBlocks.splice(toIndex, 0, sort);
-        paper.setBlocks(newBlocks);
-      })
-      .commit();
+    if (this.sort.target) {
+      this.sort.target.el.classList.remove(styles['is_handling']);
+    }
+    if (this.sort.to) {
+      this.sort.to.el.classList.remove(styles['is_hover']);
+    }
 
     this.sort.target = null;
     this.sort.to = null;
@@ -335,7 +345,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
           const prevEl = findPrevTextElement(el);
           if (prevEl) {
             event.preventDefault();
-            prevEl.focus();
+            // prevEl.focus();
             const range = document.createRange();
             const textNode = prevEl.childNodes[0];
             range.setStart(textNode, sel.focusNode.length);
@@ -396,7 +406,11 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
         if (nextEl) {
           nextEl.focus();
           const range = document.createRange();
-          const textNode = nextEl.childNodes[0];
+          let textNode = nextEl.childNodes[0];
+          if (!textNode) {
+            textNode = document.createTextNode('');
+            nextEl.appendChild(textNode);
+          }
           range.setStart(textNode, 0);
           range.setEnd(textNode, 0);
           sel.removeAllRanges();
@@ -410,7 +424,11 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
         if (prevEl) {
           prevEl.focus();
           const range = document.createRange();
-          const textNode = prevEl.childNodes[0];
+          let textNode = prevEl.childNodes[0];
+          if (!textNode) {
+            textNode = document.createTextNode('');
+            prevEl.appendChild(textNode);
+          }
           range.setStart(textNode, sel.focusNode.length);
           range.setEnd(textNode, sel.focusNode.length);
           sel.removeAllRanges();

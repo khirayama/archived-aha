@@ -7,8 +7,13 @@
     padding: 0.5rem 0;
 
     &.is_handling {
-      opacity: 0.5;
       cursor: grabbing;
+      background: rgba(46, 170, 220, 0.2)
+    }
+
+    &.is_hover {
+      opacity: 0.2;
+      background: rgba(46, 170, 220, 0.2)
     }
 
     .handle {
