@@ -62,11 +62,12 @@ export const listSchema = {
   },
   component: (props) => {
     return (
-      <div>
-        <IndentationComponent block={props.block} />
-        <span>LIST </span>
-        <TextComponent block={props.block} onKeyDown={props.onTextKeyDown} onInput={props.onTextInput} />
-      </div>
+      <>
+        <IndentationComponent {...props} />
+        <HandleComponent {...props} />
+        <span>L</span>
+        <TextComponent {...props} />
+      </>
     );
   },
 };

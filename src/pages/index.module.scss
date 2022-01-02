@@ -1,49 +1,6 @@
 .blocks {
   width: 100%;
   padding: 8px;
-
-  .block {
-    display: flex;
-    padding: 0.5rem 0;
-
-    &.is_handling {
-      cursor: grabbing;
-      background: rgba(46, 170, 220, 0.2)
-    }
-
-    &.is_hover {
-      opacity: 0.2;
-      background: rgba(46, 170, 220, 0.2)
-    }
-
-    .handle {
-      display: inline-block;
-      width: 2rem;
-      background: red;
-      cursor: grab;
-      user-select: none;
-      touch-action: none;
-      background: url(/handle.svg) no-repeat center 0;
-      background-size: 1.5rem;
-    }
-
-    .indentation {
-      display: inline-block;
-      transition: width 80ms ease-in-out;
-
-      @for $i from 0 through 8 {
-        &[data-indent="#{$i}"] {
-          width: $i * 1rem;
-        }
-      }
-    }
-
-    .text {
-      display: inline-block;
-      flex: 1;
-      padding: 0 0.25rem;
-    }
-  }
 }
 
 .container {
@@ -55,4 +12,45 @@
   position: fixed;
   left: 0;
   bottom: 0;
+}
+
+.block {
+  display: flex;
+  padding: 0.5rem 0;
+
+  &.is_handling {
+    background: rgba(46, 170, 220, 0.2)
+  }
+
+  &.is_hover {
+    opacity: 0.2;
+    background: rgba(46, 170, 220, 0.2)
+  }
+}
+
+.handle {
+  display: inline-block;
+  flex-basis: 2rem;
+  cursor: move;
+  user-select: none;
+  touch-action: none;
+  background: url(/handle.svg) no-repeat center 0;
+  background-size: 1.5rem;
+}
+
+.indentation {
+  display: inline-block;
+  transition: width 80ms ease-in-out;
+
+  @for $i from 0 through 8 {
+    &[data-indent="#{$i}"] {
+      width: $i * 1rem;
+    }
+  }
+}
+
+.text {
+  display: inline-block;
+  flex: 1;
+  padding: 0 0.25rem;
 }

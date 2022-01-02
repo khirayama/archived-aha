@@ -51,18 +51,16 @@ export function CommandButton(props) {
   );
 }
 
-function FloatingNav(props: { children: React.Node }) {
-  const ref = React.useRef();
+function FloatingNav(props: { children: React.ReactNode }) {
+  const ref = React.useRef<HTMLDivElement>();
 
   React.useEffect(() => {
     function viewportHandler(event) {
       requestAnimationFrame(() => {
-        if (ref.current) {
-          const el = ref.current;
-          /* TODO Update iOS and iPad condition */
-          if (navigator.platform.indexOf('iOS') !== -1 || navigator.platform.indexOf('iPad') !== -1) {
-            el.style.bottom = window.innerHeight - window.visualViewport.height + 'px';
-          }
+        const el = ref.current;
+        /* TODO Update iOS and iPad condition */
+        if (el && (navigator.platform.indexOf('iOS') !== -1 || navigator.platform.indexOf('iPad') !== -1)) {
+          el.style.bottom = window.innerHeight - window.visualViewport.height + 'px';
         }
       });
     }
