@@ -148,7 +148,8 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
     this.props.paper.offChange(this.onPaperChange);
   }
 
-  private findTargetBlocks(block: Block): Block[] {
+  private findGroupedBlocks(blockId: string): Block[] {
+    const block = this.props.paper.blocks.filter((b) => b.id === blockId)[0];
     const blocks = [];
     let isSameBlock = false;
     for (let i = 0; i < this.props.paper.blocks.length; i += 1) {
@@ -168,12 +169,18 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
   }
 
   private onHandlePointerDown(event: React.MouseEvent<HTMLSpanElement>, props: BlockComponentProps) {
-    let el = document.querySelector(`[data-blockid="${props.block.id}"]`);
+    const blocks = this.findGroupedBlocks(props.block.id);
+    for (let i = 0; i < blocks.length; i += 1) {
+      const b = blocks[i];
+      const el = document.querySelector(`[data-blockid="${b.id}"]`);
+      el.classList.add(styles['is_handling']);
+    }
+
+    const el = document.querySelector(`[data-blockid="${props.block.id}"]`);
     this.sort.target = {
       el,
       id: props.block.id,
     };
-    this.sort.target.el.classList.add(styles['is_handling']);
   }
 
   private onPointerMove(event: React.MouseEvent<HTMLSpanElement>, props: BlockComponentProps) {
@@ -182,24 +189,25 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
         this.sort.to.el.classList.remove(styles['is_hover']);
       }
 
-      // TODO Add ref to PaperComponent and call querySelectorAll from paper el
-      const els = Array.from(document.querySelectorAll('.' + styles['block']));
-      for (let i = 0; i < els.length - 1; i += 1) {
-        const el0 = els[i] as HTMLSpanElement;
-        const el1 = els[i + 1] as HTMLSpanElement;
-        if (el0.getBoundingClientRect().y <= event.pageY && event.pageY < el1.getBoundingClientRect().y) {
-          this.sort.to = {
-            el: el0,
-            id: el0.dataset.blockid,
-          };
-        } else if (el1.getBoundingClientRect().y <= event.pageY) {
-          this.sort.to = {
-            el: el1,
-            id: el1.dataset.blockid,
-          };
-        }
+      let el = document.elementFromPoint(event.clientX, event.clientY) as HTMLElement;
+      if (el && !el.dataset.blockid) {
+        el = el.parentElement;
       }
-      this.sort.to.el.classList.add(styles['is_hover']);
+      const blockId = el.dataset.blockid;
+      const blockIds = this.findGroupedBlocks(this.sort.target.id).map((b) => b.id);
+
+      if (!blockIds.includes(blockId)) {
+        this.sort.to = {
+          el: el,
+          id: el.dataset.blockid,
+        };
+      } else {
+        this.sort.to = null;
+      }
+
+      if (this.sort.to) {
+        this.sort.to.el.classList.add(styles['is_hover']);
+      }
     }
   }
 
@@ -223,16 +231,22 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
             }
           }
 
+          const l = this.findGroupedBlocks(this.sort.target.id).length;
           const newBlocks = [...blocks];
-          const sort = newBlocks.splice(targetIndex, 1)[0];
-          newBlocks.splice(toIndex, 0, sort);
+          const sort = newBlocks.splice(targetIndex, l);
+          newBlocks.splice(toIndex < targetIndex ? toIndex : toIndex - l + 1, 0, ...sort);
           paper.setBlocks(newBlocks);
         })
         .commit();
     }
 
     if (this.sort.target) {
-      this.sort.target.el.classList.remove(styles['is_handling']);
+      const blocks = this.findGroupedBlocks(this.sort.target.id);
+      for (let i = 0; i < blocks.length; i += 1) {
+        const b = blocks[i];
+        const el = document.querySelector(`[data-blockid="${b.id}"]`);
+        el.classList.remove(styles['is_handling']);
+      }
     }
     if (this.sort.to) {
       this.sort.to.el.classList.remove(styles['is_hover']);
