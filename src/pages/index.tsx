@@ -12,8 +12,11 @@ export function getServerSideProps() {
     props: {
       blocks: [
         schema.createBlock('paragraph', { text: '111' }),
-        schema.createBlock('paragraph', { text: '222' }),
-        schema.createBlock('paragraph', { text: '333' }),
+        schema.createBlock('paragraph', { text: '222', indent: 1 }),
+        schema.createBlock('paragraph', { text: '333', indent: 2 }),
+        schema.createBlock('paragraph', { text: '444' }),
+        schema.createBlock('paragraph', { text: '555' }),
+        schema.createBlock('paragraph', { text: '666' }),
       ],
     },
   };
