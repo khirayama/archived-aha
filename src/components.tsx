@@ -126,10 +126,14 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
     to: null,
   };
 
+  private ref: React.RefObject<HTMLDivElement>;
+
   constructor(props: PaperComponentProps) {
     super(props);
     this.state = { blocks: props.paper.blocks };
     this.schema = props.schema;
+    this.ref = React.createRef<HTMLDivElement>();
+
     this.onPaperChange = this.onPaperChange.bind(this);
     this.onHandlePointerDown = this.onHandlePointerDown.bind(this);
     this.onPointerMove = this.onPointerMove.bind(this);
@@ -170,11 +174,11 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
     const blocks = this.findGroupedBlocks(props.block.id);
     for (let i = 0; i < blocks.length; i += 1) {
       const b = blocks[i];
-      const el = document.querySelector(`[data-blockid="${b.id}"]`);
+      const el = this.ref.current.querySelector(`[data-blockid="${b.id}"]`);
       el.classList.add(styles['is_handling']);
     }
 
-    const el = document.querySelector(`[data-blockid="${props.block.id}"]`);
+    const el = this.ref.current.querySelector(`[data-blockid="${props.block.id}"]`);
     this.sort.target = {
       el,
       id: props.block.id,
@@ -242,7 +246,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
       const blocks = this.findGroupedBlocks(this.sort.target.id);
       for (let i = 0; i < blocks.length; i += 1) {
         const b = blocks[i];
-        const el = document.querySelector(`[data-blockid="${b.id}"]`);
+        const el = this.ref.current.querySelector(`[data-blockid="${b.id}"]`);
         el.classList.remove(styles['is_handling']);
       }
     }
@@ -488,7 +492,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
     const blocks = this.state.blocks;
 
     return (
-      <div className={styles['blocks']}>
+      <div className={styles['blocks']} ref={this.ref}>
         {blocks.map((block) => {
           return (
             <BlockComponent
