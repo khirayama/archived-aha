@@ -16,7 +16,12 @@ export function getServerSideProps() {
         schema.createBlock('paragraph', { text: '333', indent: 2 }),
         schema.createBlock('paragraph', { text: '444' }),
         schema.createBlock('paragraph', { text: '555' }),
-        schema.createBlock('paragraph', { text: '666' }),
+        schema.createBlock('paragraph', { text: '666', indent: 1 }),
+        schema.createBlock('paragraph', { text: '777', indent: 1 }),
+        schema.createBlock('paragraph', { text: '888', indent: 2 }),
+        schema.createBlock('paragraph', { text: '999', indent: 1 }),
+        schema.createBlock('paragraph', { text: '101010', indent: 1 }),
+        schema.createBlock('paragraph', { text: '111111' }),
       ],
     },
   };
