@@ -81,12 +81,10 @@ type BlockComponentProps = {
 export function BlockComponent(props: BlockComponentProps) {
   const block = props.block;
   const schm = props.schema.find(block.type);
-  const ref = React.useRef(null);
 
   return (
     <div
       className={styles['block']}
-      ref={ref}
       data-blockid={block.id}
       onPointerMove={(e) => props.onPointerMove(e, props)}
       onPointerUp={(e) => props.onPointerUp(e, props)}
