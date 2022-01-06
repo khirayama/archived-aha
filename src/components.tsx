@@ -2,7 +2,6 @@ import * as React from 'react';
 
 import { Schema, Block } from './schema';
 import { Paper } from './model';
-import { afterRendering, keepSelectionPosition, findNextTextElement, findPrevTextElement } from './utils';
 
 import styles from './pages/index.module.scss';
 
@@ -166,6 +165,68 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
     return blocks;
   }
 
+  private findBlockElement(blockId: string) {
+    return this.ref.current.querySelector(`[data-blockid="${blockId}"]`);
+  }
+
+  private findNextBlockElement(blockId: string) {
+    const els: NodeListOf<HTMLDivElement> = this.ref.current.querySelectorAll('[data-blockid]');
+    for (let i = 0; i < els.length; i += 1) {
+      if (els[i].dataset.blockid === blockId) {
+        return els[i + 1] || null;
+      }
+    }
+    return null;
+  }
+
+  private findPrevBlockElement(blockId: string) {
+    const els: NodeListOf<HTMLDivElement> = this.ref.current.querySelectorAll('[data-blockid]');
+    for (let i = 0; i < els.length; i += 1) {
+      if (els[i].dataset.blockid === blockId) {
+        return els[i - 1] || null;
+      }
+    }
+    return null;
+  }
+
+  private findFocusableElement(blockElement: HTMLDivElement): HTMLElement {
+    return blockElement.querySelector('[contentEditable]');
+  }
+
+  private afterRendering(callback: Function) {
+    window.setTimeout(callback, 0);
+  }
+
+  private keepSelectionPosition() {
+    const sel = window.getSelection();
+
+    if (sel.anchorNode === null) {
+      return;
+    }
+
+    let blockElement = sel.anchorNode.parentElement;
+    while (!blockElement.dataset.blockid) {
+      blockElement = blockElement.parentElement;
+    }
+    const anchorOffset = sel.anchorOffset;
+    const focusOffset = sel.focusOffset;
+
+    this.afterRendering(() => {
+      const range = document.createRange();
+      const el = blockElement.querySelector('[contenteditable]') as any;
+      if (el.childNodes.length === 0) {
+        const textNode = document.createTextNode('');
+        el.appendChild(textNode);
+      }
+      const textNode = el.childNodes[0];
+      el.focus();
+      range.setStart(textNode, anchorOffset);
+      range.setEnd(textNode, focusOffset);
+      sel.removeAllRanges();
+      sel.addRange(range);
+    });
+  }
+
   private onPaperChange(p) {
     this.setState({ blocks: p.blocks });
   }
@@ -174,11 +235,11 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
     const blocks = this.findGroupedBlocks(props.block.id);
     for (let i = 0; i < blocks.length; i += 1) {
       const b = blocks[i];
-      const el = this.ref.current.querySelector(`[data-blockid="${b.id}"]`);
+      const el = this.findBlockElement(b.id);
       el.classList.add(styles['is_handling']);
     }
 
-    const el = this.ref.current.querySelector(`[data-blockid="${props.block.id}"]`);
+    const el = this.findBlockElement(props.block.id);
     this.sort.target = {
       el,
       id: props.block.id,
@@ -266,7 +327,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
       const blocks = this.findGroupedBlocks(this.sort.target.id);
       for (let i = 0; i < blocks.length; i += 1) {
         const b = blocks[i];
-        const el = this.ref.current.querySelector(`[data-blockid="${b.id}"]`);
+        const el = this.findBlockElement(b.id);
         el.classList.remove(styles['is_handling']);
       }
     }
@@ -298,7 +359,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
       event.preventDefault();
     } else if (key === 'm' && ctrl) {
       event.preventDefault();
-      keepSelectionPosition();
+      this.keepSelectionPosition();
       paper.tr(() => {
         const newBlocks = [...blocks].map((b) => {
           if (block.id === b.id) {
@@ -314,7 +375,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
       event.preventDefault();
       if (block.type !== defaultSchema.type && block.text === '') {
         /* Turn into paragraph block */
-        keepSelectionPosition();
+        this.keepSelectionPosition();
         paper.tr(() => {
           const newBlocks = blocks.map((b) => {
             if (block.id === b.id) {
@@ -349,12 +410,13 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
           }
           paper.setBlocks(newBlocks);
         });
-        afterRendering(() => {
-          const nextEl = findNextTextElement(el);
-          if (nextEl) {
-            // nextEl.focus();
+        this.afterRendering(() => {
+          const nextBlockEl = this.findNextBlockElement(block.id);
+          const nextFocusableElement = this.findFocusableElement(nextBlockEl);
+          if (nextFocusableElement) {
+            // nextFocusableElement.focus();
             const range = document.createRange();
-            const textNode = nextEl.childNodes[0];
+            const textNode = nextFocusableElement.childNodes[0];
             range.setStart(textNode, 0);
             range.setEnd(textNode, 0);
             sel.removeAllRanges();
@@ -366,7 +428,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
       if (sel.isCollapsed && sel.anchorOffset == 0) {
         if (block.type !== defaultSchema.type) {
           /* Turn into paragraph block */
-          keepSelectionPosition();
+          this.keepSelectionPosition();
           paper.tr(() => {
             const newBlocks = blocks.map((b) => {
               if (block.id === b.id) {
@@ -380,7 +442,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
           });
         } else if (block.indent > 0) {
           /* Outdent */
-          keepSelectionPosition();
+          this.keepSelectionPosition();
           paper.tr(() => {
             const newBlocks = blocks.map((b) => {
               if (b.id === block.id) {
@@ -394,18 +456,19 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
           });
         } else {
           /* Combine prev block */
-          const prevEl = findPrevTextElement(el);
-          if (prevEl) {
+          const prevBlockEl = this.findPrevBlockElement(block.id);
+          const prevFocusableElement = this.findFocusableElement(prevBlockEl);
+          if (prevFocusableElement) {
             event.preventDefault();
-            // prevEl.focus();
+            // prevFocusableElement.focus();
             const range = document.createRange();
-            const textNode = prevEl.childNodes[0];
+            const textNode = prevFocusableElement.childNodes[0];
             range.setStart(textNode, sel.focusNode.length);
             range.setEnd(textNode, sel.focusNode.length);
             sel.removeAllRanges();
             sel.addRange(range);
 
-            keepSelectionPosition();
+            this.keepSelectionPosition();
             paper.tr(() => {
               const newBlocks = [...blocks]
                 .map((b, i) => {
@@ -454,14 +517,15 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
     } else if (key == 'ArrowDown' && !shift) {
       if (sel.isCollapsed && sel.focusNode.length === sel.focusOffset) {
         event.preventDefault();
-        const nextEl = findNextTextElement(el);
-        if (nextEl) {
-          nextEl.focus();
+        const nextBlockEl = this.findNextBlockElement(block.id);
+        const nextFocusableElement = this.findFocusableElement(nextBlockEl);
+        if (nextFocusableElement) {
+          nextFocusableElement.focus();
           const range = document.createRange();
-          let textNode = nextEl.childNodes[0];
+          let textNode = nextFocusableElement.childNodes[0];
           if (!textNode) {
             textNode = document.createTextNode('');
-            nextEl.appendChild(textNode);
+            nextFocusableElement.appendChild(textNode);
           }
           range.setStart(textNode, 0);
           range.setEnd(textNode, 0);
@@ -472,14 +536,15 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
     } else if (key == 'ArrowUp' && !shift) {
       if (sel.isCollapsed && sel.anchorOffset === 0) {
         event.preventDefault();
-        const prevEl = findPrevTextElement(el);
-        if (prevEl) {
-          prevEl.focus();
+        const prevBlockEl = this.findPrevBlockElement(block.id);
+        const prevFocusableElement = this.findFocusableElement(prevBlockEl);
+        if (prevFocusableElement) {
+          prevFocusableElement.focus();
           const range = document.createRange();
-          let textNode = prevEl.childNodes[0];
+          let textNode = prevFocusableElement.childNodes[0];
           if (!textNode) {
             textNode = document.createTextNode('');
-            prevEl.appendChild(textNode);
+            prevFocusableElement.appendChild(textNode);
           }
           range.setStart(textNode, sel.focusNode.length);
           range.setEnd(textNode, sel.focusNode.length);
