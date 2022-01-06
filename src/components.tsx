@@ -2,6 +2,7 @@ import * as React from 'react';
 
 import { Schema, Block } from './schema';
 import { Paper } from './model';
+import { afterRendering, keepSelectionPosition } from './components/utils';
 
 import styles from './pages/index.module.scss';
 
@@ -193,40 +194,6 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
     return blockElement.querySelector('[contentEditable]');
   }
 
-  private afterRendering(callback: Function) {
-    window.setTimeout(callback, 0);
-  }
-
-  private keepSelectionPosition() {
-    const sel = window.getSelection();
-
-    if (sel.anchorNode === null) {
-      return;
-    }
-
-    let blockElement = sel.anchorNode.parentElement;
-    while (!blockElement.dataset.blockid) {
-      blockElement = blockElement.parentElement;
-    }
-    const anchorOffset = sel.anchorOffset;
-    const focusOffset = sel.focusOffset;
-
-    this.afterRendering(() => {
-      const range = document.createRange();
-      const el = blockElement.querySelector('[contenteditable]') as any;
-      if (el.childNodes.length === 0) {
-        const textNode = document.createTextNode('');
-        el.appendChild(textNode);
-      }
-      const textNode = el.childNodes[0];
-      el.focus();
-      range.setStart(textNode, anchorOffset);
-      range.setEnd(textNode, focusOffset);
-      sel.removeAllRanges();
-      sel.addRange(range);
-    });
-  }
-
   private onPaperChange(p) {
     this.setState({ blocks: p.blocks });
   }
@@ -359,7 +326,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
       event.preventDefault();
     } else if (key === 'm' && ctrl) {
       event.preventDefault();
-      this.keepSelectionPosition();
+      keepSelectionPosition();
       paper.tr(() => {
         const newBlocks = [...blocks].map((b) => {
           if (block.id === b.id) {
@@ -375,7 +342,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
       event.preventDefault();
       if (block.type !== defaultSchema.type && block.text === '') {
         /* Turn into paragraph block */
-        this.keepSelectionPosition();
+        keepSelectionPosition();
         paper.tr(() => {
           const newBlocks = blocks.map((b) => {
             if (block.id === b.id) {
@@ -410,7 +377,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
           }
           paper.setBlocks(newBlocks);
         });
-        this.afterRendering(() => {
+        afterRendering(() => {
           const nextBlockEl = this.findNextBlockElement(block.id);
           const nextFocusableElement = this.findFocusableElement(nextBlockEl);
           if (nextFocusableElement) {
@@ -428,7 +395,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
       if (sel.isCollapsed && sel.anchorOffset == 0) {
         if (block.type !== defaultSchema.type) {
           /* Turn into paragraph block */
-          this.keepSelectionPosition();
+          keepSelectionPosition();
           paper.tr(() => {
             const newBlocks = blocks.map((b) => {
               if (block.id === b.id) {
@@ -442,7 +409,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
           });
         } else if (block.indent > 0) {
           /* Outdent */
-          this.keepSelectionPosition();
+          keepSelectionPosition();
           paper.tr(() => {
             const newBlocks = blocks.map((b) => {
               if (b.id === block.id) {
@@ -468,7 +435,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
             sel.removeAllRanges();
             sel.addRange(range);
 
-            this.keepSelectionPosition();
+            keepSelectionPosition();
             paper.tr(() => {
               const newBlocks = [...blocks]
                 .map((b, i) => {

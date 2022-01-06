@@ -1,9 +1,9 @@
 import * as React from 'react';
 
 import { PaperComponent } from '../components';
+import { keepSelectionPosition } from '../components/utils';
 import { Schema, paragraphSchema, listSchema } from '../schema';
 import { Paper } from '../model';
-import { keepSelectionPosition } from '../utils';
 
 import styles from './index.module.scss';
 
