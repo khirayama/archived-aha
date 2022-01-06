@@ -186,9 +186,12 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
   }
 
   private onPointerMove(event: React.MouseEvent<HTMLSpanElement>, props: BlockComponentProps) {
+    const blocks = this.props.paper.blocks;
+
     if (this.sort.target) {
       if (this.sort.to) {
-        this.sort.to.el.classList.remove(styles['is_hover']);
+        this.sort.to.el.classList.remove(styles['is_hover_upper']);
+        this.sort.to.el.classList.remove(styles['is_hover_lower']);
       }
 
       let el = document.elementFromPoint(event.clientX, event.clientY) as HTMLElement;
@@ -208,7 +211,24 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
       }
 
       if (this.sort.to) {
-        this.sort.to.el.classList.add(styles['is_hover']);
+        let targetIndex = 0;
+        let toIndex = 0;
+
+        for (let i = 0; i < blocks.length; i += 1) {
+          if (this.sort.target.id === blocks[i].id) {
+            targetIndex = i;
+          }
+
+          if (this.sort.to.id === blocks[i].id) {
+            toIndex = i;
+          }
+        }
+
+        if (targetIndex > toIndex) {
+          this.sort.to.el.classList.add(styles['is_hover_upper']);
+        } else {
+          this.sort.to.el.classList.add(styles['is_hover_lower']);
+        }
       }
     }
   }
@@ -251,7 +271,8 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
       }
     }
     if (this.sort.to) {
-      this.sort.to.el.classList.remove(styles['is_hover']);
+      this.sort.to.el.classList.remove(styles['is_hover_upper']);
+      this.sort.to.el.classList.remove(styles['is_hover_lower']);
     }
 
     this.sort.target = null;
