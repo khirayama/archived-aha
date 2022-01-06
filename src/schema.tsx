@@ -1,6 +1,8 @@
 import { v4 as uuid } from 'uuid';
 
-import { TextComponent, IndentationComponent, HandleComponent } from './components';
+import { BlockComponentProps, TextComponent, IndentationComponent, HandleComponent } from './components';
+
+import styles from './pages/index.module.scss';
 
 export type SchemaType = {
   type: string;
@@ -37,7 +39,7 @@ export const paragraphSchema = {
       type: 'paragraph',
     };
   },
-  component: (props) => {
+  component: (props: BlockComponentProps) => {
     return (
       <>
         <IndentationComponent {...props} />
@@ -60,7 +62,7 @@ export const listSchema = {
       type: 'list',
     };
   },
-  component: (props) => {
+  component: (props: BlockComponentProps) => {
     return (
       <>
         <IndentationComponent {...props} />

@@ -66,7 +66,7 @@ export class TextComponent extends React.Component<BlockComponentProps> {
   }
 }
 
-type BlockComponentProps = {
+export type BlockComponentProps = {
   block: Block;
   paper: Paper;
   schema: Schema;
