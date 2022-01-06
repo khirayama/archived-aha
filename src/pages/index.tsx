@@ -49,7 +49,7 @@ export function CommandButton(props) {
       onClick={(event) => {
         if (blockElement && blockElement !== document.body && blockElement.dataset) {
           const blockId = blockElement.dataset.blockid;
-          const block = props.paper.blocks.filter((b) => b.id === blockId)[0];
+          const block = props.paper.findBlock(blockId);
           props.onClick(event, block);
         }
       }}

@@ -37,4 +37,8 @@ export class Paper {
       callback(this);
     });
   }
+
+  public findBlock(blockId: string): Block | null {
+    return this.blocks.filter((b) => b.id === blockId)[0] || null;
+  }
 }

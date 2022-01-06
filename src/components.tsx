@@ -151,7 +151,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
   }
 
   private findGroupedBlocks(blockId: string): Block[] {
-    const block = this.props.paper.blocks.filter((b) => b.id === blockId)[0];
+    const block = this.props.paper.findBlock(blockId);
     const blocks = [];
     let isSameBlock = false;
     for (let i = 0; i < this.props.paper.blocks.length; i += 1) {
