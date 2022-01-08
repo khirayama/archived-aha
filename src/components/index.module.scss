@@ -1,0 +1,72 @@
+.paper {
+  width: 100%;
+  padding: 8px;
+}
+
+.block {
+  display: flex;
+  padding: 0.5rem 0;
+
+  &.is_handling {
+    background: rgba(46, 170, 220, 0.2);
+  }
+
+  &.is_hover {
+    background: rgba(46, 170, 220, 0.1);
+    position: relative;
+
+    &:after {
+      display: inline-block;
+      position: absolute;
+      content: '';
+      width: 100%;
+      height: 5px;
+      top: 0;
+      left: 0;
+      background: rgba(46, 170, 220, 0.3);
+    }
+  }
+
+  &.is_hover_upper {
+    @extend .is_hover;
+
+    &:after {
+      top: 0;
+    }
+  }
+
+  &.is_hover_lower {
+    @extend .is_hover;
+
+    &:after {
+      bottom: 0;
+    }
+  }
+}
+
+.handle {
+  display: inline-block;
+  flex-basis: 2rem;
+  cursor: move;
+  user-select: none;
+  touch-action: none;
+  background: url(/handle.svg) no-repeat center 0;
+  background-size: 1.5rem;
+}
+
+.indentation {
+  display: inline-block;
+  transition: width 80ms ease-in-out;
+
+  @for $i from 0 through 8 {
+    &[data-indent="#{$i}"] {
+      width: $i * 1rem;
+    }
+  }
+}
+
+.text {
+  display: inline-block;
+  flex: 1;
+  padding: 0 0.25rem;
+}

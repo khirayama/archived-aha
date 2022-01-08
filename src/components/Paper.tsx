@@ -1,114 +1,11 @@
 import * as React from 'react';
-import { renderToString } from 'react-dom/server';
 
 import { Schema, Block } from '../schema';
 import { Paper } from '../model';
 import { afterRendering, keepSelectionPosition } from './utils';
+import { BlockComponent, BlockComponentProps } from './Block';
 
-import styles from '../pages/index.module.scss';
-
-export function HandleComponent(props: BlockComponentProps) {
-  return <span className={styles['handle']} onPointerDown={(e) => props.onHandlePointerDown(e, props)} />;
-}
-
-export function IndentationComponent(props: BlockComponentProps) {
-  return <span className={styles['indentation']} data-indent={props.block.indent} />;
-}
-
-export function FocusableComponent(props: BlockComponentProps) {
-  console.log(renderToString(props.children));
-  return (
-    <span
-      contentEditable
-      dangerouslySetInnerHTML={{ __html: renderToString(props.children) }}
-      onKeyDown={(e) => {
-        e.preventDefault();
-        props.onTextKeyDown(e, props);
-      }}
-      onInput={(e) => props.onTextInput(e, props)}
-    />
-  );
-}
-
-export class TextComponent extends React.Component<BlockComponentProps> {
-  private ref: React.RefObject<HTMLSpanElement>;
-
-  constructor(props: BlockComponentProps) {
-    super(props);
-    this.ref = React.createRef<HTMLSpanElement>();
-  }
-
-  public componentDidMount() {
-    const el = this.ref.current;
-    if (el.childNodes.length === 0) {
-      const textNode = document.createTextNode('');
-      el.appendChild(textNode);
-    }
-  }
-
-  public shouldComponentUpdate(nextProps: BlockComponentProps) {
-    this.manualDiffPatch(nextProps);
-    return false;
-  }
-
-  private manualDiffPatch(nextProps: BlockComponentProps) {
-    const el = this.ref.current;
-    const block = {
-      id: el.parentElement.dataset.blockid,
-      text: el.innerText,
-    };
-    const nextBlock = nextProps.block;
-
-    /* block.text */
-    if (nextBlock.text !== block.text) {
-      // el.blur();
-      el.innerText = nextBlock.text;
-    }
-  }
-
-  public render() {
-    const block = this.props.block;
-
-    return (
-      <span
-        ref={this.ref}
-        contentEditable
-        className={styles['text']}
-        dangerouslySetInnerHTML={{ __html: block.text }}
-        onKeyDown={(e) => this.props.onTextKeyDown(e, this.props)}
-        onInput={(e) => this.props.onTextInput(e, this.props)}
-      />
-    );
-  }
-}
-
-export type BlockComponentProps = {
-  block: Block;
-  paper: Paper;
-  schema: Schema;
-  onHandlePointerDown: Function;
-  onPointerMove: Function;
-  onPointerUp: Function;
-  onTextKeyDown: Function;
-  onTextInput: Function;
-  children?: React.ReactNode;
-};
-
-export function BlockComponent(props: BlockComponentProps) {
-  const block = props.block;
-  const schm = props.schema.find(block.type);
-
-  return (
-    <div
-      className={styles['block']}
-      data-blockid={block.id}
-      onPointerMove={(e) => props.onPointerMove(e, props)}
-      onPointerUp={(e) => props.onPointerUp(e, props)}
-    >
-      {schm.component(props)}
-    </div>
-  );
-}
+import styles from './index.module.scss';
 
 type PaperComponentProps = {
   schema: Schema;
@@ -561,7 +458,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
     const blocks = this.state.blocks;
 
     return (
-      <div className={styles['blocks']} ref={this.ref}>
+      <div className={styles['paper']} ref={this.ref}>
         {blocks.map((block) => {
           return (
             <BlockComponent
