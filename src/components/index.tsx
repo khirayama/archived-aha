@@ -1,10 +1,11 @@
 import * as React from 'react';
+import { renderToString } from 'react-dom/server';
 
-import { Schema, Block } from './schema';
-import { Paper } from './model';
-import { afterRendering, keepSelectionPosition } from './components/utils';
+import { Schema, Block } from '../schema';
+import { Paper } from '../model';
+import { afterRendering, keepSelectionPosition } from './utils';
 
-import styles from './pages/index.module.scss';
+import styles from '../pages/index.module.scss';
 
 export function HandleComponent(props: BlockComponentProps) {
   return <span className={styles['handle']} onPointerDown={(e) => props.onHandlePointerDown(e, props)} />;
@@ -12,6 +13,21 @@ export function HandleComponent(props: BlockComponentProps) {
 
 export function IndentationComponent(props: BlockComponentProps) {
   return <span className={styles['indentation']} data-indent={props.block.indent} />;
+}
+
+export function FocusableComponent(props: BlockComponentProps) {
+  console.log(renderToString(props.children));
+  return (
+    <span
+      contentEditable
+      dangerouslySetInnerHTML={{ __html: renderToString(props.children) }}
+      onKeyDown={(e) => {
+        e.preventDefault();
+        props.onTextKeyDown(e, props);
+      }}
+      onInput={(e) => props.onTextInput(e, props)}
+    />
+  );
 }
 
 export class TextComponent extends React.Component<BlockComponentProps> {
