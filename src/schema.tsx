@@ -1,6 +1,12 @@
 import { v4 as uuid } from 'uuid';
 
-import { BlockComponentProps, TextComponent, IndentationComponent, HandleComponent } from './components';
+import {
+  BlockComponentProps,
+  TextComponent,
+  IndentationComponent,
+  HandleComponent,
+  FocusableComponent,
+} from './components';
 
 import styles from './pages/index.module.scss';
 
