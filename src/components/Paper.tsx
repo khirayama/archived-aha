@@ -197,12 +197,13 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
     const shift = event.shiftKey;
     const ctrl = event.ctrlKey;
 
-    const sel = window.getSelection() as any; /* TODO focusNode.length is undefined? */
+    // const sel = window.getSelection() as any; /* TODO focusNode.length is undefined? */
+    const sel = window.getSelection();
     const ctx: CommandContext = {
       block,
       schema: this.schema,
       paper: this.props.paper,
-      sel: window.getSelection(),
+      sel,
     };
 
     if ((key === 'b' && ctrl) || (key === 'i' && ctrl) || (key === 's' && ctrl)) {
@@ -278,7 +279,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
       commands.outdent(ctx);
     } else if (key === 'ArrowDown' && !shift) {
       // console.log(sel.focusNode.constructor.name);
-      if (sel.isCollapsed && sel.focusNode.length === sel.focusOffset) {
+      if (sel.isCollapsed && (sel.focusNode as Text).length === sel.focusOffset) {
         event.preventDefault();
         const nextBlock = paper.findNextBlock(block.id);
         const nextBlockEl = this.findBlockElement(nextBlock.id);
@@ -311,8 +312,9 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
             textNode = document.createTextNode('');
             prevFocusableElement.appendChild(textNode);
           }
-          range.setStart(textNode, sel.focusNode.length);
-          range.setEnd(textNode, sel.focusNode.length);
+          const focusNode: Text = sel.focusNode as Text;
+          range.setStart(textNode, focusNode.length);
+          range.setEnd(textNode, focusNode.length);
           sel.removeAllRanges();
           sel.addRange(range);
         }
