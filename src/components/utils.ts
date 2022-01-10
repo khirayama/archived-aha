@@ -18,7 +18,7 @@ export function keepSelectionPosition() {
 
   afterRendering(() => {
     const range = document.createRange();
-    const el = blockElement.querySelector('[contenteditable]') as any;
+    const el = blockElement.querySelector('[contenteditable]') as HTMLDivElement | HTMLSpanElement;
     if (el.childNodes.length === 0) {
       const textNode = document.createTextNode('');
       el.appendChild(textNode);

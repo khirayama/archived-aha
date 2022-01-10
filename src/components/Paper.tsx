@@ -197,7 +197,6 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
     const shift = event.shiftKey;
     const ctrl = event.ctrlKey;
 
-    // const sel = window.getSelection() as any; /* TODO focusNode.length is undefined? */
     const sel = window.getSelection();
     const ctx: CommandContext = {
       block,
