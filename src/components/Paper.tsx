@@ -27,11 +27,11 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
 
   private sort: {
     target: {
-      el: any /* TODO */;
+      el: HTMLDivElement;
       id: string | null;
     } | null;
     to: {
-      el: any /* TODO */;
+      el: HTMLDivElement;
       id: string | null;
     } | null;
   } = {
@@ -63,47 +63,27 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
     this.props.paper.offChange(this.onPaperChange);
   }
 
-  private findGroupedBlocks(blockId: string): Block[] {
-    const block = this.props.paper.findBlock(blockId);
-    const blocks = [];
-    let isSameBlock = false;
-    for (let i = 0; i < this.props.paper.blocks.length; i += 1) {
-      const b = this.props.paper.blocks[i];
-      if (b.id === block.id || (isSameBlock && block.indent < b.indent)) {
-        isSameBlock = true;
-        blocks.push(b);
-      } else {
-        isSameBlock = false;
-      }
-    }
-    return blocks;
-  }
-
-  private findBlockElement(blockId: string) {
+  private findBlockElement(blockId: string): HTMLDivElement | null {
     return this.ref.current.querySelector(`[data-blockid="${blockId}"]`);
   }
 
-  private findNextBlockElement(blockId: string) {
-    const els: NodeListOf<HTMLDivElement> = this.ref.current.querySelectorAll('[data-blockid]');
-    for (let i = 0; i < els.length; i += 1) {
-      if (els[i].dataset.blockid === blockId) {
-        return els[i + 1] || null;
-      }
+  private findNextBlockElement(blockId: string): HTMLDivElement | null {
+    const nextBlock = this.props.paper.findNextBlock(blockId);
+    if (nextBlock) {
+      return this.findBlockElement(nextBlock.id);
     }
     return null;
   }
 
-  private findPrevBlockElement(blockId: string) {
-    const els: NodeListOf<HTMLDivElement> = this.ref.current.querySelectorAll('[data-blockid]');
-    for (let i = 0; i < els.length; i += 1) {
-      if (els[i].dataset.blockid === blockId) {
-        return els[i - 1] || null;
-      }
+  private findPrevBlockElement(blockId: string): HTMLDivElement | null {
+    const prevBlock = this.props.paper.findPrevBlock(blockId);
+    if (prevBlock) {
+      return this.findBlockElement(prevBlock.id);
     }
     return null;
   }
 
-  private findFocusableElement(blockElement: HTMLDivElement): HTMLElement {
+  private findFocusableElementFromBlockElement(blockElement: HTMLDivElement): HTMLElement {
     return blockElement.querySelector('[contentEditable]');
   }
 
@@ -112,7 +92,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
   }
 
   private onHandlePointerDown(event: React.MouseEvent<HTMLSpanElement>, props: BlockComponentProps) {
-    const blocks = this.findGroupedBlocks(props.block.id);
+    const blocks = this.props.paper.findGroupedBlocks(props.block.id);
     for (let i = 0; i < blocks.length; i += 1) {
       const b = blocks[i];
       const el = this.findBlockElement(b.id);
@@ -140,11 +120,11 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
         el = el.parentElement;
       }
       const blockId = el.dataset.blockid;
-      const blockIds = this.findGroupedBlocks(this.sort.target.id).map((b) => b.id);
+      const blockIds = this.props.paper.findGroupedBlocks(this.sort.target.id).map((b) => b.id);
 
       if (!blockIds.includes(blockId)) {
         this.sort.to = {
-          el: el,
+          el: el as HTMLDivElement,
           id: el.dataset.blockid,
         };
       } else {
@@ -194,7 +174,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
             }
           }
 
-          const l = this.findGroupedBlocks(this.sort.target.id).length;
+          const l = this.props.paper.findGroupedBlocks(this.sort.target.id).length;
           const newBlocks = [...blocks];
           const sort = newBlocks.splice(targetIndex, l);
           newBlocks.splice(toIndex < targetIndex ? toIndex : toIndex - l + 1, 0, ...sort);
@@ -204,7 +184,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
     }
 
     if (this.sort.target) {
-      const blocks = this.findGroupedBlocks(this.sort.target.id);
+      const blocks = this.props.paper.findGroupedBlocks(this.sort.target.id);
       for (let i = 0; i < blocks.length; i += 1) {
         const b = blocks[i];
         const el = this.findBlockElement(b.id);
@@ -227,7 +207,6 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
 
     const defaultSchema = this.schema.defaultSchema();
 
-    const el = event.currentTarget;
     const key = event.key;
     // const meta = event.metaKey;
     const shift = event.shiftKey;
@@ -292,7 +271,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
         });
         afterRendering(() => {
           const nextBlockEl = this.findNextBlockElement(block.id);
-          const nextFocusableElement = this.findFocusableElement(nextBlockEl);
+          const nextFocusableElement = this.findFocusableElementFromBlockElement(nextBlockEl);
           if (nextFocusableElement) {
             // nextFocusableElement.focus();
             const range = document.createRange();
@@ -337,7 +316,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
         } else {
           /* Combine prev block */
           const prevBlockEl = this.findPrevBlockElement(block.id);
-          const prevFocusableElement = this.findFocusableElement(prevBlockEl);
+          const prevFocusableElement = this.findFocusableElementFromBlockElement(prevBlockEl);
           if (prevFocusableElement) {
             event.preventDefault();
             // prevFocusableElement.focus();
@@ -398,7 +377,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
       if (sel.isCollapsed && sel.focusNode.length === sel.focusOffset) {
         event.preventDefault();
         const nextBlockEl = this.findNextBlockElement(block.id);
-        const nextFocusableElement = this.findFocusableElement(nextBlockEl);
+        const nextFocusableElement = this.findFocusableElementFromBlockElement(nextBlockEl);
         if (nextFocusableElement) {
           nextFocusableElement.focus();
           const range = document.createRange();
@@ -417,7 +396,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
       if (sel.isCollapsed && sel.anchorOffset === 0) {
         event.preventDefault();
         const prevBlockEl = this.findPrevBlockElement(block.id);
-        const prevFocusableElement = this.findFocusableElement(prevBlockEl);
+        const prevFocusableElement = this.findFocusableElementFromBlockElement(prevBlockEl);
         if (prevFocusableElement) {
           prevFocusableElement.focus();
           const range = document.createRange();
