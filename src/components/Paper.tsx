@@ -281,41 +281,45 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
       if (sel.isCollapsed && (sel.focusNode as Text).length === sel.focusOffset) {
         event.preventDefault();
         const nextBlock = paper.findNextBlock(block.id);
-        const nextBlockEl = this.findBlockElement(nextBlock.id);
-        const nextFocusableElement = this.findFocusableElementFromBlockElement(nextBlockEl);
-        if (nextFocusableElement) {
-          nextFocusableElement.focus();
-          const range = document.createRange();
-          let textNode = nextFocusableElement.childNodes[0];
-          if (!textNode) {
-            textNode = document.createTextNode('');
-            nextFocusableElement.appendChild(textNode);
+        if (nextBlock) {
+          const nextBlockEl = this.findBlockElement(nextBlock.id);
+          const nextFocusableElement = this.findFocusableElementFromBlockElement(nextBlockEl);
+          if (nextFocusableElement) {
+            nextFocusableElement.focus();
+            const range = document.createRange();
+            let textNode = nextFocusableElement.childNodes[0];
+            if (!textNode) {
+              textNode = document.createTextNode('');
+              nextFocusableElement.appendChild(textNode);
+            }
+            range.setStart(textNode, 0);
+            range.setEnd(textNode, 0);
+            sel.removeAllRanges();
+            sel.addRange(range);
           }
-          range.setStart(textNode, 0);
-          range.setEnd(textNode, 0);
-          sel.removeAllRanges();
-          sel.addRange(range);
         }
       }
     } else if (key === 'ArrowUp' && !shift) {
       if (sel.isCollapsed && sel.anchorOffset === 0) {
         event.preventDefault();
         const prevBlock = this.props.paper.findPrevBlock(block.id);
-        const prevBlockEl = this.findBlockElement(prevBlock.id);
-        const prevFocusableElement = this.findFocusableElementFromBlockElement(prevBlockEl);
-        if (prevFocusableElement) {
-          prevFocusableElement.focus();
-          const range = document.createRange();
-          let textNode = prevFocusableElement.childNodes[0];
-          if (!textNode) {
-            textNode = document.createTextNode('');
-            prevFocusableElement.appendChild(textNode);
+        if (prevBlock) {
+          const prevBlockEl = this.findBlockElement(prevBlock.id);
+          const prevFocusableElement = this.findFocusableElementFromBlockElement(prevBlockEl);
+          if (prevFocusableElement) {
+            prevFocusableElement.focus();
+            const range = document.createRange();
+            let textNode = prevFocusableElement.childNodes[0];
+            if (!textNode) {
+              textNode = document.createTextNode('');
+              prevFocusableElement.appendChild(textNode);
+            }
+            const focusNode: Text = sel.focusNode as Text;
+            range.setStart(textNode, focusNode.length);
+            range.setEnd(textNode, focusNode.length);
+            sel.removeAllRanges();
+            sel.addRange(range);
           }
-          const focusNode: Text = sel.focusNode as Text;
-          range.setStart(textNode, focusNode.length);
-          range.setEnd(textNode, focusNode.length);
-          sel.removeAllRanges();
-          sel.addRange(range);
         }
       }
     }
