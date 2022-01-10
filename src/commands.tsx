@@ -65,20 +65,20 @@ export const commands = {
   },
   splitBlock: (ctx: CommandContext): CommandContext => {
     ctx.paper.tr(() => {
-      const textArr = Array.from(ctx.block.text);
+      const t = new Text(ctx.block.text);
       const s = Math.min(ctx.sel.anchorOffset, ctx.sel.focusOffset);
       const e = Math.max(ctx.sel.anchorOffset, ctx.sel.focusOffset);
-      const newText = textArr.splice(e, textArr.length - e);
-      textArr.splice(s, e - s);
+      const newText = t.splitText(e);
+      t.splitText(s);
 
       const newBlock = ctx.schema.createBlock(ctx.block.type, {
-        text: newText.join(''),
+        text: newText.wholeText,
         indent: ctx.block.indent,
       });
       const newBlocks = [...ctx.paper.blocks];
       for (let i = 0; i < ctx.paper.blocks.length; i += 1) {
         if (newBlocks[i].id === ctx.block.id) {
-          newBlocks[i].text = textArr.join('');
+          newBlocks[i].text = t.wholeText;
           newBlocks.splice(i + 1, 0, newBlock);
           break;
         }
