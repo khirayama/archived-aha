@@ -11,6 +11,7 @@ export function getServerSideProps() {
   return {
     props: {
       blocks: [
+        schema.createBlock('paragraph', { text: '𠮷野屋で𩸽頼んで𠮟られる😭' }),
         schema.createBlock('paragraph', { text: '111' }),
         schema.createBlock('paragraph', { text: '222', indent: 1 }),
         schema.createBlock('paragraph', { text: '333', indent: 2 }),
