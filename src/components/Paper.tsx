@@ -88,8 +88,8 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
     sel.addRange(range);
   }
 
-  private onPaperChange(p) {
-    this.setState({ blocks: p.blocks });
+  private onPaperChange(paper: Paper) {
+    this.setState({ blocks: paper.blocks });
   }
 
   private onHandlePointerDown(event: React.MouseEvent<HTMLSpanElement>, props: BlockComponentProps) {
@@ -192,6 +192,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
         el.classList.remove(styles['is_handling']);
       }
     }
+
     if (this.sort.to) {
       this.sort.to.el.classList.remove(styles['is_hover_upper']);
       this.sort.to.el.classList.remove(styles['is_hover_lower']);

@@ -6,6 +6,7 @@
 .block {
   display: flex;
   padding: 0.5rem 0;
+  min-height: 2.5rem;
 
   &.is_handling {
     background: rgba(46, 170, 220, 0.2);
@@ -69,4 +70,8 @@
   display: inline-block;
   flex: 1;
   padding: 0 0.25rem;
+}
+
+.focusable {
+  flex: 1;
 }
