@@ -8,7 +8,7 @@ import {
   FocusableComponent,
 } from './components';
 
-import styles from './pages/index.module.scss';
+import styles from './components/index.module.scss';
 
 export type SchemaType = {
   type: string;

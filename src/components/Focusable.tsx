@@ -3,16 +3,15 @@ import { renderToString } from 'react-dom/server';
 
 import { BlockComponentProps } from './Block';
 
+import styles from './index.module.scss';
+
 export function FocusableComponent(props: BlockComponentProps) {
   return (
     <span
+      className={styles['focusable']}
       contentEditable
       dangerouslySetInnerHTML={{ __html: renderToString(props.children) }}
-      onKeyDown={(e) => {
-        e.preventDefault();
-        props.onTextKeyDown(e, props);
-      }}
-      onInput={(e) => props.onTextInput(e, props)}
+      onKeyDown={(e) => props.onFocusableKeyDown(e, props)}
     />
   );
 }

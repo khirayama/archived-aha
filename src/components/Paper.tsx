@@ -54,6 +54,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
     this.onPointerUp = this.onPointerUp.bind(this);
     this.onTextKeyDown = this.onTextKeyDown.bind(this);
     this.onTextInput = this.onTextInput.bind(this);
+    this.onFocusableKeyDown = this.onFocusableKeyDown.bind(this);
   }
 
   public componentDidMount() {
@@ -70,6 +71,21 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
 
   private findFocusableElementFromBlockElement(blockElement: HTMLDivElement): HTMLElement {
     return blockElement.querySelector('[contentEditable]');
+  }
+
+  private focusTextNode(el: HTMLDivElement | HTMLSpanElement | Text, pos: number) {
+    const sel = window.getSelection();
+
+    let textNode = el.childNodes[0];
+    if (!textNode) {
+      textNode = document.createTextNode('');
+      el.appendChild(textNode);
+    }
+    const range = document.createRange();
+    range.setStart(textNode, pos);
+    range.setEnd(textNode, pos);
+    sel.removeAllRanges();
+    sel.addRange(range);
   }
 
   private onPaperChange(p) {
@@ -207,20 +223,10 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
 
     if ((key === 'b' && ctrl) || (key === 'i' && ctrl) || (key === 's' && ctrl)) {
       event.preventDefault();
-    } else if (key === 'm' && ctrl) {
-      event.preventDefault();
-      keepSelectionPosition();
-      paper.tr(() => {
-        const newBlocks = [...blocks].map((b) => {
-          if (block.id === b.id) {
-            return this.schema.createBlock('list', b);
-          }
-          return {
-            ...b,
-          };
-        });
-        paper.setBlocks(newBlocks);
-      });
+      // } else if (key === 'm' && ctrl) {
+      //   event.preventDefault();
+      //   keepSelectionPosition();
+      //   commands.turnInto(ctx, 'list');
     } else if (key === 'Enter') {
       event.preventDefault();
       if (block.type !== defaultSchema.type && block.text === '') {
@@ -229,16 +235,10 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
       } else {
         afterRendering(() => {
           const nextBlock = paper.findNextBlock(block.id);
-          const nextBlockEl = this.findBlockElement(nextBlock.id);
-          const nextFocusableElement = this.findFocusableElementFromBlockElement(nextBlockEl);
-          if (nextFocusableElement) {
-            // nextFocusableElement.focus();
-            const range = document.createRange();
-            const textNode = nextFocusableElement.childNodes[0];
-            range.setStart(textNode, 0);
-            range.setEnd(textNode, 0);
-            sel.removeAllRanges();
-            sel.addRange(range);
+          if (nextBlock) {
+            const nextBlockEl = this.findBlockElement(nextBlock.id);
+            const nextFocusableElement = this.findFocusableElementFromBlockElement(nextBlockEl);
+            this.focusTextNode(nextFocusableElement, 0);
           }
         });
         commands.splitBlock(ctx);
@@ -247,23 +247,17 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
       if (sel.isCollapsed && sel.anchorOffset == 0) {
         if (block.type !== defaultSchema.type) {
           keepSelectionPosition();
-          commands.turnInto(ctx, 'paragraph');
+          commands.turnInto(ctx, defaultSchema.type as Block['type']);
         } else if (block.indent > 0) {
           keepSelectionPosition();
           commands.outdent(ctx);
         } else {
           const prevBlock = this.props.paper.findPrevBlock(block.id);
-          const prevBlockEl = this.findBlockElement(prevBlock.id);
-          const prevFocusableElement = this.findFocusableElementFromBlockElement(prevBlockEl);
-          if (prevFocusableElement) {
+          if (prevBlock) {
             event.preventDefault();
-            // prevFocusableElement.focus();
-            const range = document.createRange();
-            const textNode: Text = prevFocusableElement.childNodes[0] as Text;
-            range.setStart(textNode, textNode.length);
-            range.setEnd(textNode, textNode.length);
-            sel.removeAllRanges();
-            sel.addRange(range);
+            const prevBlockEl = this.findBlockElement(prevBlock.id);
+            const prevFocusableElement = this.findFocusableElementFromBlockElement(prevBlockEl);
+            this.focusTextNode(prevFocusableElement, new Text(prevBlock.text).length);
 
             keepSelectionPosition();
             commands.combineBlock(ctx);
@@ -277,8 +271,94 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
       event.preventDefault();
       commands.outdent(ctx);
     } else if (key === 'ArrowDown' && !shift) {
-      // console.log(sel.focusNode.constructor.name);
       if (sel.isCollapsed && (sel.focusNode as Text).length === sel.focusOffset) {
+        event.preventDefault();
+        const nextBlock = paper.findNextBlock(block.id);
+        if (nextBlock) {
+          const nextBlockEl = this.findBlockElement(nextBlock.id);
+          const nextFocusableElement = this.findFocusableElementFromBlockElement(nextBlockEl);
+          this.focusTextNode(nextFocusableElement, 0);
+        }
+      }
+    } else if (key === 'ArrowUp' && !shift) {
+      if (sel.isCollapsed && sel.anchorOffset === 0) {
+        event.preventDefault();
+        const prevBlock = this.props.paper.findPrevBlock(block.id);
+        if (prevBlock) {
+          const prevBlockEl = this.findBlockElement(prevBlock.id);
+          const prevFocusableElement = this.findFocusableElementFromBlockElement(prevBlockEl);
+          this.focusTextNode(prevFocusableElement, new Text(prevBlock.text).length);
+        }
+      }
+    }
+    paper.commit();
+  }
+
+  private onFocusableKeyDown(event: React.KeyboardEvent<HTMLSpanElement>, props: BlockComponentProps) {
+    const paper = this.props.paper;
+    const blocks = this.state.blocks;
+    const block = props.block;
+
+    const defaultSchema = this.schema.defaultSchema();
+
+    const key = event.key;
+    // const meta = event.metaKey;
+    const shift = event.shiftKey;
+    const ctrl = event.ctrlKey;
+
+    const sel = window.getSelection();
+    console.log(sel);
+    const ctx: CommandContext = {
+      block,
+      schema: this.schema,
+      paper: this.props.paper,
+      sel,
+    };
+
+    if (key === 'Enter') {
+      event.preventDefault();
+      if (block.type !== defaultSchema.type && block.text === '') {
+        keepSelectionPosition();
+        commands.turnInto(ctx, defaultSchema.type as Block['type']);
+      } else {
+        afterRendering(() => {
+          const nextBlock = paper.findNextBlock(block.id);
+          if (nextBlock) {
+            const nextBlockEl = this.findBlockElement(nextBlock.id);
+            const nextFocusableElement = this.findFocusableElementFromBlockElement(nextBlockEl);
+            this.focusTextNode(nextFocusableElement, 0);
+          }
+        });
+        commands.splitBlock(ctx);
+      }
+    } else if (key === 'Backspace') {
+      event.preventDefault();
+      if (sel.isCollapsed && sel.anchorOffset == 0 && block.indent > 0) {
+        keepSelectionPosition();
+        commands.outdent(ctx);
+      } else {
+        commands.turnInto(ctx, defaultSchema.type as Block['type']);
+        afterRendering(() => {
+          const el = this.findBlockElement(block.id);
+          const focusableElement = this.findFocusableElementFromBlockElement(el);
+          focusableElement.focus();
+        });
+      }
+    } else if (key === 'Tab' && !shift) {
+      event.preventDefault();
+      commands.indent(ctx);
+    } else if (key === 'Tab' && shift) {
+      event.preventDefault();
+      commands.outdent(ctx);
+    } else if (key === 'ArrowDown' && !shift) {
+      const el = this.findBlockElement(block.id);
+      const focusableElement = this.findFocusableElementFromBlockElement(el);
+      if (
+        focusableElement &&
+        sel.isCollapsed &&
+        focusableElement === sel.focusNode &&
+        focusableElement.childNodes.length === sel.focusOffset
+      ) {
         event.preventDefault();
         const nextBlock = paper.findNextBlock(block.id);
         if (nextBlock) {
@@ -287,13 +367,8 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
           if (nextFocusableElement) {
             nextFocusableElement.focus();
             const range = document.createRange();
-            let textNode = nextFocusableElement.childNodes[0];
-            if (!textNode) {
-              textNode = document.createTextNode('');
-              nextFocusableElement.appendChild(textNode);
-            }
-            range.setStart(textNode, 0);
-            range.setEnd(textNode, 0);
+            range.setStart(nextFocusableElement, 0);
+            range.setEnd(nextFocusableElement, 0);
             sel.removeAllRanges();
             sel.addRange(range);
           }
@@ -309,19 +384,17 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
           if (prevFocusableElement) {
             prevFocusableElement.focus();
             const range = document.createRange();
-            let textNode = prevFocusableElement.childNodes[0];
-            if (!textNode) {
-              textNode = document.createTextNode('');
-              prevFocusableElement.appendChild(textNode);
-            }
-            const focusNode: Text = sel.focusNode as Text;
-            range.setStart(textNode, focusNode.length);
-            range.setEnd(textNode, focusNode.length);
+            range.setStart(prevFocusableElement, prevFocusableElement.childNodes.length);
+            range.setEnd(prevFocusableElement, prevFocusableElement.childNodes.length);
             sel.removeAllRanges();
             sel.addRange(range);
           }
         }
       }
+    } else if (key === 'ArrowLeft' || key === 'ArrowRight') {
+      // noop()
+    } else if (!ctrl) {
+      event.preventDefault();
     }
     paper.commit();
   }
@@ -355,6 +428,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
               onPointerUp={this.onPointerUp}
               onTextKeyDown={this.onTextKeyDown}
               onTextInput={this.onTextInput}
+              onFocusableKeyDown={this.onFocusableKeyDown}
             />
           );
         })}
