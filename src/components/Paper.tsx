@@ -82,11 +82,11 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
     return textNode as Text;
   }
 
-  private focus(el: HTMLDivElement | HTMLSpanElement | Text, pos: number) {
+  private focus(el: HTMLDivElement | HTMLSpanElement | Text, s: number, e?: number) {
     const sel = window.getSelection();
     const range = document.createRange();
-    range.setStart(el, pos);
-    range.setEnd(el, pos);
+    range.setStart(el, s);
+    range.setEnd(el, e !== undefined ? e : s);
     sel.removeAllRanges();
     sel.addRange(range);
   }
