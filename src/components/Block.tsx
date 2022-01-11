@@ -14,7 +14,7 @@ export type BlockComponentProps = {
   onPointerUp: Function;
   onTextKeyDown: Function;
   onTextInput: Function;
-  // children?: React.ReactNode;
+  onFocusableKeyDown: Function;
   children?: React.ReactElement;
 };
 
