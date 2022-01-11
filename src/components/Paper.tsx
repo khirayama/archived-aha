@@ -73,17 +73,20 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
     return blockElement.querySelector('[contentEditable]');
   }
 
-  private focusTextNode(el: HTMLDivElement | HTMLSpanElement | Text, pos: number) {
-    const sel = window.getSelection();
-
+  private extractTextNodeFromFocusableElement(el: HTMLDivElement | HTMLSpanElement | Text) {
     let textNode = el.childNodes[0];
     if (!textNode) {
       textNode = document.createTextNode('');
       el.appendChild(textNode);
     }
+    return textNode as Text;
+  }
+
+  private focus(el: HTMLDivElement | HTMLSpanElement | Text, pos: number) {
+    const sel = window.getSelection();
     const range = document.createRange();
-    range.setStart(textNode, pos);
-    range.setEnd(textNode, pos);
+    range.setStart(el, pos);
+    range.setEnd(el, pos);
     sel.removeAllRanges();
     sel.addRange(range);
   }
@@ -239,7 +242,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
           if (nextBlock) {
             const nextBlockEl = this.findBlockElement(nextBlock.id);
             const nextFocusableElement = this.findFocusableElementFromBlockElement(nextBlockEl);
-            this.focusTextNode(nextFocusableElement, 0);
+            this.focus(this.extractTextNodeFromFocusableElement(nextFocusableElement), 0);
           }
         });
         commands.splitBlock(ctx);
@@ -258,7 +261,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
             event.preventDefault();
             const prevBlockEl = this.findBlockElement(prevBlock.id);
             const prevFocusableElement = this.findFocusableElementFromBlockElement(prevBlockEl);
-            this.focusTextNode(prevFocusableElement, new Text(prevBlock.text).length);
+            this.focus(this.extractTextNodeFromFocusableElement(prevFocusableElement), new Text(prevBlock.text).length);
 
             keepSelectionPosition();
             commands.combineBlock(ctx);
@@ -278,7 +281,11 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
         if (nextBlock) {
           const nextBlockEl = this.findBlockElement(nextBlock.id);
           const nextFocusableElement = this.findFocusableElementFromBlockElement(nextBlockEl);
-          this.focusTextNode(nextFocusableElement, 0);
+          if (nextBlock.text !== null) {
+            this.focus(this.extractTextNodeFromFocusableElement(nextFocusableElement), 0);
+          } else {
+            this.focus(nextFocusableElement, 0);
+          }
         }
       }
     } else if (key === 'ArrowUp' && !shift) {
@@ -288,7 +295,11 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
         if (prevBlock) {
           const prevBlockEl = this.findBlockElement(prevBlock.id);
           const prevFocusableElement = this.findFocusableElementFromBlockElement(prevBlockEl);
-          this.focusTextNode(prevFocusableElement, new Text(prevBlock.text).length);
+          if (prevBlock.text !== null) {
+            this.focus(this.extractTextNodeFromFocusableElement(prevFocusableElement), new Text(prevBlock.text).length);
+          } else {
+            this.focus(prevFocusableElement, prevFocusableElement.childNodes.length);
+          }
         }
       }
     }
@@ -308,7 +319,6 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
     const ctrl = event.ctrlKey;
 
     const sel = window.getSelection();
-    console.log(sel);
     const ctx: CommandContext = {
       block,
       schema: this.schema,
@@ -327,7 +337,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
           if (nextBlock) {
             const nextBlockEl = this.findBlockElement(nextBlock.id);
             const nextFocusableElement = this.findFocusableElementFromBlockElement(nextBlockEl);
-            this.focusTextNode(nextFocusableElement, 0);
+            this.focus(this.extractTextNodeFromFocusableElement(nextFocusableElement), 0);
           }
         });
         commands.splitBlock(ctx);
@@ -352,26 +362,20 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
       event.preventDefault();
       commands.outdent(ctx);
     } else if (key === 'ArrowDown' && !shift) {
-      const el = this.findBlockElement(block.id);
-      const focusableElement = this.findFocusableElementFromBlockElement(el);
+      const focusableElement = this.findFocusableElementFromBlockElement(this.findBlockElement(block.id));
       if (
-        focusableElement &&
-        sel.isCollapsed &&
-        focusableElement === sel.focusNode &&
-        focusableElement.childNodes.length === sel.focusOffset
+        (sel.isCollapsed && (sel.focusNode as Text).length === sel.focusOffset) ||
+        (focusableElement === sel.focusNode && focusableElement.childNodes.length === sel.focusOffset)
       ) {
-        event.preventDefault();
         const nextBlock = paper.findNextBlock(block.id);
         if (nextBlock) {
           const nextBlockEl = this.findBlockElement(nextBlock.id);
           const nextFocusableElement = this.findFocusableElementFromBlockElement(nextBlockEl);
-          if (nextFocusableElement) {
-            nextFocusableElement.focus();
-            const range = document.createRange();
-            range.setStart(nextFocusableElement, 0);
-            range.setEnd(nextFocusableElement, 0);
-            sel.removeAllRanges();
-            sel.addRange(range);
+          event.preventDefault();
+          if (nextBlock.text !== null) {
+            this.focus(this.extractTextNodeFromFocusableElement(nextFocusableElement), 0);
+          } else {
+            this.focus(nextFocusableElement, 0);
           }
         }
       }
@@ -382,13 +386,10 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
         if (prevBlock) {
           const prevBlockEl = this.findBlockElement(prevBlock.id);
           const prevFocusableElement = this.findFocusableElementFromBlockElement(prevBlockEl);
-          if (prevFocusableElement) {
-            prevFocusableElement.focus();
-            const range = document.createRange();
-            range.setStart(prevFocusableElement, prevFocusableElement.childNodes.length);
-            range.setEnd(prevFocusableElement, prevFocusableElement.childNodes.length);
-            sel.removeAllRanges();
-            sel.addRange(range);
+          if (prevBlock.text !== null) {
+            this.focus(this.extractTextNodeFromFocusableElement(prevFocusableElement), new Text(prevBlock.text).length);
+          } else {
+            this.focus(prevFocusableElement, prevFocusableElement.childNodes.length);
           }
         }
       }
