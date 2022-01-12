@@ -2,7 +2,7 @@ import * as React from 'react';
 
 import { PaperComponent } from '../components';
 import { keepSelectionPosition } from '../components/utils';
-import { Schema, paragraphSchema, listSchema } from '../schema';
+import { Schema, paragraphSchema, listSchema, imageSchema } from '../schema';
 import { Paper } from '../model';
 
 import styles from './index.module.scss';
@@ -23,6 +23,8 @@ export function getServerSideProps() {
         schema.createBlock('paragraph', { text: '999', indent: 1 }),
         schema.createBlock('paragraph', { text: '101010', indent: 1 }),
         schema.createBlock('paragraph', { text: '111111' }),
+        schema.createBlock('image', { attrs: { src: 'https://placehold.jp/256x256.png' } }),
+        schema.createBlock('paragraph', { text: '121212' }),
       ],
     },
   };
@@ -90,7 +92,7 @@ function FloatingNav(props: { children: React.ReactNode }) {
   );
 }
 
-const schema = new Schema([paragraphSchema, listSchema]);
+const schema = new Schema([paragraphSchema, listSchema, imageSchema]);
 const paper = new Paper();
 
 export default function ProtoPage(props) {

@@ -25,11 +25,19 @@ type BaseBlock = {
 };
 
 function createBaseBlock(block: Partial<BaseBlock> = {}): BaseBlock {
+  const b = { ...block };
+  if (b.text === null) {
+    b.text = '';
+  }
+  if (b.attrs) {
+    delete b.attrs;
+  }
+
   return {
     id: uuid(),
     text: '',
     indent: 0,
-    ...block,
+    ...b,
   };
 }
 
@@ -80,7 +88,41 @@ export const listSchema = {
   },
 };
 
-export type Block = ParagraphBlock | ListBlock;
+type ImageBlock = BaseBlock & {
+  type: 'image';
+  attrs: {
+    src: string;
+  };
+};
+
+export const imageSchema = {
+  type: 'image',
+  create: (block: Partial<ImageBlock>): ImageBlock => {
+    return {
+      ...createBaseBlock(block),
+      type: 'image',
+      text: null,
+      attrs: block.attrs,
+    };
+  },
+  component: (props: BlockComponentProps) => {
+    if (props.block.type !== 'image') {
+      return null;
+    }
+
+    return (
+      <>
+        <IndentationComponent {...props} />
+        <HandleComponent {...props} />
+        <FocusableComponent {...props}>
+          <img src={props.block.attrs.src} />
+        </FocusableComponent>
+      </>
+    );
+  },
+};
+
+export type Block = ParagraphBlock | ListBlock | ImageBlock;
 
 export class Schema {
   private schemas: SchemaType[];
@@ -90,7 +132,7 @@ export class Schema {
   }
 
   public createBlock(typ?: Block['type'], block: Partial<Block> = {}): Block {
-    typ = typ || block.type || 'paragraph';
+    typ = typ || block.type;
     const schema = this.find(typ) || this.schemas[0];
 
     return schema.create(block);
