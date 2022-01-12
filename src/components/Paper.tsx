@@ -329,9 +329,13 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
 
     if (key === 'Enter') {
       event.preventDefault();
-      if (block.type !== defaultSchema.type && block.text === '') {
-        keepSelectionPosition();
+      if (block.type !== defaultSchema.type && block.text === null) {
         commands.turnInto(ctx, defaultSchema.type as Block['type']);
+        afterRendering(() => {
+          const blockElement = this.findBlockElement(block.id);
+          const focusableElement = this.findFocusableElementFromBlockElement(blockElement);
+          this.focus(focusableElement, 0);
+        });
       } else {
         afterRendering(() => {
           const nextBlock = paper.findNextBlock(block.id);
