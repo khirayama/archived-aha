@@ -1,7 +1,6 @@
 import * as React from 'react';
 
 import { PaperComponent } from '../components';
-import { keepSelectionPosition } from '../components/utils';
 import { Schema, paragraphSchema, listSchema, imageSchema } from '../schema';
 import { Paper } from '../model';
 
@@ -37,7 +36,6 @@ export function CommandButton(props) {
     <button
       onMouseDown={(event) => {
         event.preventDefault();
-        keepSelectionPosition();
         const sel = window.getSelection();
         if (sel.anchorNode === null) {
           return;
