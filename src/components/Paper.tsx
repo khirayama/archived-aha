@@ -55,6 +55,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
     this.onTextKeyDown = this.onTextKeyDown.bind(this);
     this.onTextInput = this.onTextInput.bind(this);
     this.onFocusableKeyDown = this.onFocusableKeyDown.bind(this);
+    this.onFocusableClick = this.onFocusableClick.bind(this);
   }
 
   public componentDidMount() {
@@ -401,6 +402,12 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
     paper.commit();
   }
 
+  private onFocusableClick(event: React.MouseEvent<HTMLSpanElement>, props: BlockComponentProps) {
+    const blockElement = this.findBlockElement(props.block.id);
+    const focusableElement = this.findFocusableElementFromBlockElement(blockElement);
+    this.focus(focusableElement, focusableElement.childNodes.length);
+  }
+
   private onTextInput(event: React.KeyboardEvent<HTMLSpanElement>, props: BlockComponentProps) {
     const value = event.currentTarget.innerText;
     const ctx: CommandContext = {
@@ -431,6 +438,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
               onTextKeyDown={this.onTextKeyDown}
               onTextInput={this.onTextInput}
               onFocusableKeyDown={this.onFocusableKeyDown}
+              onFocusableClick={this.onFocusableClick}
             />
           );
         })}

@@ -12,6 +12,7 @@ export function FocusableComponent(props: BlockComponentProps) {
       contentEditable
       dangerouslySetInnerHTML={{ __html: renderToString(props.children) }}
       onKeyDown={(e) => props.onFocusableKeyDown(e, props)}
+      onClick={(e) => props.onFocusableClick(e, props)}
     />
   );
 }
