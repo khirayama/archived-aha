@@ -65,25 +65,43 @@ export const commands = {
   },
   splitBlock: (ctx: CommandContext): CommandContext => {
     ctx.paper.tr(() => {
-      const t = new Text(ctx.block.text);
-      const s = Math.min(ctx.sel.anchorOffset, ctx.sel.focusOffset);
-      const e = Math.max(ctx.sel.anchorOffset, ctx.sel.focusOffset);
-      const newText = t.splitText(e);
-      t.splitText(s);
+      if (ctx.block.text !== null) {
+        const t = new Text(ctx.block.text);
+        const s = Math.min(ctx.sel.anchorOffset, ctx.sel.focusOffset);
+        const e = Math.max(ctx.sel.anchorOffset, ctx.sel.focusOffset);
+        const newText = t.splitText(e);
+        t.splitText(s);
 
-      const newBlock = ctx.schema.createBlock(ctx.block.type, {
-        text: newText.wholeText,
-        indent: ctx.block.indent,
-      });
-      const newBlocks = [...ctx.paper.blocks];
-      for (let i = 0; i < ctx.paper.blocks.length; i += 1) {
-        if (newBlocks[i].id === ctx.block.id) {
-          newBlocks[i].text = t.wholeText;
-          newBlocks.splice(i + 1, 0, newBlock);
-          break;
+        const newBlock = ctx.schema.createBlock(ctx.block.type, {
+          text: newText.wholeText,
+          indent: ctx.block.indent,
+        });
+        const newBlocks = [...ctx.paper.blocks];
+        for (let i = 0; i < ctx.paper.blocks.length; i += 1) {
+          if (newBlocks[i].id === ctx.block.id) {
+            newBlocks[i].text = t.wholeText;
+            newBlocks.splice(i + 1, 0, newBlock);
+            break;
+          }
+        }
+        ctx.paper.setBlocks(newBlocks);
+      } else {
+        const defaultSchema = ctx.schema.defaultSchema();
+        if (defaultSchema) {
+          const newBlock = ctx.schema.createBlock(defaultSchema.type as Block['type'], {
+            text: '',
+            indent: ctx.block.indent,
+          });
+          const newBlocks = [...ctx.paper.blocks];
+          for (let i = 0; i < ctx.paper.blocks.length; i += 1) {
+            if (newBlocks[i].id === ctx.block.id) {
+              newBlocks.splice(i + 1, 0, newBlock);
+              break;
+            }
+          }
+          ctx.paper.setBlocks(newBlocks);
         }
       }
-      ctx.paper.setBlocks(newBlocks);
     });
     return ctx;
   },

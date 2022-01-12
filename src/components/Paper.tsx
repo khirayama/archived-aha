@@ -329,7 +329,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
 
     if (key === 'Enter') {
       event.preventDefault();
-      if (block.type !== defaultSchema.type && block.text === null) {
+      if (block.type !== defaultSchema.type && block.text === null && sel.anchorOffset === 0) {
         commands.turnInto(ctx, defaultSchema.type as Block['type']);
         afterRendering(() => {
           const blockElement = this.findBlockElement(block.id);
