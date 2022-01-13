@@ -86,7 +86,7 @@ export const listSchema = {
       <>
         <IndentationComponent {...props} />
         <HandleComponent {...props} />
-        <span>L</span>
+        <span className={styles['list']} />
         <TextComponent {...props} />
       </>
     );
@@ -121,7 +121,7 @@ export const imageSchema = {
         <IndentationComponent {...props} />
         <HandleComponent {...props} />
         <FocusableComponent {...props}>
-          <img src={props.block.attrs.src} />
+          <img src={props.block.attrs.src} className={styles['image']} />
         </FocusableComponent>
       </>
     );

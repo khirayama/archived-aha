@@ -74,3 +74,25 @@
 .focusable {
   flex: 1;
 }
+
+.list {
+  position: relative;
+  width: 1rem;
+
+  &:after {
+    position: absolute;
+    top: 0.575rem;
+    left: 0.25rem;
+    display: inline-block;
+    content: '';
+    width: 0.5rem;
+    height: 0.5rem;
+    background: #666;
+    border-radius: 50%;
+  }
+}
+
+.image {
+  width: 100%;
+  height: auto;
+}
