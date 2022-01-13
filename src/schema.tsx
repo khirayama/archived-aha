@@ -10,11 +10,17 @@ import {
 
 import styles from './components/index.module.scss';
 
+/*
+ * TODO headingSchema
+ * TODO todoSchema(action)
+ */
+
 export type SchemaType = {
   type: string;
   component?: React.FC;
   attrs?: {};
   action?: Function | null;
+  inputRule?: RegExp;
   create: Function;
 };
 
@@ -24,14 +30,12 @@ type BaseBlock = {
   indent: number;
 };
 
-function createBaseBlock(block: Partial<BaseBlock> = {}): BaseBlock {
+function createBaseBlock(block: Partial<Block> = {}): BaseBlock {
   const b = { ...block };
   if (b.text === null) {
     b.text = '';
   }
-  if (b.attrs) {
-    delete b.attrs;
-  }
+  delete b['attrs'];
 
   return {
     id: uuid(),
@@ -70,6 +74,7 @@ type ListBlock = BaseBlock & {
 
 export const listSchema = {
   type: 'list',
+  inputRule: /^[-+*]\s/,
   create: (block: Partial<ListBlock>): ListBlock => {
     return {
       ...createBaseBlock(block),
@@ -97,6 +102,7 @@ type ImageBlock = BaseBlock & {
 
 export const imageSchema = {
   type: 'image',
+  inputRule: /^\!\[(?<caption>.*)\]\((?<src>.*)\)\s/,
   create: (block: Partial<ImageBlock>): ImageBlock => {
     return {
       ...createBaseBlock(block),
@@ -144,5 +150,22 @@ export class Schema {
 
   public defaultSchema() {
     return this.schemas[0] || null;
+  }
+
+  public execInputRule(text: string) {
+    for (let i = 0; i < this.schemas.length; i += 1) {
+      const schema = this.schemas[i];
+      if (schema.inputRule) {
+        if (schema.inputRule.test(text)) {
+          const result = schema.inputRule.exec(text);
+          return {
+            schema,
+            text: text.replace(schema.inputRule, ''),
+            attrs: result.groups || null,
+          };
+        }
+      }
+    }
+    return null;
   }
 }

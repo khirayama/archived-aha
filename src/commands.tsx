@@ -49,11 +49,11 @@ export const commands = {
     });
     return ctx;
   },
-  turnInto: (ctx: CommandContext, blockType: Block['type']): CommandContext => {
+  turnInto: (ctx: CommandContext, blockType: Block['type'], block: Partial<Block> = {}): CommandContext => {
     ctx.paper.tr(() => {
       const newBlocks = ctx.paper.blocks.map((b) => {
         if (ctx.block.id === b.id) {
-          return ctx.schema.createBlock(blockType, b);
+          return ctx.schema.createBlock(blockType, { ...b, ...block });
         }
         return {
           ...b,

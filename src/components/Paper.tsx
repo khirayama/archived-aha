@@ -228,10 +228,6 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
 
     if ((key === 'b' && ctrl) || (key === 'i' && ctrl) || (key === 's' && ctrl)) {
       event.preventDefault();
-      // } else if (key === 'm' && ctrl) {
-      //   event.preventDefault();
-      //   keepSelectionPosition();
-      //   commands.turnInto(ctx, 'list');
     } else if (key === 'Enter') {
       event.preventDefault();
       if (block.type !== defaultSchema.type && block.text === '') {
@@ -413,14 +409,33 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
   }
 
   private onTextInput(event: React.KeyboardEvent<HTMLSpanElement>, props: BlockComponentProps) {
-    const value = event.currentTarget.innerText;
+    const sel = window.getSelection();
+    let value = event.currentTarget.innerText;
+
     const ctx: CommandContext = {
       block: props.block,
       schema: this.schema,
       paper: this.props.paper,
-      sel: window.getSelection(),
+      sel,
     };
-    commands.updateText(ctx, value);
+
+    const result = this.schema.execInputRule(value);
+    if (result) {
+      commands.updateText(ctx, result.text);
+      commands.turnInto(ctx, result.schema.type as Block['type'], { attrs: result.attrs as any });
+      afterRendering(() => {
+        const blockElement = this.findBlockElement(props.block.id);
+        const focusableElement = this.findFocusableElementFromBlockElement(blockElement);
+        const block = this.props.paper.findBlock(props.block.id);
+        if (block.text !== null) {
+          this.focus(focusableElement, sel.focusOffset - (new Text(value).length - new Text(result.text).length));
+        } else {
+          this.focus(focusableElement, focusableElement.childNodes.length);
+        }
+      });
+    } else {
+      commands.updateText(ctx, value);
+    }
     ctx.paper.commit();
   }
 
