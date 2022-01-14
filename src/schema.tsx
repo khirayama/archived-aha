@@ -1,3 +1,4 @@
+import * as React from 'react';
 import { v4 as uuid } from 'uuid';
 
 import {
@@ -11,13 +12,13 @@ import {
 import styles from './components/index.module.scss';
 
 /*
- * TODO headingSchema
- * TODO todoSchema(action)
+ * TODO todoSchema with action
+ * TODO add attrs editor component to imageSchema width
  */
 
 export type SchemaType = {
   type: string;
-  component?: React.FC;
+  component: React.FC;
   attrs?: {};
   inputRule?: RegExp;
   groupsToAttrs?: Function;
@@ -83,7 +84,7 @@ export const headingSchema = {
   inputRule: /^(?<level>#*)\s/,
   groupsToAttrs: (groups: { level: string }) => {
     const l = groups.level.length;
-    const level = Math.max(Math.min(l, 8), 0);
+    const level = Math.max(Math.min(l, 6), 0);
     return {
       level,
     };
@@ -96,14 +97,14 @@ export const headingSchema = {
     };
   },
   component: (props: BlockComponentProps) => {
+    const level = props.block.attrs.level;
+    const el = React.createElement(`h${level}`, { className: styles[`heading${level}`] }, <TextComponent {...props} />);
+
     return (
       <>
         <IndentationComponent {...props} />
         <HandleComponent {...props} />
-        <span>{props.block.attrs.level}</span>
-        <h1>
-          <TextComponent {...props} />
-        </h1>
+        {el}
       </>
     );
   },
