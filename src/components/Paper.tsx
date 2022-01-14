@@ -249,9 +249,6 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
         if (block.type !== defaultSchema.type) {
           keepSelectionPosition();
           commands.turnInto(ctx, defaultSchema.type as Block['type']);
-        } else if (block.indent > 0) {
-          keepSelectionPosition();
-          commands.outdent(ctx);
         } else {
           const prevBlock = this.props.paper.findPrevBlock(block.id);
           if (prevBlock) {
@@ -345,17 +342,12 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
       }
     } else if (key === 'Backspace') {
       event.preventDefault();
-      if (sel.isCollapsed && sel.anchorOffset == 0 && block.indent > 0) {
-        keepSelectionPosition();
-        commands.outdent(ctx);
-      } else {
-        commands.turnInto(ctx, defaultSchema.type as Block['type']);
-        afterRendering(() => {
-          const el = this.findBlockElement(block.id);
-          const focusableElement = this.findFocusableElementFromBlockElement(el);
-          focusableElement.focus();
-        });
-      }
+      commands.turnInto(ctx, defaultSchema.type as Block['type']);
+      afterRendering(() => {
+        const el = this.findBlockElement(block.id);
+        const focusableElement = this.findFocusableElementFromBlockElement(el);
+        focusableElement.focus();
+      });
     } else if (key === 'Tab' && !shift) {
       event.preventDefault();
       commands.indent(ctx);
@@ -423,12 +415,13 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
     if (result) {
       commands.updateText(ctx, result.text);
       commands.turnInto(ctx, result.schema.type as Block['type'], { attrs: result.attrs as any });
+      const pos = Math.max(sel.focusOffset - (new Text(value).length - new Text(result.text).length), 0);
       afterRendering(() => {
         const blockElement = this.findBlockElement(props.block.id);
         const focusableElement = this.findFocusableElementFromBlockElement(blockElement);
         const block = this.props.paper.findBlock(props.block.id);
         if (block.text !== null) {
-          this.focus(focusableElement, sel.focusOffset - (new Text(value).length - new Text(result.text).length));
+          this.focus(focusableElement, pos);
         } else {
           this.focus(focusableElement, focusableElement.childNodes.length);
         }

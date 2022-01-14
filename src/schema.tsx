@@ -19,9 +19,11 @@ export type SchemaType = {
   type: string;
   component?: React.FC;
   attrs?: {};
-  action?: Function | null;
   inputRule?: RegExp;
+  groupsToAttrs?: Function;
+  isContinuation?: Boolean;
   create: Function;
+  action?: Function | null;
 };
 
 type BaseBlock = {
@@ -158,10 +160,11 @@ export class Schema {
       if (schema.inputRule) {
         if (schema.inputRule.test(text)) {
           const result = schema.inputRule.exec(text);
+          const attrs = (schema.groupsToAttrs ? schema.groupsToAttrs(result.groups) : result.groups) || null;
           return {
             schema,
             text: text.replace(schema.inputRule, ''),
-            attrs: result.groups || null,
+            attrs,
           };
         }
       }

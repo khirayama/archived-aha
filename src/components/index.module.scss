@@ -1,6 +1,6 @@
 .paper {
   width: 100%;
-  padding: 8px;
+  padding: 1rem 0.5rem 4rem;
 }
 
 .block {
@@ -94,5 +94,6 @@
 
 .image {
   width: 100%;
+  max-width: 768px;
   height: auto;
 }
