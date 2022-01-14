@@ -70,6 +70,45 @@ export const paragraphSchema = {
   },
 };
 
+type HeadingBlock = BaseBlock & {
+  type: 'heading';
+  attrs: {
+    level: number;
+  };
+};
+
+export const headingSchema = {
+  type: 'heading',
+  isContinuation: false,
+  inputRule: /^(?<level>#*)\s/,
+  groupsToAttrs: (groups: { level: string }) => {
+    const l = groups.level.length;
+    const level = Math.max(Math.min(l, 8), 0);
+    return {
+      level,
+    };
+  },
+  create: (block: Partial<HeadingBlock>): HeadingBlock => {
+    return {
+      ...createBaseBlock(block),
+      type: 'heading',
+      attrs: block.attrs || { level: 1 },
+    };
+  },
+  component: (props: BlockComponentProps) => {
+    return (
+      <>
+        <IndentationComponent {...props} />
+        <HandleComponent {...props} />
+        <span>{props.block.attrs.level}</span>
+        <h1>
+          <TextComponent {...props} />
+        </h1>
+      </>
+    );
+  },
+};
+
 type ListBlock = BaseBlock & {
   type: 'list';
 };
@@ -130,7 +169,7 @@ export const imageSchema = {
   },
 };
 
-export type Block = ParagraphBlock | ListBlock | ImageBlock;
+export type Block = ParagraphBlock | HeadingBlock | ListBlock | ImageBlock;
 
 export class Schema {
   private schemas: SchemaType[];

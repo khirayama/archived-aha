@@ -1,8 +1,9 @@
 import * as React from 'react';
 
 import { PaperComponent } from '../components';
-import { Schema, paragraphSchema, listSchema, imageSchema } from '../schema';
+import { Schema, paragraphSchema, headingSchema, listSchema, imageSchema } from '../schema';
 import { Paper } from '../model';
+import { commands, CommandContext } from '../commands';
 
 import styles from './index.module.scss';
 
@@ -90,7 +91,7 @@ function FloatingNav(props: { children: React.ReactNode }) {
   );
 }
 
-const schema = new Schema([paragraphSchema, listSchema, imageSchema]);
+const schema = new Schema([paragraphSchema, headingSchema, listSchema, imageSchema]);
 const paper = new Paper();
 
 export default function ProtoPage(props) {

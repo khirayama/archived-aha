@@ -72,10 +72,19 @@ export const commands = {
         const newText = t.splitText(e);
         t.splitText(s);
 
-        const newBlock = ctx.schema.createBlock(ctx.block.type, {
-          text: newText.wholeText,
-          indent: ctx.block.indent,
-        });
+        const defaultSchema = ctx.schema.defaultSchema();
+        const currentSchema = ctx.schema.find(ctx.block.type);
+
+        const newBlock =
+          currentSchema.isContinuation !== false
+            ? ctx.schema.createBlock(currentSchema.type, {
+                text: newText.wholeText,
+                indent: ctx.block.indent,
+              })
+            : ctx.schema.createBlock(defaultSchema.type, {
+                text: newText.wholeText,
+                indent: ctx.block.indent,
+              });
         const newBlocks = [...ctx.paper.blocks];
         for (let i = 0; i < ctx.paper.blocks.length; i += 1) {
           if (newBlocks[i].id === ctx.block.id) {
