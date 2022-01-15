@@ -98,14 +98,14 @@ export const headingSchema = {
   },
   component: (props: BlockComponentProps) => {
     const level = props.block.attrs.level;
-    const el = React.createElement(`h${level}`, { className: styles[`heading${level}`] }, <TextComponent {...props} />);
-
-    return (
+    return React.createElement(
+      `h${level}`,
+      { className: styles[`heading${level}`] },
       <>
         <IndentationComponent {...props} />
         <HandleComponent {...props} />
-        {el}
-      </>
+        <TextComponent {...props} />
+      </>,
     );
   },
 };

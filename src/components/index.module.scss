@@ -98,35 +98,41 @@
   height: auto;
 }
 
+.heading {
+  display: flex;
+  width: 100%;
+  font-weight: bold;
+}
+
 .heading1 {
-  font-weight: bold!important;
+  @extend .heading;
   font-size: 2rem;
   padding: 0.5rem 0 2rem;
 }
 
 .heading2 {
-  font-weight: bold;
+  @extend .heading;
   font-size: 1.5rem;
   padding: 1rem 0;
 }
 
 .heading3 {
-  font-weight: bold;
+  @extend .heading;
   font-size: 1.25rem;
   padding: 1rem 0;
 }
 
 .heading4 {
-  font-weight: bold;
+  @extend .heading;
   padding: 1rem 0;
 }
 
 .heading5 {
-  font-weight: bold;
+  @extend .heading;
   padding: 0.75rem 0;
 }
 
 .heading6 {
-  font-weight: bold;
+  @extend .heading;
   padding: 0.5rem 0;
 }
