@@ -228,6 +228,12 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
 
     if ((key === 'b' && ctrl) || (key === 'i' && ctrl) || (key === 's' && ctrl)) {
       event.preventDefault();
+    } else if (key === 'Enter' && ctrl) {
+      event.preventDefault();
+      const schema = props.schema.find(props.block.type);
+      if (schema && schema.action) {
+        schema.action(ctx);
+      }
     } else if (key === 'Enter') {
       event.preventDefault();
       if (block.type !== defaultSchema.type && block.text === '') {

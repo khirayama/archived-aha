@@ -8,11 +8,11 @@ import {
   HandleComponent,
   FocusableComponent,
 } from './components';
+import { CommandContext } from './commands';
 
 import styles from './components/index.module.scss';
 
 /*
- * TODO todoSchema with action
  * TODO add attrs editor component to imageSchema width
  */
 
@@ -137,6 +137,69 @@ export const listSchema = {
   },
 };
 
+type TodoBlock = BaseBlock & {
+  type: 'todo';
+  attrs: {
+    done: boolean;
+  };
+};
+
+export const todoSchema = {
+  type: 'todo',
+  inputRule: /^\[(?<done>.*)\]\s/,
+  groupsToAttrs: (groups: { done: string }) => {
+    return {
+      done: !!groups.done.trim(),
+    };
+  },
+  action: (ctx: CommandContext) => {
+    const newBlocks = ctx.paper.blocks.map((b) => {
+      if (ctx.block.id === b.id) {
+        b.attrs.done = !b.attrs.done;
+      }
+      return { ...b };
+    });
+    ctx.paper.setBlocks(newBlocks);
+    ctx.paper.commit();
+  },
+  create: (block: Partial<TodoBlock>): TodoBlock => {
+    return {
+      ...createBaseBlock(block),
+      type: 'todo',
+      attrs: block.attrs || {
+        done: false,
+      },
+    };
+  },
+  component: (props: BlockComponentProps) => {
+    return (
+      <>
+        <IndentationComponent {...props} />
+        <HandleComponent {...props} />
+        <span className={styles['todo']} data-checked={props.block.attrs.done}>
+          <input
+            className={styles['todocheckbox']}
+            type="checkbox"
+            checked={props.block.attrs.done}
+            onChange={(e) => {
+              const schema = props.schema.find(props.block.type);
+              if (schema) {
+                schema.action({
+                  block: props.block,
+                  schema: props.schema,
+                  paper: props.paper,
+                  sel: window.getSelection(),
+                });
+              }
+            }}
+          />
+        </span>
+        <TextComponent {...props} />
+      </>
+    );
+  },
+};
+
 type ImageBlock = BaseBlock & {
   type: 'image';
   attrs: {
@@ -172,7 +235,7 @@ export const imageSchema = {
   },
 };
 
-export type Block = ParagraphBlock | HeadingBlock | ListBlock | ImageBlock;
+export type Block = ParagraphBlock | HeadingBlock | ListBlock | TodoBlock | ImageBlock;
 
 export class Schema {
   private schemas: SchemaType[];

@@ -1,7 +1,7 @@
 import * as React from 'react';
 
 import { PaperComponent } from '../components';
-import { Schema, paragraphSchema, headingSchema, listSchema, imageSchema } from '../schema';
+import { Schema, paragraphSchema, headingSchema, listSchema, todoSchema, imageSchema } from '../schema';
 import { Paper } from '../model';
 import { commands, CommandContext } from '../commands';
 
@@ -12,6 +12,8 @@ export function getServerSideProps() {
     props: {
       blocks: [
         schema.createBlock('heading', { text: 'TITLE OF THIS PAPER', attrs: { level: 1 } }),
+        schema.createBlock('todo', { text: 'タスク1' }),
+        schema.createBlock('todo', { text: 'タスク2', attrs: { done: true } }),
         schema.createBlock('paragraph', { text: '𠮷野屋で𩸽頼んで𠮟られる😭' }),
         schema.createBlock('heading', { text: '000', attrs: { level: 2 } }),
         schema.createBlock('paragraph', { text: '111' }),
@@ -93,7 +95,7 @@ function FloatingNav(props: { children: React.ReactNode }) {
   );
 }
 
-const schema = new Schema([paragraphSchema, headingSchema, listSchema, imageSchema]);
+const schema = new Schema([paragraphSchema, headingSchema, listSchema, todoSchema, imageSchema]);
 const paper = new Paper();
 
 export default function ProtoPage(props) {
