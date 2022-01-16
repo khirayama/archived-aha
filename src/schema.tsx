@@ -100,7 +100,9 @@ export const headingSchema = {
     const level = props.block.attrs.level;
     return React.createElement(
       `h${level}`,
-      { className: styles[`heading${level}`] },
+      {
+        className: styles[`heading${level}`],
+      },
       <>
         <IndentationComponent {...props} />
         <HandleComponent {...props} />

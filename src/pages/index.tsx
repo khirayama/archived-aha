@@ -11,6 +11,7 @@ export function getServerSideProps() {
   return {
     props: {
       blocks: [
+        schema.createBlock('heading', { text: 'TITLE OF THIS PAPER', attrs: { level: 1 } }),
         schema.createBlock('paragraph', { text: '𠮷野屋で𩸽頼んで𠮟られる😭' }),
         schema.createBlock('heading', { text: '000', attrs: { level: 2 } }),
         schema.createBlock('paragraph', { text: '111' }),
