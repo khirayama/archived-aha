@@ -121,7 +121,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
       }
 
       let el = document.elementFromPoint(event.clientX, event.clientY) as HTMLElement;
-      if (el && !el.dataset.blockid) {
+      while (el && !el.dataset.blockid) {
         el = el.parentElement;
       }
       const blockId = el.dataset.blockid;
