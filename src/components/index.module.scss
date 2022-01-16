@@ -49,8 +49,9 @@
   cursor: move;
   user-select: none;
   touch-action: none;
-  background: url(/handle.svg) no-repeat center 0;
-  background-size: 1.5rem;
+  // background: url(/handle.svg) no-repeat center 0;
+  // background-size: 1.5rem;
+  padding: 0 0.25rem;
   opacity: 0.2;
 }
 
