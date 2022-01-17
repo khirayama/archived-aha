@@ -8,3 +8,5 @@ export { TextComponent } from './Text';
 export { FocusableComponent } from './Focusable';
 export { BlockComponent } from './Block';
 export { PaperComponent } from './Paper';
+export { FloatingNavComponent } from './FloatingNav';
+export { CommandButtonComponent } from './CommandButton';

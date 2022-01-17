@@ -182,3 +182,18 @@
     color: #aaa;
   }
 }
+
+.floating-nav {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  background: #fff;
+  width: 100%;
+  padding: 0.25rem;
+  border-top: solid 1px #aaa;
+}
+
+.commandbutton {
+  background: transparent;
+  padding: 0.25rem;
+}

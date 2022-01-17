@@ -1,10 +1,4 @@
 .container {
-  position: relative;
+  overflow: scroll;
   height: 100%;
-}
-
-.floating-nav {
-  position: fixed;
-  left: 0;
-  bottom: 0;
 }
