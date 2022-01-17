@@ -10,3 +10,4 @@ export { BlockComponent } from './Block';
 export { PaperComponent } from './Paper';
 export { FloatingNavComponent } from './FloatingNav';
 export { CommandButtonComponent } from './CommandButton';
+export { IconComponent } from './Icon';

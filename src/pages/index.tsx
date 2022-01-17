@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import { PaperComponent, FloatingNavComponent, CommandButtonComponent } from '../components';
+import { PaperComponent, FloatingNavComponent, CommandButtonComponent, IconComponent } from '../components';
 import { Schema, paragraphSchema, headingSchema, listSchema, todoSchema, imageSchema } from '../schema';
 import { Paper } from '../model';
 import { commands } from '../commands';
@@ -57,7 +57,7 @@ export default function ProtoPage(props) {
             paper.commit();
           }}
         >
-          <span className="material-icons">format_indent_increase</span>
+          <IconComponent name="format_indent_increase" />
         </CommandButtonComponent>
         <CommandButtonComponent
           schema={schema}
@@ -72,7 +72,7 @@ export default function ProtoPage(props) {
             paper.commit();
           }}
         >
-          <span className="material-icons">format_indent_decrease</span>
+          <IconComponent name="format_indent_decrease" />
         </CommandButtonComponent>
       </FloatingNavComponent>
     </div>

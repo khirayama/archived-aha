@@ -1,13 +1,14 @@
 import * as React from 'react';
 
 import { BlockComponentProps } from './Block';
+import { IconComponent } from './Icon';
 
 import styles from './index.module.scss';
 
 export function HandleComponent(props: BlockComponentProps) {
   return (
     <span className={styles['handle']} onPointerDown={(e) => props.onHandlePointerDown(e, props)}>
-      <span className="material-icons">drag_indicator</span>
+      <IconComponent name="drag_indicator" />
     </span>
   );
 }
