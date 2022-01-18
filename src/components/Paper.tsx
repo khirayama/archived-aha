@@ -162,30 +162,19 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
   private onPointerUp(event: React.MouseEvent<HTMLSpanElement>, props: BlockComponentProps) {
     const paper = this.props.paper;
     const blocks = this.state.blocks;
+    const block = props.block;
+    const sel = window.getSelection();
+
+    const ctx: CommandContext = {
+      block,
+      schema: this.schema,
+      paper: this.props.paper,
+      sel,
+    };
 
     if (this.sort.target && this.sort.to) {
-      paper
-        .tr(() => {
-          let targetIndex = 0;
-          let toIndex = 0;
-
-          for (let i = 0; i < blocks.length; i += 1) {
-            if (this.sort.target.id === blocks[i].id) {
-              targetIndex = i;
-            }
-
-            if (this.sort.to.id === blocks[i].id) {
-              toIndex = i;
-            }
-          }
-
-          const l = this.props.paper.findGroupedBlocks(this.sort.target.id).length;
-          const newBlocks = [...blocks];
-          const sort = newBlocks.splice(targetIndex, l);
-          newBlocks.splice(toIndex < targetIndex ? toIndex : toIndex - l + 1, 0, ...sort);
-          paper.setBlocks(newBlocks);
-        })
-        .commit();
+      commands.moveTo(ctx, this.sort.target.id, this.sort.to.id);
+      this.props.paper.commit();
     }
 
     if (this.sort.target) {
