@@ -16,6 +16,7 @@ export type BlockComponentProps = {
   onTextInput: Function;
   onFocusableKeyDown: Function;
   onFocusableClick: Function;
+  onPaste: Function;
   children?: React.ReactElement;
 };
 
@@ -27,6 +28,7 @@ export function BlockComponent(props: BlockComponentProps) {
     <div
       className={styles['block']}
       data-blockid={block.id}
+      onPaste={(e) => props.onPaste(e, props)}
       onPointerMove={(e) => props.onPointerMove(e, props)}
       onPointerUp={(e) => props.onPointerUp(e, props)}
     >
