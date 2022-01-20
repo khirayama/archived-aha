@@ -256,6 +256,18 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
         });
         commands.splitBlock(ctx);
       }
+    } else if (key === 'Backspace' && ctrl) {
+      const prevBlock = this.props.paper.findPrevBlock(block.id);
+      if (prevBlock) {
+        event.preventDefault();
+        const prevBlockEl = this.findBlockElement(prevBlock.id);
+        const prevFocusableElement = this.findFocusableElementFromBlockElement(prevBlockEl);
+        this.focus(this.extractTextNodeFromFocusableElement(prevFocusableElement), new Text(prevBlock.text).length);
+
+        keepSelectionPosition(sel);
+        commands.updateText(ctx, '');
+        commands.combineBlock(ctx);
+      }
     } else if (key === 'Backspace') {
       if (sel.isCollapsed && sel.anchorOffset == 0) {
         if (block.type !== defaultSchema.type) {
