@@ -1,26 +1,19 @@
+import { findCurrentBlockElementFromSelection } from './utils';
+
 import styles from './index.module.scss';
 
 export function CommandButtonComponent(props) {
-  let blockElement = null;
-
   return (
     <button
       className={styles['commandbutton']}
       onMouseDown={(event) => {
+        /* FYI If we don't call `preventDefault`, blur from text */
         event.preventDefault();
-        const sel = window.getSelection();
-        if (sel.anchorNode === null) {
-          return;
-        }
-        blockElement = sel.anchorNode.parentElement;
-        if (blockElement && blockElement !== document.body && blockElement.dataset) {
-          while (!blockElement.dataset.blockid) {
-            blockElement = blockElement.parentElement;
-          }
-        }
       }}
       onClick={(event) => {
-        if (blockElement && blockElement !== document.body && blockElement.dataset) {
+        const sel = window.getSelection();
+        const blockElement = findCurrentBlockElementFromSelection(sel);
+        if (blockElement) {
           const blockId = blockElement.dataset.blockid;
           const block = props.paper.findBlock(blockId);
           props.onClick(event, block);
