@@ -188,7 +188,6 @@ export const todoSchema = {
                   block: props.block,
                   schema: props.schema,
                   paper: props.paper,
-                  sel: window.getSelection(),
                 });
               }
             }}

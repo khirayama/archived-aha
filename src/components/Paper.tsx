@@ -186,7 +186,6 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
       block,
       schema: this.schema,
       paper: this.props.paper,
-      sel,
     };
 
     if (this.sort.target && this.sort.to) {
@@ -229,7 +228,6 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
       block,
       schema: this.schema,
       paper: this.props.paper,
-      sel,
     };
 
     if ((key === 'b' && ctrl) || (key === 'i' && ctrl) || (key === 's' && ctrl)) {
@@ -254,7 +252,9 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
             this.focus(this.extractTextNodeFromFocusableElement(nextFocusableElement), 0);
           }
         });
-        commands.splitBlock(ctx);
+        const s = Math.min(sel.anchorOffset, sel.focusOffset);
+        const e = Math.max(sel.anchorOffset, sel.focusOffset);
+        commands.splitBlock(ctx, s, e);
       }
     } else if (key === 'Backspace' && ctrl) {
       const prevBlock = this.props.paper.findPrevBlock(block.id);
@@ -341,7 +341,6 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
       block,
       schema: this.schema,
       paper: this.props.paper,
-      sel,
     };
 
     if (key === 'Enter') {
@@ -362,7 +361,9 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
             this.focus(this.extractTextNodeFromFocusableElement(nextFocusableElement), 0);
           }
         });
-        commands.splitBlock(ctx);
+        const s = Math.min(sel.anchorOffset, sel.focusOffset);
+        const e = Math.max(sel.anchorOffset, sel.focusOffset);
+        commands.splitBlock(ctx, s, e);
       }
     } else if (key === 'Backspace') {
       event.preventDefault();
@@ -432,7 +433,6 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
       block: props.block,
       schema: this.schema,
       paper: this.props.paper,
-      sel,
     };
 
     const result = this.schema.execInputRule(value);
@@ -490,11 +490,12 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
                     block,
                     schema: this.schema,
                     paper: this.props.paper,
-                    sel,
                   };
                   for (let i = 0; i < blockTexts.length; i += 1) {
                     const blockText = blockTexts[i];
-                    commands.splitBlock(ctx);
+                    const s = Math.min(sel.anchorOffset, sel.focusOffset);
+                    const e = Math.max(sel.anchorOffset, sel.focusOffset);
+                    commands.splitBlock(ctx, s, e);
                     console.log(blockText.trim());
                   }
                   this.props.paper.commit();

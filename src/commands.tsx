@@ -5,7 +5,6 @@ export type CommandContext = {
   block: Block;
   schema: Schema;
   paper: Paper;
-  sel: Selection /* TODO selを消す */;
 };
 
 export const commands = {
@@ -63,12 +62,10 @@ export const commands = {
     });
     return ctx;
   },
-  splitBlock: (ctx: CommandContext): CommandContext => {
+  splitBlock: (ctx: CommandContext, s: number, e: number): CommandContext => {
     ctx.paper.tr(() => {
       if (ctx.block.text !== null) {
         const t = new Text(ctx.block.text);
-        const s = Math.min(ctx.sel.anchorOffset, ctx.sel.focusOffset);
-        const e = Math.max(ctx.sel.anchorOffset, ctx.sel.focusOffset);
         const newText = t.splitText(e);
         t.splitText(s);
 
