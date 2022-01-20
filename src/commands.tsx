@@ -77,11 +77,11 @@ export const commands = {
 
         const newBlock =
           currentSchema.isContinuation !== false
-            ? ctx.schema.createBlock(currentSchema.type, {
+            ? ctx.schema.createBlock(currentSchema.type as Block['type'], {
                 text: newText.wholeText,
                 indent: ctx.block.indent,
               })
-            : ctx.schema.createBlock(defaultSchema.type, {
+            : ctx.schema.createBlock(defaultSchema.type as Block['type'], {
                 text: newText.wholeText,
                 indent: ctx.block.indent,
               });
