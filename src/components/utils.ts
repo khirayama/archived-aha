@@ -1,3 +1,17 @@
+export function findCurrentBlockElementFromSelection(sel: Selection) {
+  let blockElement = null;
+  if (sel.anchorNode === null) {
+    return;
+  }
+  blockElement = sel.anchorNode.parentElement;
+  if (blockElement && blockElement !== document.body && blockElement.dataset) {
+    while (!blockElement.dataset.blockid) {
+      blockElement = blockElement.parentElement;
+    }
+  }
+  return blockElement;
+}
+
 export function afterRendering(callback: Function) {
   window.setTimeout(callback, 0);
 }
