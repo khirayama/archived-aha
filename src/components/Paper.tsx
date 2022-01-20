@@ -1,4 +1,5 @@
 import * as React from 'react';
+import Head from 'next/head';
 
 import { Schema, Block } from '../schema';
 import { Paper } from '../model';
@@ -64,6 +65,22 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
 
   public componentWillUnmount() {
     this.props.paper.offChange(this.onPaperChange);
+  }
+
+  private extractTitleFromBlocks() {
+    const blocks = this.props.paper.blocks;
+    const cur = {
+      title: blocks[0].text || '',
+      level: 8,
+    };
+    for (let i = 0; i < blocks.length; i += 1) {
+      const block = blocks[i];
+      if (block.type === 'heading' && block.attrs.level < cur.level) {
+        cur.title = block.text;
+        cur.level = block.attrs.level;
+      }
+    }
+    return cur.title;
   }
 
   private findBlockElement(blockId: string): HTMLDivElement | null {
@@ -429,27 +446,52 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
 
   public render() {
     const blocks = this.state.blocks;
+    const title = this.extractTitleFromBlocks();
 
     return (
-      <div className={styles['paper']} ref={this.ref}>
-        {blocks.map((block) => {
-          return (
-            <BlockComponent
-              key={block.id}
-              paper={this.props.paper}
-              schema={this.schema}
-              block={block}
-              onHandlePointerDown={this.onHandlePointerDown}
-              onPointerMove={this.onPointerMove}
-              onPointerUp={this.onPointerUp}
-              onTextKeyDown={this.onTextKeyDown}
-              onTextInput={this.onTextInput}
-              onFocusableKeyDown={this.onFocusableKeyDown}
-              onFocusableClick={this.onFocusableClick}
-            />
-          );
-        })}
-      </div>
+      <>
+        <Head>
+          <title>{title}</title>
+        </Head>
+        <div className={styles['paper']} ref={this.ref}>
+          {blocks.map((block) => {
+            return (
+              <BlockComponent
+                key={block.id}
+                paper={this.props.paper}
+                schema={this.schema}
+                block={block}
+                onHandlePointerDown={this.onHandlePointerDown}
+                onPointerMove={this.onPointerMove}
+                onPointerUp={this.onPointerUp}
+                onTextKeyDown={this.onTextKeyDown}
+                onTextInput={this.onTextInput}
+                onFocusableKeyDown={this.onFocusableKeyDown}
+                onFocusableClick={this.onFocusableClick}
+                onPaste={(event, props) => {
+                  event.preventDefault();
+                  const content = event.clipboardData.getData('text');
+                  const blockTexts = content.split('\n');
+
+                  const sel = window.getSelection();
+                  const ctx: CommandContext = {
+                    block,
+                    schema: this.schema,
+                    paper: this.props.paper,
+                    sel,
+                  };
+                  for (let i = 0; i < blockTexts.length; i += 1) {
+                    const blockText = blockTexts[i];
+                    commands.splitBlock(ctx);
+                    console.log(blockText.trim());
+                  }
+                  this.props.paper.commit();
+                }}
+              />
+            );
+          })}
+        </div>
+      </>
     );
   }
 }
