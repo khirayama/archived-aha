@@ -5,7 +5,7 @@ export type CommandContext = {
   block: Block;
   schema: Schema;
   paper: Paper;
-  sel: Selection;
+  sel: Selection /* TODO selを消す */;
 };
 
 export const commands = {

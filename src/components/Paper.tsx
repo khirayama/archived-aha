@@ -243,7 +243,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
     } else if (key === 'Enter') {
       event.preventDefault();
       if (block.type !== defaultSchema.type && block.text === '') {
-        keepSelectionPosition();
+        keepSelectionPosition(sel);
         commands.turnInto(ctx, defaultSchema.type as Block['type']);
       } else {
         afterRendering(() => {
@@ -271,7 +271,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
     } else if (key === 'Backspace') {
       if (sel.isCollapsed && sel.anchorOffset == 0) {
         if (block.type !== defaultSchema.type) {
-          keepSelectionPosition();
+          keepSelectionPosition(sel);
           commands.turnInto(ctx, defaultSchema.type as Block['type']);
         } else {
           const prevBlock = this.props.paper.findPrevBlock(block.id);
@@ -281,7 +281,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
             const prevFocusableElement = this.findFocusableElementFromBlockElement(prevBlockEl);
             this.focus(this.extractTextNodeFromFocusableElement(prevFocusableElement), new Text(prevBlock.text).length);
 
-            keepSelectionPosition();
+            keepSelectionPosition(sel);
             commands.combineBlock(ctx);
           }
         }

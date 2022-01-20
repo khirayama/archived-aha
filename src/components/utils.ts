@@ -2,9 +2,7 @@ export function afterRendering(callback: Function) {
   window.setTimeout(callback, 0);
 }
 
-export function keepSelectionPosition() {
-  const sel = window.getSelection();
-
+export function keepSelectionPosition(sel: Selection) {
   if (sel.anchorNode === null) {
     return;
   }
