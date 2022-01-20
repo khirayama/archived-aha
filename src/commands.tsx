@@ -50,9 +50,9 @@ export const commands = {
   },
   turnInto: (ctx: CommandContext, blockType: Block['type'], block: Partial<Block> = {}): CommandContext => {
     ctx.paper.tr(() => {
-      const newBlocks = ctx.paper.blocks.map((b) => {
+      const newBlocks = ctx.paper.blocks.map((b: Block) => {
         if (ctx.block.id === b.id) {
-          return ctx.schema.createBlock(blockType, { ...b, ...block });
+          return ctx.schema.createBlock(blockType, { ...b, ...block } as Partial<Block>);
         }
         return {
           ...b,

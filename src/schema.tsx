@@ -97,7 +97,7 @@ export const headingSchema = {
     };
   },
   component: (props: BlockComponentProps) => {
-    const level = props.block.attrs.level;
+    const level = (props.block as HeadingBlock).attrs.level;
     return React.createElement(
       `h${level}`,
       {
@@ -154,7 +154,7 @@ export const todoSchema = {
   },
   action: (ctx: CommandContext) => {
     const newBlocks = ctx.paper.blocks.map((b) => {
-      if (ctx.block.id === b.id) {
+      if (ctx.block.id === b.id && b.type === 'todo') {
         b.attrs.done = !b.attrs.done;
       }
       return { ...b };
@@ -172,20 +172,22 @@ export const todoSchema = {
     };
   },
   component: (props: BlockComponentProps) => {
+    const block = props.block as TodoBlock;
+
     return (
       <>
         <IndentationComponent {...props} />
         <HandleComponent {...props} />
-        <span className={styles['todo']} data-checked={props.block.attrs.done}>
+        <span className={styles['todo']} data-checked={block.attrs.done}>
           <input
             className={styles['todocheckbox']}
             type="checkbox"
-            checked={props.block.attrs.done}
+            checked={block.attrs.done}
             onChange={(e) => {
-              const schema = props.schema.find(props.block.type);
+              const schema = props.schema.find(block.type);
               if (schema) {
                 schema.action({
-                  block: props.block,
+                  block,
                   schema: props.schema,
                   paper: props.paper,
                 });

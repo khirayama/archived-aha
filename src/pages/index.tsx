@@ -52,7 +52,6 @@ export default function ProtoPage(props) {
               block,
               schema,
               paper,
-              sel: window.getSelection(),
             });
             paper.commit();
           }}
@@ -67,7 +66,6 @@ export default function ProtoPage(props) {
               block,
               schema,
               paper,
-              sel: window.getSelection(),
             });
             paper.commit();
           }}
