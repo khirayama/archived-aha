@@ -1,0 +1,40 @@
+.block {
+  display: block;
+}
+
+.decoration {
+  display: block;
+  // visibility: hidden;
+  user-select: none;
+  touch-action: none;
+}
+
+.handle {
+  display: inline-block;
+  cursor: move;
+  user-select: none;
+  touch-action: none;
+  padding: 0 0.25rem;
+  opacity: 0.2;
+}
+
+.indentation {
+  display: inline-block;
+  height: 100%;
+  transition: width 80ms ease-in-out;
+
+  @for $i from 0 through 8 {
+    &[data-indent="#{$i}"] {
+      width: $i * 1rem;
+    }
+  }
+}
+
+.text {
+  flex: 1;
+  display: inline-block;
+}
+
+.paragraphblock {
+  display: flex;
+}
