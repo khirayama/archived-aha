@@ -101,9 +101,61 @@ export class Schema {
 }
 
 /* Commands */
+type CommandContext = {
+  paper: Paper;
+  schema: Schema;
+  cursor: Cursor;
+};
+
+const commands = {
+  indent: (ctx: CommandContext): CommandContext => {
+    ctx.paper.tr(() => {
+      let isStarted = false;
+      const newBlocks = ctx.paper.blocks.map((b) => {
+        if (b.id === ctx.cursor.anchorId || b.id === ctx.cursor.focusId) {
+          isStarted = !isStarted;
+          b.indent = Math.min(b.indent + 1, 8);
+        } else if (isStarted && !ctx.cursor.isCollapsed) {
+          b.indent = Math.min(b.indent + 1, 8);
+        }
+        return {
+          ...b,
+        };
+      });
+      ctx.paper.setBlocks(newBlocks);
+    });
+    return ctx;
+  },
+  outdent: (ctx: CommandContext): CommandContext => {
+    ctx.paper.tr(() => {
+      let isStarted = false;
+      const newBlocks = ctx.paper.blocks.map((b) => {
+        if (b.id === ctx.cursor.anchorId || b.id === ctx.cursor.focusId) {
+          isStarted = !isStarted;
+          b.indent = Math.max(b.indent - 1, 0);
+        } else if (isStarted && !ctx.cursor.isCollapsed) {
+          b.indent = Math.max(b.indent - 1, 0);
+        }
+        return {
+          ...b,
+        };
+      });
+      ctx.paper.setBlocks(newBlocks);
+    });
+    return ctx;
+  },
+};
 
 /* Model */
-export class Paper {
+type Cursor = {
+  isCollapsed: boolean;
+  anchorId: string | null;
+  anchorOffset: number | null;
+  focusId: string | null;
+  focusOffset: number | null;
+};
+
+class Paper {
   private listeners: Function[] = [];
 
   private transactions: Function[] = [];
@@ -231,6 +283,39 @@ class PaperView extends React.Component<PaperViewProps, PaperViewState> {
     this.props.paper.offChange(this.onPaperChange);
   }
 
+  private getCursor(): Cursor {
+    const sel = window.getSelection();
+    const cursor: Cursor = {
+      isCollapsed: sel.isCollapsed,
+      anchorId: null,
+      anchorOffset: sel.anchorOffset,
+      focusId: null,
+      focusOffset: sel.focusOffset,
+    };
+
+    let el: any = sel.anchorNode;
+    while (!el.dataset?.blockid) {
+      el = el.parentElement;
+    }
+    cursor.anchorId = el.dataset.blockid;
+
+    el = sel.focusNode;
+    while (!el.dataset?.blockid) {
+      el = el.parentElement;
+    }
+    cursor.focusId = el.dataset.blockid;
+
+    return cursor;
+  }
+
+  private getCommandContext(): CommandContext {
+    return {
+      paper: this.props.paper,
+      schema: this.props.schema,
+      cursor: this.getCursor(),
+    };
+  }
+
   private onPaperChange(paper: Paper) {
     this.setState({ blocks: paper.blocks });
   }
@@ -277,11 +362,18 @@ class PaperView extends React.Component<PaperViewProps, PaperViewState> {
         break;
       }
       case 'Tab': {
+        event.preventDefault();
+        if (shift) {
+          commands.outdent(this.getCommandContext());
+        } else {
+          commands.indent(this.getCommandContext());
+        }
         break;
       }
       default: {
       }
     }
+    this.props.paper.commit();
   }
 
   private renderPaper() {
