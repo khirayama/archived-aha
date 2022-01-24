@@ -1,5 +1,7 @@
 import { v4 as uuid } from 'uuid';
 import * as React from 'react';
+import { renderToString } from 'react-dom/server';
+import { hydrate } from 'react-dom';
 
 import styles from './prototype.module.scss';
 
@@ -51,7 +53,9 @@ const paragraphSchema: SchemaType = {
             <IconView name="drag_indicator" />
           </div>
         </div>
-        <span className={styles['text']}>{block.text}</span>
+        <span className={styles['text']} data-text>
+          {block.text}
+        </span>
       </div>
     );
   },
@@ -107,40 +111,55 @@ type CommandContext = {
   cursor: Cursor;
 };
 
+function blockBetween({ paper, schema, cursor }: CommandContext, func: Function) {
+  let isStarted = false;
+  const newBlocks = paper.blocks.map((b) => {
+    if (b.id === cursor.anchorId || b.id === cursor.focusId) {
+      isStarted = !isStarted;
+      func(b);
+    } else if (isStarted && !cursor.isCollapsed) {
+      func(b);
+    }
+    return {
+      ...b,
+    };
+  });
+  return newBlocks;
+}
+
 const commands = {
+  syncTexts: (ctx: CommandContext, blockTexts: { [id: string]: string }) => {
+    ctx.paper.tr(() => {
+      const newBlocks = ctx.paper.blocks
+        .map((b) => {
+          // TODO 画像とか、text nullなものはskipするようにする必要がある？
+          if (blockTexts[b.id]) {
+            b.text = blockTexts[b.id];
+          } else {
+            return null;
+          }
+          return { ...b };
+        })
+        .filter((b) => !!b);
+      paper.setBlocks(newBlocks);
+    });
+    return ctx;
+  },
   indent: (ctx: CommandContext): CommandContext => {
     ctx.paper.tr(() => {
-      let isStarted = false;
-      const newBlocks = ctx.paper.blocks.map((b) => {
-        if (b.id === ctx.cursor.anchorId || b.id === ctx.cursor.focusId) {
-          isStarted = !isStarted;
-          b.indent = Math.min(b.indent + 1, 8);
-        } else if (isStarted && !ctx.cursor.isCollapsed) {
-          b.indent = Math.min(b.indent + 1, 8);
-        }
-        return {
-          ...b,
-        };
+      const newBlocks = blockBetween(ctx, (block) => {
+        block.indent = Math.min(block.indent + 1, 8);
       });
-      ctx.paper.setBlocks(newBlocks);
+      paper.setBlocks(newBlocks);
     });
     return ctx;
   },
   outdent: (ctx: CommandContext): CommandContext => {
     ctx.paper.tr(() => {
-      let isStarted = false;
-      const newBlocks = ctx.paper.blocks.map((b) => {
-        if (b.id === ctx.cursor.anchorId || b.id === ctx.cursor.focusId) {
-          isStarted = !isStarted;
-          b.indent = Math.max(b.indent - 1, 0);
-        } else if (isStarted && !ctx.cursor.isCollapsed) {
-          b.indent = Math.max(b.indent - 1, 0);
-        }
-        return {
-          ...b,
-        };
+      const newBlocks = blockBetween(ctx, (block) => {
+        block.indent = Math.max(block.indent - 1, 0);
       });
-      ctx.paper.setBlocks(newBlocks);
+      paper.setBlocks(newBlocks);
     });
     return ctx;
   },
@@ -246,7 +265,7 @@ function BlockView(props: BlockViewProps) {
   const schm = props.schema.find(block.type);
 
   return (
-    <div data-blockid={block.id} className={styles['block']}>
+    <div data-blockid={block.id} className={styles['block']} onClick={() => console.log('click')}>
       {schm.view(props)}
     </div>
   );
@@ -266,17 +285,26 @@ class PaperView extends React.Component<PaperViewProps, PaperViewState> {
     blocks: [],
   };
 
+  private ref: React.RefObject<HTMLDivElement>;
+
   constructor(props: PaperViewProps) {
     super(props);
 
     this.state = { blocks: props.paper.blocks };
+    this.ref = React.createRef<HTMLDivElement>();
 
     this.onPaperChange = this.onPaperChange.bind(this);
     this.onKeyDown = this.onKeyDown.bind(this);
+    this.onInput = this.onInput.bind(this);
   }
 
   public componentDidMount() {
+    hydrate(this.renderPaper(), this.ref.current);
     this.props.paper.onChange(this.onPaperChange);
+  }
+
+  public componentDidUpdate() {
+    hydrate(this.renderPaper(), this.ref.current);
   }
 
   public componentWillUnmount() {
@@ -376,6 +404,19 @@ class PaperView extends React.Component<PaperViewProps, PaperViewState> {
     this.props.paper.commit();
   }
 
+  private onInput(event: React.KeyboardEvent<HTMLDivElement>) {
+    const els = document.querySelectorAll('[data-blockid]');
+    const blockTexts = {};
+    for (let i = 0; i < els.length; i += 1) {
+      const el = els[i];
+      const blockId = el?.dataset.blockid;
+      const text = el.querySelector('[data-text]')?.innerText;
+      blockTexts[blockId] = text;
+    }
+    commands.syncTexts(this.getCommandContext(), blockTexts);
+    this.props.paper.commit();
+  }
+
   private renderPaper() {
     return (
       <>
@@ -388,9 +429,14 @@ class PaperView extends React.Component<PaperViewProps, PaperViewState> {
 
   public render() {
     return (
-      <div contentEditable suppressContentEditableWarning onKeyDown={this.onKeyDown}>
-        {this.renderPaper()}
-      </div>
+      <div
+        contentEditable
+        suppressContentEditableWarning
+        ref={this.ref}
+        onKeyDown={this.onKeyDown}
+        onInput={this.onInput}
+        dangerouslySetInnerHTML={{ __html: renderToString(this.renderPaper()) }}
+      />
     );
   }
 }
