@@ -37,6 +37,7 @@ class BlockView {
 
   public update() {
     this.block = this.paper.findBlock(this.block.id);
+    this.view.block = this.block;
     this.view.update();
   }
 }
@@ -93,19 +94,37 @@ export class PaperView {
 
     this.el.addEventListener('drop', (event) => {
       event.preventDefault();
-      console.log('drop');
     });
+
     this.el.addEventListener('paste', (event) => {
       event.preventDefault();
-      console.log('paste');
     });
+
     this.el.addEventListener('keydown', (event) => {
       const key = event.key;
       // const meta = event.metaKey;
       const shift = event.shiftKey;
-      // const ctrl = event.ctrlKey;
+      const ctrl = event.ctrlKey;
 
       switch (key) {
+        case 'b': {
+          if (ctrl) {
+            event.preventDefault();
+          }
+          break;
+        }
+        case 'i': {
+          if (ctrl) {
+            event.preventDefault();
+          }
+          break;
+        }
+        case 's': {
+          if (ctrl) {
+            event.preventDefault();
+          }
+          break;
+        }
         case 'Enter': {
           if (!event.isComposing) {
             event.preventDefault();

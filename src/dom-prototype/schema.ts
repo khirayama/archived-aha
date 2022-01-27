@@ -32,13 +32,13 @@ const templates = {
 };
 
 class ParagraphView {
-  private el: PaperElement;
+  public el: PaperElement;
 
-  private paper: Paper;
+  public paper: Paper;
 
-  private schema: Schema;
+  public schema: Schema;
 
-  private block: Block;
+  public block: Block;
 
   constructor(props: BlockViewProps<ParagraphBlock>) {
     this.el = props.el;
@@ -58,6 +58,8 @@ class ParagraphView {
   }
 
   public update() {
+    this.block = this.paper.findBlock(this.block.id);
+
     const blockElement = this.el.querySelector(`[data-blockid="${this.block.id}"]`);
 
     const indentElement = blockElement.querySelector<HTMLSpanElement>('[data-indent]');
