@@ -1,7 +1,7 @@
 import { v4 as uuid } from 'uuid';
 
 import { Paper } from './model';
-import { BlockViewProps } from './view';
+import { BlockViewProps, PaperElement } from './view';
 
 import styles from '../pages/dom-prototype.module.scss';
 
@@ -24,12 +24,16 @@ type ParagraphBlock = {
 };
 
 const templates = {
-  handle: () => `<div class="${styles['handle']}" data-handle>H</div>`,
+  decoration: (children) => `<div class="${styles['decoration']}" contenteditable="false">${children}</div>`,
+  handle: () => `<div class="${styles['handle']}" data-handle>${templates.icon('drag_indicator')}</div>`,
   indentation: (indent) => `<div class="${styles['indentation']}" data-indent=${indent}></div>`,
   text: (text) => `<div class="${styles['text']}" data-text>${text}</div>`,
+  icon: (name) => `<span class="material-icons">${name}</span>`,
 };
 
 class ParagraphView {
+  private el: PaperElement;
+
   private paper: Paper;
 
   private schema: Schema;
@@ -37,19 +41,34 @@ class ParagraphView {
   private block: Block;
 
   constructor(props: BlockViewProps<ParagraphBlock>) {
+    this.el = props.el;
     this.paper = props.paper;
     this.schema = props.schema;
     this.block = props.block;
   }
 
-  public template() {
+  public mount() {
     return `<div class="${styles['paragraphblock']}">
-    <div class="${styles['decoration']}" contenteditable="false">
-      ${templates.indentation(this.block.indent)}
-      ${templates.handle()}
-    </div>
-    ${templates.text(this.block.text)}
+      ${templates.decoration(`
+        ${templates.indentation(this.block.indent)}
+        ${templates.handle()}
+      `)}
+      ${templates.text(this.block.text)}
     </div>`;
+  }
+
+  public update() {
+    const blockElement = this.el.querySelector(`[data-blockid="${this.block.id}"]`);
+
+    const indentElement = blockElement.querySelector<HTMLSpanElement>('[data-indent]');
+    if (indentElement.dataset.indent !== String(this.block.indent)) {
+      indentElement.dataset.indent = String(this.block.indent);
+    }
+
+    const textElement = blockElement.querySelector<HTMLSpanElement>('[data-text]');
+    if (textElement.innerText !== this.block.text) {
+      textElement.innerText = this.block.text;
+    }
   }
 
   public addEventListeners(paperElement) {
@@ -64,6 +83,26 @@ class ParagraphView {
         console.log('click paragraph block');
       }
     });
+  }
+
+  public static toBlock(blockElement: HTMLDivElement) {
+    if (!blockElement) {
+      return null;
+    }
+
+    const id = blockElement.dataset.blockid;
+    const indent = Number(blockElement.querySelector<HTMLSpanElement>('[data-indent]')?.dataset?.indent);
+    const text = blockElement.querySelector<HTMLSpanElement>('[data-text]')?.innerText.replace(/\n/g, '');
+
+    if (text === undefined || isNaN(indent)) {
+      return null;
+    }
+    return {
+      type: 'paragraph',
+      id,
+      indent,
+      text,
+    };
   }
 }
 

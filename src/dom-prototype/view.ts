@@ -1,21 +1,25 @@
 import { Schema, Block } from './schema';
 import { Paper } from './model';
 
+export type PaperElement = HTMLDivElement;
+
 export type BlockViewProps<T = Block> = {
-  el: HTMLElement;
+  el: PaperElement;
   paper: Paper;
   schema: Schema;
   block: T;
 };
 
 class BlockView {
-  private el: HTMLElement;
+  private el: PaperElement;
 
   private paper: Paper;
 
   private schema: Schema;
 
   private block: Block;
+
+  private view: any;
 
   constructor(props: BlockViewProps) {
     this.el = props.el;
@@ -24,53 +28,54 @@ class BlockView {
     this.block = props.block;
   }
 
-  public template() {
+  public mount() {
     const schema = this.schema.find(this.block.type);
-    const view = new schema.view({ paper: this.paper, schema: this.schema, block: this.block, el: this.el });
-    view.addEventListeners(this.el);
-    return `<div data-blockid=${this.block.id}>${view.template()}</div>`;
+    this.view = new schema.view({ paper: this.paper, schema: this.schema, block: this.block, el: this.el });
+    this.view.addEventListeners(this.el);
+    return `<div data-blockid=${this.block.id}>${this.view.mount()}</div>`;
+  }
+
+  public update() {
+    this.block = this.paper.findBlock(this.block.id);
+    this.view.update();
   }
 }
 
 export class PaperView {
-  private blocks: { [id: string]: any } = {};
+  private blockViews: { [id: string]: any } = {};
 
-  private el: HTMLElement;
+  private el: PaperElement;
 
   private paper: Paper;
 
   private schema: Schema;
 
-  constructor(el: HTMLElement, props: { schema: Schema; paper: Paper }) {
+  constructor(el: PaperElement, props: { schema: Schema; paper: Paper }) {
     this.el = el;
     this.paper = props.paper;
     this.schema = props.schema;
 
-    this.el.innerHTML = this.template();
+    this.el.innerHTML = this.mount();
     this.addEventListeners();
   }
 
   private addEventListeners() {
     const observer = new MutationObserver(() => {
-      // console.table(mutations);
-      const blocks = [];
-      const blockElements = this.el.querySelectorAll('[data-blockid]');
-      for (let i = 0; i < blockElements.length; i += 1) {
-        const blockElement = blockElements[i] as HTMLDivElement;
-        const id = blockElement.dataset.blockid;
-        const indent = Number(blockElement.querySelector<HTMLSpanElement>('[data-indent]')?.dataset?.indent);
-        const text = blockElement.querySelector<HTMLSpanElement>('[data-text]')?.innerText;
-
-        if (indent !== NaN && text !== undefined) {
-          blocks.push({
-            id,
-            indent,
-            text,
-          });
+      const newBlocks = [];
+      const els = document.querySelectorAll<HTMLDivElement>('[data-blockid]');
+      for (let i = 0; i < els.length; i += 1) {
+        const el = els[i];
+        const id = el.dataset.blockid;
+        const block = this.paper.findBlock(id);
+        const schema = this.schema.find(block.type);
+        const newBlock = schema.view.toBlock(el);
+        if (newBlock) {
+          newBlocks.push(newBlock);
         } else {
-          console.log(`remove ${id}`);
+          this.removeBlockView(block.id);
         }
       }
+      this.paper.setBlocks(newBlocks);
     });
 
     observer.observe(this.el, {
@@ -80,27 +85,92 @@ export class PaperView {
       characterDataOldValue: true,
       childList: true,
       subtree: true,
-      // attributes: false,
-      // attributeOldValue: false,
-      // characterData: true,
-      // characterDataOldValue: true,
-      // childList: false,
-      // subtree: true,
     });
 
-    this.el.addEventListener('click', () => {
-      console.log('click paper');
+    this.paper.onChange(() => {
+      this.update();
+    });
+
+    this.el.addEventListener('drop', (event) => {
+      event.preventDefault();
+      console.log('drop');
+    });
+    this.el.addEventListener('paste', (event) => {
+      event.preventDefault();
+      console.log('paste');
+    });
+    this.el.addEventListener('keydown', (event) => {
+      const key = event.key;
+      // const meta = event.metaKey;
+      const shift = event.shiftKey;
+      // const ctrl = event.ctrlKey;
+
+      switch (key) {
+        case 'Enter': {
+          if (!event.isComposing) {
+            event.preventDefault();
+          }
+          break;
+        }
+        case 'Backspace': {
+          if (this.paper.blocks.length === 1 && this.paper.blocks[0].text.length === 0) {
+            event.preventDefault();
+          }
+          break;
+        }
+        case 'Tab': {
+          event.preventDefault();
+          if (shift) {
+            this.paper.setBlocks(
+              this.paper.blocks.map((block) => {
+                return {
+                  ...block,
+                  indent: block.indent - 1,
+                };
+              }),
+            );
+          } else {
+            this.paper.setBlocks(
+              this.paper.blocks.map((block) => {
+                return {
+                  ...block,
+                  indent: block.indent + 1,
+                };
+              }),
+            );
+          }
+          this.paper.commit();
+          break;
+        }
+      }
     });
   }
 
-  private template() {
-    return `<div contenteditable>${this.paper.blocks
-      .map((block) => {
-        const props = { paper: this.paper, schema: this.schema, block, el: this.el };
-        const blockView = new BlockView(props);
-        this.blocks[block.id] = blockView;
-        return blockView.template();
-      })
-      .join('')}</div>`;
+  private mount() {
+    return `
+      <div contenteditable>${this.paper.blocks
+        .map((block) => {
+          const props = { paper: this.paper, schema: this.schema, block, el: this.el };
+          const blockView = new BlockView(props);
+          this.blockViews[block.id] = blockView;
+          return blockView.mount();
+        })
+        .join('')}
+      </div>`;
+  }
+
+  private update() {
+    for (let i = 0; i < this.paper.blocks.length; i += 1) {
+      const block = this.paper.blocks[i];
+      this.blockViews[block.id].update();
+    }
+  }
+
+  private removeBlockView(blockId: string) {
+    delete this.blockViews[blockId];
+    const el = this.el.querySelector(`[data-blockid="${blockId}"]`);
+    if (el) {
+      el.parentNode.removeChild(el);
+    }
   }
 }
