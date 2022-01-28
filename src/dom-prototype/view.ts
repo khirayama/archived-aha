@@ -1,5 +1,6 @@
 import { Schema, Block } from './schema';
-import { Paper } from './model';
+import { Paper, Cursor } from './model';
+import { CommandContext, commands } from '../dom-prototype/commands';
 
 export type PaperElement = HTMLDivElement;
 
@@ -60,6 +61,31 @@ export class PaperView {
     this.addEventListeners();
   }
 
+  private getCursor(): Cursor {
+    const sel = window.getSelection();
+    const cursor: Cursor = {
+      isCollapsed: sel.isCollapsed,
+      anchorId: null,
+      anchorOffset: sel.anchorOffset,
+      focusId: null,
+      focusOffset: sel.focusOffset,
+    };
+
+    let el: any = sel.anchorNode;
+    while (!el.dataset?.blockid) {
+      el = el.parentElement;
+    }
+    cursor.anchorId = el.dataset.blockid;
+
+    el = sel.focusNode;
+    while (!el.dataset?.blockid) {
+      el = el.parentElement;
+    }
+    cursor.focusId = el.dataset.blockid;
+
+    return cursor;
+  }
+
   private addEventListeners() {
     const observer = new MutationObserver(() => {
       const newBlocks = [];
@@ -68,12 +94,17 @@ export class PaperView {
         const el = els[i];
         const id = el.dataset.blockid;
         const block = this.paper.findBlock(id);
-        const schema = this.schema.find(block.type);
-        const newBlock = schema.view.toBlock(el);
-        if (newBlock) {
-          newBlocks.push(newBlock);
+        console.log(block);
+        if (block) {
+          const schema = this.schema.find(block.type);
+          const newBlock = schema.view.toBlock(el);
+          if (newBlock) {
+            newBlocks.push(newBlock);
+          } else {
+            this.removeBlockView(id);
+          }
         } else {
-          this.removeBlockView(block.id);
+          this.removeBlockView(id);
         }
       }
       this.paper.setBlocks(newBlocks);
@@ -97,10 +128,17 @@ export class PaperView {
     });
 
     this.el.addEventListener('paste', (event) => {
+      // TODO toBlock(el)するようにする
       event.preventDefault();
     });
 
     this.el.addEventListener('keydown', (event) => {
+      const ctx: CommandContext = {
+        schema: this.schema,
+        paper: this.paper,
+        cursor: this.getCursor(),
+      };
+
       const key = event.key;
       // const meta = event.metaKey;
       const shift = event.shiftKey;
@@ -126,8 +164,14 @@ export class PaperView {
           break;
         }
         case 'Enter': {
-          if (!event.isComposing) {
-            event.preventDefault();
+          if (ctrl) {
+            console.log('Take action');
+          } else {
+            if (!event.isComposing) {
+              event.preventDefault();
+              commands.splitBlock(ctx);
+              this.paper.commit();
+            }
           }
           break;
         }
@@ -140,23 +184,9 @@ export class PaperView {
         case 'Tab': {
           event.preventDefault();
           if (shift) {
-            this.paper.setBlocks(
-              this.paper.blocks.map((block) => {
-                return {
-                  ...block,
-                  indent: block.indent - 1,
-                };
-              }),
-            );
+            commands.outdent(ctx);
           } else {
-            this.paper.setBlocks(
-              this.paper.blocks.map((block) => {
-                return {
-                  ...block,
-                  indent: block.indent + 1,
-                };
-              }),
-            );
+            commands.indent(ctx);
           }
           this.paper.commit();
           break;
