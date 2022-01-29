@@ -46,19 +46,27 @@ class BlockView {
 export class PaperView {
   private blockViews: { [id: string]: any } = {};
 
+  private container: HTMLElement;
+
   private el: PaperElement;
 
   private paper: Paper;
 
   private schema: Schema;
 
-  constructor(el: PaperElement, props: { schema: Schema; paper: Paper }) {
-    this.el = el;
+  constructor(container: HTMLElement, props: { schema: Schema; paper: Paper }) {
+    this.container = container;
     this.paper = props.paper;
     this.schema = props.schema;
 
-    this.el.innerHTML = this.mount();
+    const el = document.createElement('div');
+    el.contentEditable = 'true';
+
+    this.container.appendChild(el);
+    this.el = el;
+
     this.addEventListeners();
+    this.renderBlocks();
   }
 
   private getCursor(): Cursor {
@@ -195,17 +203,16 @@ export class PaperView {
     });
   }
 
-  private mount() {
-    return `
-      <div contenteditable>${this.paper.blocks
-        .map((block) => {
-          const props = { paper: this.paper, schema: this.schema, block, el: this.el };
-          const blockView = new BlockView(props);
-          this.blockViews[block.id] = blockView;
-          return blockView.mount();
-        })
-        .join('')}
-      </div>`;
+  private renderBlocks() {
+    this.paper.blocks.forEach((block) => {
+      const props = { paper: this.paper, schema: this.schema, block, el: this.el };
+      if (this.blockViews[block.id]) {
+        // Update
+      } else {
+        const blockView = new BlockView(props);
+        this.blockViews[block.id] = blockView;
+      }
+    });
   }
 
   private update() {
