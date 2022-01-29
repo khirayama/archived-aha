@@ -5,68 +5,68 @@ import { CommandContext, commands } from '../dom-prototype/commands';
 export type PaperElement = HTMLDivElement;
 
 export type BlockViewProps<T = Block> = {
-  el: PaperElement;
+  key: string;
   paper: Paper;
   schema: Schema;
   block: T;
 };
 
 class BlockView {
-  private el: PaperElement;
+  public el: HTMLDivElement | null = null;
 
-  private paper: Paper;
+  private children: { [id: string]: any } = {};
 
-  private schema: Schema;
-
-  private block: Block;
-
-  private view: any;
+  public props: BlockViewProps;
 
   constructor(props: BlockViewProps) {
-    this.el = props.el;
-    this.paper = props.paper;
-    this.schema = props.schema;
-    this.block = props.block;
+    this.props = props;
+    this.render(props);
+    this.addEventListeners();
   }
 
-  public mount() {
-    const schema = this.schema.find(this.block.type);
-    this.view = new schema.view({ paper: this.paper, schema: this.schema, block: this.block, el: this.el });
-    this.view.addEventListeners(this.el);
-    return `<div data-blockid=${this.block.id}>${this.view.mount()}</div>`;
-  }
+  private addEventListeners() {}
 
-  public update() {
-    this.block = this.paper.findBlock(this.block.id);
-    this.view.block = this.block;
-    this.view.update();
+  public render(props) {
+    this.props = props;
+
+    if (this.el === null) {
+      this.el = document.createElement('div');
+      this.el.dataset.blockid = props.block.id;
+    }
+    const schema = props.schema.find(props.block.type);
+    if (this.children[props.block.id]) {
+      this.children[props.block.id].render(this.props);
+    } else {
+      const view = new schema.view(this.el, props);
+      this.children[props.block.id] = view;
+    }
   }
 }
 
+type PaperViewProp = {
+  key: string;
+  schema: Schema;
+  paper: Paper;
+};
+
 export class PaperView {
-  private blockViews: { [id: string]: any } = {};
+  public el: HTMLDivElement | null = null;
 
-  private container: HTMLElement;
+  public props: PaperViewProp;
 
-  private el: PaperElement;
+  private _: any = {
+    order: {
+      prev: [],
+      next: [],
+    },
+    keys: [],
+    map: {},
+  };
 
-  private paper: Paper;
-
-  private schema: Schema;
-
-  constructor(container: HTMLElement, props: { schema: Schema; paper: Paper }) {
-    this.container = container;
-    this.paper = props.paper;
-    this.schema = props.schema;
-
-    const el = document.createElement('div');
-    el.contentEditable = 'true';
-
-    this.container.appendChild(el);
-    this.el = el;
-
+  constructor(props: PaperViewProp) {
+    this.props = props;
+    this.render(props);
     this.addEventListeners();
-    this.renderBlocks();
   }
 
   private getCursor(): Cursor {
@@ -101,21 +101,17 @@ export class PaperView {
       for (let i = 0; i < els.length; i += 1) {
         const el = els[i];
         const id = el.dataset.blockid;
-        const block = this.paper.findBlock(id);
-        console.log(block);
+        const block = this.props.paper.findBlock(id);
         if (block) {
-          const schema = this.schema.find(block.type);
+          const schema = this.props.schema.find(block.type);
           const newBlock = schema.view.toBlock(el);
           if (newBlock) {
             newBlocks.push(newBlock);
-          } else {
-            this.removeBlockView(id);
           }
-        } else {
-          this.removeBlockView(id);
         }
       }
-      this.paper.setBlocks(newBlocks);
+      this.props.paper.setBlocks(newBlocks);
+      this.render(this.props);
     });
 
     observer.observe(this.el, {
@@ -127,8 +123,8 @@ export class PaperView {
       subtree: true,
     });
 
-    this.paper.onChange(() => {
-      this.update();
+    this.props.paper.onChange(() => {
+      this.render(this.props);
     });
 
     this.el.addEventListener('drop', (event) => {
@@ -142,8 +138,8 @@ export class PaperView {
 
     this.el.addEventListener('keydown', (event) => {
       const ctx: CommandContext = {
-        schema: this.schema,
-        paper: this.paper,
+        schema: this.props.schema,
+        paper: this.props.paper,
         cursor: this.getCursor(),
       };
 
@@ -178,13 +174,13 @@ export class PaperView {
             if (!event.isComposing) {
               event.preventDefault();
               commands.splitBlock(ctx);
-              this.paper.commit();
+              this.props.paper.commit();
             }
           }
           break;
         }
         case 'Backspace': {
-          if (this.paper.blocks.length === 1 && this.paper.blocks[0].text.length === 0) {
+          if (this.props.paper.blocks.length === 1 && this.props.paper.blocks[0].text.length === 0) {
             event.preventDefault();
           }
           break;
@@ -196,37 +192,69 @@ export class PaperView {
           } else {
             commands.indent(ctx);
           }
-          this.paper.commit();
+          this.props.paper.commit();
           break;
         }
       }
     });
   }
 
-  private renderBlocks() {
-    this.paper.blocks.forEach((block) => {
-      const props = { paper: this.paper, schema: this.schema, block, el: this.el };
-      if (this.blockViews[block.id]) {
-        // Update
-      } else {
-        const blockView = new BlockView(props);
-        this.blockViews[block.id] = blockView;
+  private prepare(props: PaperViewProp) {
+    this.props = props;
+    this._.order.next = [];
+  }
+
+  private create<T extends { key: string }>(view: any, props: T) {
+    this._.order.next.push(props.key);
+    if (this._.map[props.key]) {
+      this._.map[props.key].render(props);
+    } else {
+      const v = new view(props);
+      this._.map[props.key] = v;
+    }
+  }
+
+  private clean() {
+    const keys = Object.keys(this._.map);
+    for (let i = 0; i < this._.keys.length; i += 1) {
+      const key = this._.keys[i];
+      if (keys.indexOf(key) === -1) {
+        const el = this._.map[key].el;
+        this.el.removeChild(el);
+        delete this._.map[key];
       }
+    }
+    this._.keys = keys;
+
+    const l = Math.max(this._.order.next.length, this._.order.prev.length);
+    for (let i = 0; i < l; i += 1) {
+      const prevKey = this._.order.prev[i];
+      const nextKey = this._.order.next[i];
+      if (prevKey !== nextKey && this._.order.next[i - 1]) {
+        this._.map[this._.order.next[i - 1]].el.insertAdjacentElement('afterend', this._.map[nextKey].el);
+      }
+    }
+    this._.order.prev = this._.order.next;
+  }
+
+  private render(props: PaperViewProp) {
+    this.prepare(props);
+
+    if (this.el === null) {
+      this.el = document.createElement('div');
+      this.el.contentEditable = 'true';
+    }
+
+    this.props.paper.blocks.forEach((block, i) => {
+      const props: BlockViewProps = {
+        key: block.id,
+        paper: this.props.paper,
+        schema: this.props.schema,
+        block,
+      };
+      this.create<BlockViewProps>(BlockView, props);
     });
-  }
 
-  private update() {
-    for (let i = 0; i < this.paper.blocks.length; i += 1) {
-      const block = this.paper.blocks[i];
-      this.blockViews[block.id].update();
-    }
-  }
-
-  private removeBlockView(blockId: string) {
-    delete this.blockViews[blockId];
-    const el = this.el.querySelector(`[data-blockid="${blockId}"]`);
-    if (el) {
-      el.parentNode.removeChild(el);
-    }
+    this.clean();
   }
 }

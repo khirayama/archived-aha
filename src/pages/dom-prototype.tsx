@@ -61,7 +61,8 @@ class PaperViewContainer extends React.Component<PaperViewContainerProps, PaperV
   }
 
   public componentDidMount() {
-    new PaperView(this.ref.current, { paper: this.props.paper, schema: this.props.schema });
+    const view = new PaperView({ paper: this.props.paper, schema: this.props.schema });
+    this.ref.current.appendChild(view.el);
   }
 
   public render() {

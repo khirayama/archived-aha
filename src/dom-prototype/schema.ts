@@ -32,59 +32,56 @@ const templates = {
 };
 
 class ParagraphView {
-  public el: PaperElement;
+  private container: HTMLElement;
 
-  public paper: Paper;
+  public el: HTMLDivElement | null = null;
 
-  public schema: Schema;
+  private props: BlockViewProps<ParagraphBlock>;
 
-  public block: Block;
-
-  constructor(props: BlockViewProps<ParagraphBlock>) {
-    this.el = props.el;
-    this.paper = props.paper;
-    this.schema = props.schema;
-    this.block = props.block;
+  constructor(container: HTMLElement, props: BlockViewProps<ParagraphBlock>) {
+    this.container = container;
+    this.props = props;
+    this.render(props);
+    this.addEventListeners();
   }
 
-  public mount() {
-    return `<div class="${styles['paragraphblock']}">
-      ${templates.decoration(`
-        ${templates.indentation(this.block.indent)}
-        ${templates.handle()}
-      `)}
-      ${templates.text(this.block.text)}
-    </div>`;
-  }
-
-  public update() {
-    this.block = this.paper.findBlock(this.block.id);
-
-    const blockElement = this.el.querySelector(`[data-blockid="${this.block.id}"]`);
-
-    const indentElement = blockElement.querySelector<HTMLSpanElement>('[data-indent]');
-    if (indentElement.dataset.indent !== String(this.block.indent)) {
-      indentElement.dataset.indent = String(this.block.indent);
-    }
-
-    const textElement = blockElement.querySelector<HTMLSpanElement>('[data-text]');
-    if (textElement.innerText !== this.block.text) {
-      textElement.innerText = this.block.text;
-    }
-  }
-
-  public addEventListeners(paperElement) {
-    paperElement.addEventListener('click', (event) => {
-      let el = event.target;
-      while (!el.dataset.blockid) {
-        el = el.parentElement;
-      }
-      const blockElement = el;
-      const blockId = el.dataset.blockid;
-      if (blockId === this.block.id) {
+  private addEventListeners() {
+    this.el.addEventListener('click', (event) => {
+      const blockElement = this.container;
+      const blockId = this.container.dataset.blockid;
+      if (blockId === this.props.block.id) {
         console.log('click paragraph block');
       }
     });
+  }
+
+  public update() {}
+
+  public render(props: BlockViewProps<ParagraphBlock>) {
+    this.props = props;
+
+    if (this.el === null) {
+      this.el = document.createElement('div');
+      this.el.classList.add(styles['paragraphblock']);
+      this.el.innerHTML = `
+        ${templates.decoration(`
+          ${templates.indentation(props.block.indent)}
+          ${templates.handle()}
+        `)}
+        ${templates.text(props.block.text)}
+      `;
+      this.container.appendChild(this.el);
+    }
+
+    const indentElement = this.el.querySelector<HTMLSpanElement>('[data-indent]');
+    if (indentElement.dataset.indent !== String(props.block.indent)) {
+      indentElement.dataset.indent = String(props.block.indent);
+    }
+
+    const textElement = this.el.querySelector<HTMLSpanElement>('[data-text]');
+    if (textElement.innerText !== props.block.text) {
+      textElement.innerText = props.block.text;
+    }
   }
 
   public static toBlock(blockElement: HTMLDivElement) {
