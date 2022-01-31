@@ -2,8 +2,6 @@ import { Schema, Block } from './schema';
 import { Paper, Cursor } from './model';
 import { CommandContext, commands } from '../dom-prototype/commands';
 
-export type PaperElement = HTMLDivElement;
-
 export type BlockViewProps<T = Block> = {
   key: string;
   paper: Paper;

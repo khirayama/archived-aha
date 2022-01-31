@@ -1,7 +1,6 @@
 import { v4 as uuid } from 'uuid';
 
-import { Paper } from './model';
-import { BlockViewProps, PaperElement } from './view';
+import { BlockViewProps } from './view';
 
 import styles from '../pages/dom-prototype.module.scss';
 
