@@ -13,37 +13,32 @@ export type BlockViewProps<T = Block> = {
 class BlockView {
   public el: HTMLDivElement | null = null;
 
-  private children: { [id: string]: any } = {};
+  private child: any = null;
 
-  public props: BlockViewProps;
+  private props: BlockViewProps;
 
   constructor(props: BlockViewProps) {
     this.props = props;
-    this.render(props);
+    this.mount();
+  }
+
+  public mount() {
+    this.el = document.createElement('div');
+    this.el.dataset.blockid = this.props.block.id;
+
+    const schema = this.props.schema.find(this.props.block.type);
+    const view = new schema.view(this.el, this.props);
+    this.child = view;
     this.addEventListeners();
   }
 
-  public mount() {}
-
-  public update() {}
+  public update(props: BlockViewProps) {
+    this.props = props;
+    const schema = props.schema.find(props.block.type);
+    this.child.render(this.props);
+  }
 
   private addEventListeners() {}
-
-  public render(props) {
-    this.props = props;
-
-    if (this.el === null) {
-      this.el = document.createElement('div');
-      this.el.dataset.blockid = props.block.id;
-    }
-    const schema = props.schema.find(props.block.type);
-    if (this.children[props.block.id]) {
-      this.children[props.block.id].render(this.props);
-    } else {
-      const view = new schema.view(this.el, props);
-      this.children[props.block.id] = view;
-    }
-  }
 }
 
 type PaperViewProp = {
@@ -80,7 +75,7 @@ export class PaperView {
     });
 
     this.props.paper.onChange(() => {
-      this.update();
+      this.update(this.props);
     });
 
     this.el.addEventListener('drop', this.onDrop.bind(this));
@@ -103,7 +98,7 @@ export class PaperView {
     this.addEventListeners();
   }
 
-  private update() {
+  private update(props: PaperViewProp) {
     this.props.paper.blocks.forEach((block, i) => {
       const props: BlockViewProps = {
         paper: this.props.paper,
@@ -127,7 +122,7 @@ export class PaperView {
 
   private updateBlock(props: BlockViewProps) {
     if (this.map[props.block.id]) {
-      this.map[props.block.id].update();
+      this.map[props.block.id].update(props);
     }
   }
 
@@ -185,6 +180,19 @@ export class PaperView {
     return cursor;
   }
 
+  private keepCursor(cursor: Cursor) {
+    Promise.resolve().then(() => {
+      const anchorElement = this.el.querySelector(`[data-blockid="${cursor.anchorId}"]`);
+      const focusElement = this.el.querySelector(`[data-blockid="${cursor.focusId}"]`);
+      const range = document.createRange();
+      range.setStart(anchorElement.querySelector('[data-text]').childNodes[0], cursor.anchorOffset);
+      range.setEnd(focusElement.querySelector('[data-text]').childNodes[0], cursor.focusOffset);
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+    });
+  }
+
   private onKeyDown(event) {
     const ctx: CommandContext = {
       schema: this.props.schema,
@@ -222,6 +230,7 @@ export class PaperView {
         } else {
           if (!event.isComposing) {
             event.preventDefault();
+            this.keepCursor(ctx.cursor);
             commands.splitBlock(ctx);
             this.props.paper.commit();
           }
