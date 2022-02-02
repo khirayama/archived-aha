@@ -180,16 +180,26 @@ export class PaperView {
     return cursor;
   }
 
-  private keepCursor(cursor: Cursor) {
+  private afterRendering(callback: Function) {
     Promise.resolve().then(() => {
-      const anchorElement = this.el.querySelector(`[data-blockid="${cursor.anchorId}"]`);
-      const focusElement = this.el.querySelector(`[data-blockid="${cursor.focusId}"]`);
-      const range = document.createRange();
-      range.setStart(anchorElement.querySelector('[data-text]').childNodes[0], cursor.anchorOffset);
-      range.setEnd(focusElement.querySelector('[data-text]').childNodes[0], cursor.focusOffset);
-      const sel = window.getSelection();
-      sel.removeAllRanges();
-      sel.addRange(range);
+      callback();
+    });
+  }
+
+  private focus(anchorElement: ChildNode, anchorOffset: number, focusElement?: ChildNode, focusOffset?: number) {
+    const range = document.createRange();
+    range.setStart(anchorElement, anchorOffset);
+    range.setEnd(focusElement || anchorElement, focusOffset !== undefined ? focusOffset : anchorOffset);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+  }
+
+  private keepCursor(cursor: Cursor) {
+    this.afterRendering(() => {
+      const anchorElement = this.el.querySelector(`[data-blockid="${cursor.anchorId}"] [data-text]`).childNodes[0];
+      const focusElement = this.el.querySelector(`[data-blockid="${cursor.focusId}"] [data-text]`).childNodes[0];
+      this.focus(anchorElement, cursor.anchorOffset, focusElement, cursor.focusOffset);
     });
   }
 
