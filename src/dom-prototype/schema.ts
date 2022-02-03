@@ -26,58 +26,52 @@ const templates = {
   decoration: (children) => `<div class="${styles['decoration']}" contenteditable="false">${children}</div>`,
   handle: () => `<div class="${styles['handle']}" data-handle>${templates.icon('drag_indicator')}</div>`,
   indentation: (indent) => `<div class="${styles['indentation']}" data-indent=${indent}></div>`,
-  text: (text) => `<div class="${styles['text']}" data-text>${text}</div>`,
+  text: (text) => `<div class="${styles['text']}" data-focusable>${text}</div>`,
   icon: (name) => `<span class="material-icons">${name}</span>`,
 };
 
-class ParagraphView {
-  private container: HTMLElement;
+abstract class View<T> {
+  public el: HTMLElement | null = null;
 
-  public el: HTMLDivElement | null = null;
+  protected props: BlockViewProps<T>;
 
-  private props: BlockViewProps<ParagraphBlock>;
-
-  constructor(container: HTMLElement, props: BlockViewProps<ParagraphBlock>) {
-    this.container = container;
+  constructor(props: BlockViewProps<T>) {
     this.props = props;
-    this.render(props);
-    this.addEventListeners();
+    this.mount();
   }
 
-  private addEventListeners() {
+  protected mount() {}
+}
+
+class ParagraphView extends View<ParagraphBlock> {
+  public mount() {
+    this.el = document.createElement('div');
+    this.el.classList.add(styles['paragraphblock']);
+    this.el.innerHTML = `
+      ${templates.decoration(`
+        ${templates.indentation(this.props.block.indent)}
+        ${templates.handle()}
+      `)}
+      ${templates.text(this.props.block.text)}
+    `;
+    if (!this.props.block.text) {
+      this.el.querySelector('[data-focusable]').appendChild(new Text(''));
+    }
+
     this.el.addEventListener('click', (event) => {
-      const blockElement = this.container;
-      const blockId = this.container.dataset.blockid;
-      if (blockId === this.props.block.id) {
-        console.log('click paragraph block');
-      }
+      console.log('click paragraph block');
     });
   }
 
-  public update() {}
-
-  public render(props: BlockViewProps<ParagraphBlock>) {
+  public update(props: BlockViewProps<ParagraphBlock>) {
     this.props = props;
-
-    if (this.el === null) {
-      this.el = document.createElement('div');
-      this.el.classList.add(styles['paragraphblock']);
-      this.el.innerHTML = `
-        ${templates.decoration(`
-          ${templates.indentation(props.block.indent)}
-          ${templates.handle()}
-        `)}
-        ${templates.text(props.block.text)}
-      `;
-      this.container.appendChild(this.el);
-    }
 
     const indentElement = this.el.querySelector<HTMLSpanElement>('[data-indent]');
     if (indentElement.dataset.indent !== String(props.block.indent)) {
       indentElement.dataset.indent = String(props.block.indent);
     }
 
-    const textElement = this.el.querySelector<HTMLSpanElement>('[data-text]');
+    const textElement = this.el.querySelector<HTMLSpanElement>('[data-focusable]');
     if (textElement.innerText !== props.block.text) {
       textElement.innerText = props.block.text;
     }
@@ -90,7 +84,7 @@ class ParagraphView {
 
     const id = blockElement.dataset.blockid;
     const indent = Number(blockElement.querySelector<HTMLSpanElement>('[data-indent]')?.dataset?.indent);
-    const text = blockElement.querySelector<HTMLSpanElement>('[data-text]')?.innerText.replace(/\n/g, '');
+    const text = blockElement.querySelector<HTMLSpanElement>('[data-focusable]')?.innerText.replace(/\n/g, '');
 
     if (text === undefined || isNaN(indent)) {
       return null;
