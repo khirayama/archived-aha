@@ -38,3 +38,51 @@
 .paragraphblock {
   display: flex;
 }
+
+.todoblock {
+  display: flex;
+  padding: 0.15rem 0.15rem 0.15rem 0.25rem;
+
+  .todocheckbox {
+    border: solid 2px #333;
+    border-radius: 3px;
+    width: 1rem;
+    height: 1rem;
+
+    &:checked {
+      border-color: #aaa;
+      position: relative;
+      background: #eee;
+
+      &:before {
+        position: absolute;
+        top: 0;
+        left: 0;
+        content: '';
+        display: inline-block;
+        width: 3px;
+        height: 10px;
+        background: #999;
+        transform: rotate(135deg);
+      }
+
+      &:after {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        content: '';
+        display: inline-block;
+        width: 3px;
+        height: 16px;
+        background: #999;
+        transform: rotate(45deg);
+      }
+    }
+  }
+
+  &[data-checked=true] {
+    .text {
+      color: #aaa;
+    }
+  }
+}
