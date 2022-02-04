@@ -57,6 +57,22 @@ function getStartAndEnd(ctx: CommandContext) {
 }
 
 export const commands = {
+  turnInto: (ctx: CommandContext, blockType: Block['type'], block: Partial<Block> = {}) => {
+    if (ctx.cursor.isCollapsed) {
+      ctx.paper.tr(() => {
+        const newBlocks = ctx.paper.blocks.map((b: Block) => {
+          if (ctx.cursor.anchorId === b.id) {
+            return ctx.schema.createBlock(blockType, { ...b, ...block } as Partial<Block>);
+          }
+          return {
+            ...b,
+          };
+        });
+        ctx.paper.setBlocks(newBlocks);
+      });
+    }
+    return ctx;
+  },
   splitBlock: (ctx: CommandContext): CommandContext => {
     const newBlocks = [];
     const { start, end } = getStartAndEnd(ctx);
@@ -104,6 +120,31 @@ export const commands = {
   outdent: (ctx: CommandContext): CommandContext => {
     const newBlocks = blockBetween(ctx, (block) => {
       block.indent = Math.max(block.indent - 1, 0);
+      return block;
+    });
+    ctx.paper.setBlocks(newBlocks);
+    return ctx;
+  },
+  updateText: (ctx: CommandContext, text: string): CommandContext => {
+    if (ctx.cursor.isCollapsed) {
+      ctx.paper.tr(() => {
+        const newBlocks = [...ctx.paper.blocks];
+        for (let i = 0; i < newBlocks.length; i += 1) {
+          if (newBlocks[i].id === ctx.cursor.anchorId) {
+            newBlocks[i].text = text;
+          }
+        }
+        ctx.paper.setBlocks(newBlocks);
+      });
+    }
+    return ctx;
+  },
+  takeAction: (ctx: CommandContext): CommandContext => {
+    const newBlocks = blockBetween(ctx, (block) => {
+      const schema = ctx.schema.find(block.type);
+      if (schema && schema.action) {
+        schema.action(ctx, block);
+      }
       return block;
     });
     ctx.paper.setBlocks(newBlocks);
