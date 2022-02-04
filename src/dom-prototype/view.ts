@@ -1,5 +1,3 @@
-import deepEqual from 'fast-deep-equal';
-
 import { Schema, Block } from './schema';
 import { Paper, Cursor } from './model';
 import { CommandContext, commands } from '../dom-prototype/commands';
@@ -13,9 +11,9 @@ export type BlockViewProps<T = Block> = {
 class BlockView {
   public el: HTMLDivElement | null = null;
 
-  private child: any = null;
+  public props: BlockViewProps;
 
-  private props: BlockViewProps;
+  private child: any = null;
 
   constructor(props: BlockViewProps) {
     this.props = props;
@@ -27,18 +25,22 @@ class BlockView {
     this.el.dataset.blockid = this.props.block.id;
 
     const schema = this.props.schema.find(this.props.block.type);
-    const view = new schema.view(this.el, this.props);
+    const view = new schema.view(this.props);
+    this.el.appendChild(view.el);
     this.child = view;
-    this.addEventListeners();
   }
 
   public update(props: BlockViewProps) {
     this.props = props;
     const schema = props.schema.find(props.block.type);
-    this.child.render(this.props);
+    if (this.child.props.block.type !== this.props.block.type) {
+      const view = new schema.view(this.props);
+      this.el.replaceChild(view.el, this.child.el);
+      this.child = view;
+    } else {
+      this.child.update(this.props);
+    }
   }
-
-  private addEventListeners() {}
 }
 
 type PaperViewProp = {
@@ -58,6 +60,43 @@ export class PaperView {
   constructor(props: PaperViewProp) {
     this.props = props;
     this.mount();
+  }
+
+  public mount() {
+    this.el = document.createElement('div');
+    this.el.contentEditable = 'true';
+    this.props.paper.blocks.forEach((block) => {
+      const props: BlockViewProps = {
+        paper: this.props.paper,
+        schema: this.props.schema,
+        block,
+      };
+      this.createBlock(props);
+      this.el.appendChild(this.map[block.id].el);
+    });
+
+    this.addEventListeners();
+  }
+
+  public update(props: PaperViewProp) {
+    const fragment = new DocumentFragment();
+
+    this.props = props;
+    this.props.paper.blocks.forEach((block, i) => {
+      const props: BlockViewProps = {
+        paper: this.props.paper,
+        schema: this.props.schema,
+        block,
+      };
+      if (this.map[block.id]) {
+        this.updateBlock(props);
+      } else {
+        this.createBlock(props);
+      }
+      fragment.appendChild(this.map[block.id].el);
+    });
+
+    this.el.appendChild(fragment);
   }
 
   private addEventListeners() {
@@ -81,38 +120,7 @@ export class PaperView {
     this.el.addEventListener('drop', this.onDrop.bind(this));
     this.el.addEventListener('paste', this.onPaste.bind(this));
     this.el.addEventListener('keydown', this.onKeyDown.bind(this));
-  }
-
-  private mount() {
-    this.el = document.createElement('div');
-    this.el.contentEditable = 'true';
-    this.props.paper.blocks.forEach((block) => {
-      const props: BlockViewProps = {
-        paper: this.props.paper,
-        schema: this.props.schema,
-        block,
-      };
-      this.createBlock(props);
-      this.el.appendChild(this.map[block.id].el);
-    });
-    this.addEventListeners();
-  }
-
-  private update(props: PaperViewProp) {
-    this.props.paper.blocks.forEach((block, i) => {
-      const props: BlockViewProps = {
-        paper: this.props.paper,
-        schema: this.props.schema,
-        block,
-      };
-      if (this.map[block.id]) {
-        this.updateBlock(props);
-        this.el.appendChild(this.map[block.id].el);
-      } else {
-        this.createBlock(props);
-        this.el.appendChild(this.map[block.id].el);
-      }
-    });
+    this.el.addEventListener('input', this.onInput.bind(this));
   }
 
   private createBlock(props: BlockViewProps) {
@@ -186,10 +194,10 @@ export class PaperView {
     });
   }
 
-  private focus(anchorElement: ChildNode, anchorOffset: number, focusElement?: ChildNode, focusOffset?: number) {
+  private focus(anchorNode: ChildNode, anchorOffset: number, focusNode?: ChildNode, focusOffset?: number) {
     const range = document.createRange();
-    range.setStart(anchorElement, anchorOffset);
-    range.setEnd(focusElement || anchorElement, focusOffset !== undefined ? focusOffset : anchorOffset);
+    range.setStart(anchorNode, anchorOffset);
+    range.setEnd(focusNode || anchorNode, focusOffset !== undefined ? focusOffset : anchorOffset);
     const sel = window.getSelection();
     sel.removeAllRanges();
     sel.addRange(range);
@@ -197,9 +205,11 @@ export class PaperView {
 
   private keepCursor(cursor: Cursor) {
     this.afterRendering(() => {
-      const anchorElement = this.el.querySelector(`[data-blockid="${cursor.anchorId}"] [data-text]`).childNodes[0];
-      const focusElement = this.el.querySelector(`[data-blockid="${cursor.focusId}"] [data-text]`).childNodes[0];
-      this.focus(anchorElement, cursor.anchorOffset, focusElement, cursor.focusOffset);
+      const anchorNode: ChildNode = this.el.querySelector(`[data-blockid="${cursor.anchorId}"] [data-focusable]`)
+        .childNodes[0];
+      const focusNode: ChildNode = this.el.querySelector(`[data-blockid="${cursor.focusId}"] [data-focusable]`)
+        .childNodes[0];
+      this.focus(anchorNode, cursor.anchorOffset, focusNode, cursor.focusOffset);
     });
   }
 
@@ -236,12 +246,19 @@ export class PaperView {
       }
       case 'Enter': {
         if (ctrl) {
-          console.log('Take action');
+          event.preventDefault();
+          commands.takeAction(ctx);
+          this.keepCursor(ctx.cursor);
+          this.props.paper.commit();
         } else {
           if (!event.isComposing) {
             event.preventDefault();
-            this.keepCursor(ctx.cursor);
             commands.splitBlock(ctx);
+            this.afterRendering(() => {
+              const nextBlock = this.props.paper.findNextBlock(ctx.cursor.anchorId);
+              const anchorNode: ChildNode = this.el.querySelector(`[data-blockid="${nextBlock.id}"] [data-focusable]`);
+              this.focus(anchorNode, 0);
+            });
             this.props.paper.commit();
           }
         }
@@ -256,12 +273,43 @@ export class PaperView {
       case 'Tab': {
         event.preventDefault();
         if (shift) {
+          this.keepCursor(ctx.cursor);
           commands.outdent(ctx);
         } else {
+          this.keepCursor(ctx.cursor);
           commands.indent(ctx);
         }
         this.props.paper.commit();
         break;
+      }
+    }
+  }
+
+  private onInput() {
+    const cursor = this.getCursor();
+    const block = this.props.paper.findBlock(cursor.anchorId);
+    if (cursor.isCollapsed && block.text !== null) {
+      const val = block.text;
+      const result = this.props.schema.execInputRule(val);
+      if (result) {
+        const ctx: CommandContext = {
+          schema: this.props.schema,
+          paper: this.props.paper,
+          cursor: this.getCursor(),
+        };
+        commands.updateText(ctx, result.text);
+        commands.turnInto(ctx, result.schema.type as Block['type'], { attrs: result.attrs as any });
+        this.props.paper.commit();
+        const pos = Math.max(cursor.anchorOffset - (new Text(val).length - new Text(result.text).length), 0);
+        this.afterRendering(() => {
+          const blockElement = this.map[block.id].el;
+          const focusableElement = this.map[block.id].el.querySelector('[data-focusable]').childNodes[0];
+          if (block.text !== null) {
+            this.focus(focusableElement, pos);
+          } else {
+            this.focus(focusableElement, focusableElement.childNodes.length);
+          }
+        });
       }
     }
   }
