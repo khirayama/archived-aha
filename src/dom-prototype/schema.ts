@@ -3,9 +3,10 @@ import { v4 as uuid } from 'uuid';
 import { BlockViewProps } from './view';
 
 import styles from '../pages/dom-prototype.module.scss';
+import { CommandContext } from './commands';
 
 type SchemaType = {
-  type: string;
+  type: Block['type'];
   view: any;
   attrs?: {};
   inputRule?: [RegExp, Function?];
@@ -30,20 +31,16 @@ const templates = {
   icon: (name) => `<span class="material-icons">${name}</span>`,
 };
 
-abstract class View<T> {
-  public el: HTMLElement | null = null;
+class ParagraphView {
+  public el: HTMLDivElement | null = null;
 
-  protected props: BlockViewProps<T>;
+  public props: BlockViewProps<ParagraphBlock>;
 
-  constructor(props: BlockViewProps<T>) {
+  constructor(props: BlockViewProps<ParagraphBlock>) {
     this.props = props;
     this.mount();
   }
 
-  protected mount() {}
-}
-
-class ParagraphView extends View<ParagraphBlock> {
   public mount() {
     this.el = document.createElement('div');
     this.el.classList.add(styles['paragraphblock']);
@@ -57,10 +54,6 @@ class ParagraphView extends View<ParagraphBlock> {
     if (!this.props.block.text) {
       this.el.querySelector('[data-focusable]').appendChild(new Text(''));
     }
-
-    this.el.addEventListener('click', (event) => {
-      console.log('click paragraph block');
-    });
   }
 
   public update(props: BlockViewProps<ParagraphBlock>) {
@@ -86,7 +79,7 @@ class ParagraphView extends View<ParagraphBlock> {
     const indent = Number(blockElement.querySelector<HTMLSpanElement>('[data-indent]')?.dataset?.indent);
     const text = blockElement.querySelector<HTMLSpanElement>('[data-focusable]')?.innerText.replace(/\n/g, '');
 
-    if (text === undefined || isNaN(indent)) {
+    if (text === undefined || Number.isNaN(indent)) {
       return null;
     }
     return {
@@ -113,7 +106,126 @@ export const paragraphSchema: SchemaType = {
   view: ParagraphView,
 };
 
-export type Block = ParagraphBlock;
+type TodoBlock = {
+  id: string;
+  type: 'todo';
+  text: string;
+  indent: number;
+  attrs: {
+    done: boolean;
+  };
+};
+
+class TodoView {
+  public el: HTMLDivElement | null = null;
+
+  public props: BlockViewProps<TodoBlock>;
+
+  constructor(props: BlockViewProps<TodoBlock>) {
+    this.props = props;
+    this.mount();
+  }
+
+  public mount() {
+    this.el = document.createElement('div');
+    this.el.classList.add(styles['todoblock']);
+    this.el.dataset.checked = String(this.props.block.attrs.done);
+    this.el.innerHTML = `
+      ${templates.decoration(`
+        ${templates.indentation(this.props.block.indent)}
+        ${templates.handle()}
+        <input type="checkbox" class=${styles['todocheckbox']} ${this.props.block.attrs.done ? 'checked' : ''} />
+      `)}
+      ${templates.text(this.props.block.text)}
+    `;
+    if (!this.props.block.text) {
+      this.el.querySelector('[data-focusable]').appendChild(new Text(''));
+    }
+  }
+
+  public update(props: BlockViewProps<TodoBlock>) {
+    this.props = props;
+
+    const indentElement = this.el.querySelector<HTMLSpanElement>('[data-indent]');
+    if (indentElement.dataset.indent !== String(props.block.indent)) {
+      indentElement.dataset.indent = String(props.block.indent);
+    }
+
+    const textElement = this.el.querySelector<HTMLSpanElement>('[data-focusable]');
+    if (textElement.innerText !== props.block.text) {
+      textElement.innerText = props.block.text;
+    }
+
+    const checkboxElement = this.el.querySelector<HTMLInputElement>('input[type="checkbox"]');
+    if (checkboxElement.checked !== props.block.attrs.done) {
+      checkboxElement.checked = props.block.attrs.done;
+    }
+
+    this.el.dataset.checked = String(this.props.block.attrs.done);
+  }
+
+  public static toBlock(blockElement: HTMLDivElement): TodoBlock {
+    if (!blockElement) {
+      return null;
+    }
+
+    const id = blockElement.dataset.blockid;
+    const indent = Number(blockElement.querySelector<HTMLSpanElement>('[data-indent]')?.dataset?.indent);
+    const text = blockElement.querySelector<HTMLSpanElement>('[data-focusable]')?.innerText.replace(/\n/g, '');
+    const done = blockElement.querySelector<HTMLInputElement>('input[type="checkbox"]')?.checked;
+
+    if (text === undefined || Number.isNaN(indent)) {
+      return null;
+    }
+
+    return {
+      type: 'todo',
+      id,
+      indent,
+      text,
+      attrs: {
+        done,
+      },
+    };
+  }
+}
+
+export const todoSchema = {
+  type: 'todo',
+  inputRule: [
+    /^\[(?<done>.*)\]\s/,
+    (groups: { done: string }) => {
+      return {
+        done: !!groups.done.trim(),
+      };
+    },
+  ],
+  action: (ctx: CommandContext, block: TodoBlock) => {
+    const newBlocks = ctx.paper.blocks.map((b) => {
+      if (block.id === b.id) {
+        b.attrs.done = !b.attrs.done;
+      }
+      return { ...b };
+    });
+    ctx.paper.setBlocks(newBlocks);
+  },
+  create: (block: Partial<TodoBlock>): TodoBlock => {
+    return {
+      id: uuid(),
+      text: '',
+      indent: 0,
+      ...block,
+      type: 'todo',
+      attrs: {
+        done: false,
+        ...block.attrs,
+      },
+    };
+  },
+  view: TodoView,
+};
+
+export type Block = ParagraphBlock | TodoBlock;
 
 export class Schema {
   private schemas: SchemaType[];
