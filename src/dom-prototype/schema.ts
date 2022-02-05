@@ -44,13 +44,9 @@ class ParagraphView {
   public mount() {
     this.el = document.createElement('div');
     this.el.classList.add(styles['paragraphblock']);
-    this.el.innerHTML = `
-      ${templates.decoration(`
-        ${templates.indentation(this.props.block.indent)}
-        ${templates.handle()}
-      `)}
-      ${templates.text(this.props.block.text)}
-    `;
+    this.el.innerHTML = `${templates.decoration(
+      `${templates.indentation(this.props.block.indent)}${templates.handle()}`,
+    )}${templates.text(this.props.block.text)}`;
     if (!this.props.block.text) {
       this.el.querySelector('[data-focusable]').appendChild(new Text(''));
     }
@@ -134,7 +130,9 @@ class TodoView {
       ${templates.decoration(`
         ${templates.indentation(this.props.block.indent)}
         ${templates.handle()}
-        <input type="checkbox" class=${styles['todocheckbox']} ${this.props.block.attrs.done ? 'checked' : ''} />
+        <div class=${styles['todocheckboxcontainer']}>
+          <input type="checkbox" class=${styles['todocheckbox']} ${this.props.block.attrs.done ? 'checked' : ''} />
+        </div>
       `)}
       ${templates.text(this.props.block.text)}
     `;

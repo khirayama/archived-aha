@@ -1,5 +1,7 @@
 .block {
   display: block;
+  padding: 0.5rem 0;
+  min-height: 2.5rem;
 }
 
 .decoration {
@@ -11,11 +13,13 @@
 
 .handle {
   display: inline-block;
+  width: 2rem;
   cursor: move;
   user-select: none;
   touch-action: none;
   padding: 0 0.25rem;
   opacity: 0.2;
+  vertical-align: top;
 }
 
 .indentation {
@@ -33,6 +37,7 @@
 .text {
   flex: 1;
   display: inline-block;
+  padding: 0 0.25rem;
 }
 
 .paragraphblock {
@@ -41,41 +46,46 @@
 
 .todoblock {
   display: flex;
-  padding: 0.15rem 0.15rem 0.15rem 0.25rem;
 
-  .todocheckbox {
-    border: solid 2px #333;
-    border-radius: 3px;
-    width: 1rem;
-    height: 1rem;
+  .todocheckboxcontainer {
+    display: inline-block;
+    vertical-align: top;
+    padding: 0.15rem 0;
 
-    &:checked {
-      border-color: #aaa;
-      position: relative;
-      background: #eee;
+    .todocheckbox {
+      border: solid 2px #333;
+      border-radius: 3px;
+      width: 1rem;
+      height: 1rem;
 
-      &:before {
-        position: absolute;
-        top: 0;
-        left: 0;
-        content: '';
-        display: inline-block;
-        width: 3px;
-        height: 10px;
-        background: #999;
-        transform: rotate(135deg);
-      }
+      &:checked {
+        border-color: #aaa;
+        position: relative;
+        background: #eee;
 
-      &:after {
-        position: absolute;
-        bottom: 0;
-        right: 0;
-        content: '';
-        display: inline-block;
-        width: 3px;
-        height: 16px;
-        background: #999;
-        transform: rotate(45deg);
+        &:before {
+          position: absolute;
+          top: 0;
+          left: 0;
+          content: '';
+          display: inline-block;
+          width: 3px;
+          height: 10px;
+          background: #999;
+          transform: rotate(135deg);
+        }
+
+        &:after {
+          position: absolute;
+          bottom: 0;
+          right: 0;
+          content: '';
+          display: inline-block;
+          width: 3px;
+          height: 16px;
+          background: #999;
+          transform: rotate(45deg);
+        }
       }
     }
   }

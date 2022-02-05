@@ -1,6 +1,10 @@
+import deepEqual from 'fast-deep-equal';
+
 import { Schema, Block } from './schema';
 import { Paper, Cursor } from './model';
 import { CommandContext, commands } from '../dom-prototype/commands';
+
+import styles from '../pages/dom-prototype.module.scss';
 
 export type BlockViewProps<T = Block> = {
   paper: Paper;
@@ -23,6 +27,7 @@ class BlockView {
   public mount() {
     this.el = document.createElement('div');
     this.el.dataset.blockid = this.props.block.id;
+    this.el.classList.add(styles['block']);
 
     const schema = this.props.schema.find(this.props.block.type);
     const view = new schema.view(this.props);
@@ -153,6 +158,13 @@ export class PaperView {
         const newBlock = schema.view.toBlock(el);
         if (newBlock) {
           newBlocks.push(newBlock);
+          if (!deepEqual(newBlock, block)) {
+            this.map[newBlock.id].update({
+              paper: this.props.paper,
+              schema: this.props.schema,
+              block: newBlock,
+            });
+          }
         } else {
           this.removeBlock(id);
         }
@@ -174,16 +186,18 @@ export class PaperView {
     };
 
     let el: any = sel.anchorNode;
-    while (!el.dataset?.blockid) {
-      el = el.parentElement;
-    }
-    cursor.anchorId = el.dataset.blockid;
+    if (el) {
+      while (!el.dataset?.blockid) {
+        el = el.parentElement;
+      }
+      cursor.anchorId = el.dataset.blockid;
 
-    el = sel.focusNode;
-    while (!el.dataset?.blockid) {
-      el = el.parentElement;
+      el = sel.focusNode;
+      while (!el.dataset?.blockid) {
+        el = el.parentElement;
+      }
+      cursor.focusId = el.dataset.blockid;
     }
-    cursor.focusId = el.dataset.blockid;
 
     return cursor;
   }
@@ -288,14 +302,14 @@ export class PaperView {
   private onInput() {
     const cursor = this.getCursor();
     const block = this.props.paper.findBlock(cursor.anchorId);
-    if (cursor.isCollapsed && block.text !== null) {
+    if (cursor.isCollapsed && block && block.text !== null) {
       const val = block.text;
       const result = this.props.schema.execInputRule(val);
       if (result) {
         const ctx: CommandContext = {
           schema: this.props.schema,
           paper: this.props.paper,
-          cursor: this.getCursor(),
+          cursor,
         };
         commands.updateText(ctx, result.text);
         commands.turnInto(ctx, result.schema.type as Block['type'], { attrs: result.attrs as any });
