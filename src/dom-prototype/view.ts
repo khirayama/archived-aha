@@ -51,6 +51,7 @@ class BlockView {
 type PaperViewProp = {
   schema: Schema;
   paper: Paper;
+  container: HTMLElement;
 };
 
 export class PaperView {
@@ -84,6 +85,11 @@ export class PaperView {
   }
 
   public update(props: PaperViewProp) {
+    const scroll = {
+      top: this.props.container.scrollTop,
+      left: this.props.container.scrollLeft,
+    };
+
     const fragment = new DocumentFragment();
 
     this.props = props;
@@ -100,8 +106,8 @@ export class PaperView {
       }
       fragment.appendChild(this.map[block.id].el);
     });
-
     this.el.appendChild(fragment);
+    this.props.container.scrollTo(scroll);
   }
 
   private findBlockElement(blockId: string): HTMLDivElement | null {
