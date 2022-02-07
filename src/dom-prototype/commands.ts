@@ -150,4 +150,27 @@ export const commands = {
     ctx.paper.setBlocks(newBlocks);
     return ctx;
   },
+  moveTo: (ctx: CommandContext, targetId: string, toId: string): CommandContext => {
+    ctx.paper.tr(() => {
+      let targetIndex = 0;
+      let toIndex = 0;
+
+      for (let i = 0; i < ctx.paper.blocks.length; i += 1) {
+        if (targetId === ctx.paper.blocks[i].id) {
+          targetIndex = i;
+        }
+
+        if (toId === ctx.paper.blocks[i].id) {
+          toIndex = i;
+        }
+      }
+
+      const l = ctx.paper.findGroupedBlocks(targetId).length;
+      const newBlocks = [...ctx.paper.blocks];
+      const sort = newBlocks.splice(targetIndex, l);
+      newBlocks.splice(toIndex < targetIndex ? toIndex : toIndex - l + 1, 0, ...sort);
+      ctx.paper.setBlocks(newBlocks);
+    });
+    return ctx;
+  },
 };

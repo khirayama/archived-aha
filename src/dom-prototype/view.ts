@@ -104,6 +104,21 @@ export class PaperView {
     this.el.appendChild(fragment);
   }
 
+  private findBlockElement(blockId: string): HTMLDivElement | null {
+    return this.el.querySelector(`[data-blockid="${blockId}"]`);
+  }
+
+  private traverseBlockElement(el): HTMLDivElement | null {
+    let blockElement = el;
+    while (blockElement.parentElement) {
+      if (blockElement && blockElement.dataset && blockElement.dataset.blockid) {
+        return blockElement;
+      }
+      blockElement = blockElement.parentElement;
+    }
+    return null;
+  }
+
   private addEventListeners() {
     const observer = new MutationObserver(() => {
       this.sync();
@@ -126,19 +141,113 @@ export class PaperView {
     this.el.addEventListener('paste', this.onPaste.bind(this));
     this.el.addEventListener('keydown', this.onKeyDown.bind(this));
     this.el.addEventListener('input', this.onInput.bind(this));
+
+    function isHandleElementIncluded(el) {
+      let handleElement = el;
+      while (handleElement !== document.body && handleElement.dataset.handle !== '') {
+        handleElement = handleElement.parentElement;
+      }
+      return handleElement !== document.body;
+    }
+
+    const sort: {
+      targetId: string | null;
+      toId: string | null;
+    } = {
+      targetId: null,
+      toId: null,
+    };
+
     this.el.addEventListener('pointerdown', (event) => {
-      let el = event.target;
-      while (el !== document.body && el.dataset.handle !== '') {
-        el = el.parentElement;
+      const isHandleElement = isHandleElementIncluded(event.target);
+      const blockElement = this.traverseBlockElement(event.target);
+      if (isHandleElement && blockElement) {
+        const blockId = blockElement.dataset.blockid;
+        const blocks = this.props.paper.findGroupedBlocks(blockId);
+        for (let i = 0; i < blocks.length; i += 1) {
+          const b = blocks[i];
+          const el = this.findBlockElement(b.id);
+          el.classList.add(styles['is_handling']);
+        }
+        sort.targetId = blockId;
       }
-      if (el === document.body) {
-        return;
+    });
+
+    this.el.addEventListener('pointermove', (event) => {
+      if (sort.targetId) {
+        const upperElements = document.querySelectorAll('.' + styles['is_hover_upper']);
+        for (let i = 0; i < upperElements.length; i += 1) {
+          const el = upperElements[i];
+          el.classList.remove(styles['is_hover_upper']);
+        }
+        const lowerElements = document.querySelectorAll('.' + styles['is_hover_lower']);
+        for (let i = 0; i < lowerElements.length; i += 1) {
+          const el = lowerElements[i];
+          el.classList.remove(styles['is_hover_lower']);
+        }
+
+        const blockElement = this.traverseBlockElement(document.elementFromPoint(event.clientX, event.clientY));
+        const blockId = blockElement.dataset.blockid;
+        const blocks = this.props.paper.findGroupedBlocks(sort.targetId);
+        const blockIds = blocks.map((b) => b.id);
+
+        if (!blockIds.includes(blockId)) {
+          sort.toId = blockId;
+        } else {
+          sort.toId = null;
+        }
+
+        if (sort.toId) {
+          let targetIndex = 0;
+          let toIndex = 0;
+
+          for (let i = 0; i < this.props.paper.blocks.length; i += 1) {
+            if (sort.targetId === this.props.paper.blocks[i].id) {
+              targetIndex = i;
+            }
+
+            if (sort.toId === this.props.paper.blocks[i].id) {
+              toIndex = i;
+            }
+          }
+
+          if (targetIndex > toIndex) {
+            this.findBlockElement(sort.toId).classList.add(styles['is_hover_upper']);
+          } else {
+            this.findBlockElement(sort.toId).classList.add(styles['is_hover_lower']);
+          }
+        }
       }
-      while (el !== document.body && !el.dataset.blockid) {
-        el = el.parentElement;
+    });
+
+    this.el.addEventListener('pointerup', (event) => {
+      const els = document.querySelectorAll('.' + styles['is_handling']);
+      for (let i = 0; i < els.length; i += 1) {
+        const el = els[i];
+        el.classList.remove(styles['is_handling']);
       }
-      console.log(el);
-      el.classList.add(styles['is_handling']);
+      const upperElements = document.querySelectorAll('.' + styles['is_hover_upper']);
+      for (let i = 0; i < upperElements.length; i += 1) {
+        const el = upperElements[i];
+        el.classList.remove(styles['is_hover_upper']);
+      }
+      const lowerElements = document.querySelectorAll('.' + styles['is_hover_lower']);
+      for (let i = 0; i < lowerElements.length; i += 1) {
+        const el = lowerElements[i];
+        el.classList.remove(styles['is_hover_lower']);
+      }
+
+      if (sort.targetId && sort.toId) {
+        const ctx: CommandContext = {
+          schema: this.props.schema,
+          paper: this.props.paper,
+          cursor: this.getCursor(),
+        };
+        commands.moveTo(ctx, sort.targetId, sort.toId);
+        this.props.paper.commit();
+      }
+      sort.targetId = null;
+      sort.toId = null;
     });
   }
 
@@ -189,7 +298,7 @@ export class PaperView {
     this.props.paper.setBlocks(newBlocks);
   }
 
-  private getCursor(): Cursor {
+  private getCursor(): Cursor | null {
     const sel = window.getSelection();
     const cursor: Cursor = {
       isCollapsed: sel.isCollapsed,
@@ -199,18 +308,13 @@ export class PaperView {
       focusOffset: sel.focusOffset,
     };
 
-    let el: any = sel.anchorNode;
-    if (el) {
-      while (!el.dataset?.blockid) {
-        el = el.parentElement;
-      }
-      cursor.anchorId = el.dataset.blockid;
-
-      el = sel.focusNode;
-      while (!el.dataset?.blockid) {
-        el = el.parentElement;
-      }
-      cursor.focusId = el.dataset.blockid;
+    const anchorBlockElement = this.traverseBlockElement(sel.anchorNode);
+    if (anchorBlockElement) {
+      cursor.anchorId = anchorBlockElement.dataset.blockid;
+    }
+    const focusBlockElement = this.traverseBlockElement(sel.focusNode);
+    if (focusBlockElement) {
+      cursor.focusId = focusBlockElement.dataset.blockid;
     }
 
     return cursor;
