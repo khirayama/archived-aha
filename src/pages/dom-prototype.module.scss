@@ -130,3 +130,45 @@
     }
   }
 }
+
+.headingblock {
+  display: flex;
+  width: 100%;
+  font-weight: bold;
+}
+
+.heading1block {
+  @extend .headingblock;
+  font-size: 2rem;
+  line-height: 2.5rem;
+  padding: 2rem 0 3rem;
+}
+
+.heading2block {
+  @extend .headingblock;
+  font-size: 1.5rem;
+  line-height: 2rem;
+  padding: 2rem 0 1rem;
+}
+
+.heading3block {
+  @extend .headingblock;
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+  padding: 1.5rem 0 1rem;
+}
+
+.heading4block {
+  @extend .headingblock;
+  padding: 1rem 0;
+}
+
+.heading5block {
+  @extend .headingblock;
+  padding: 0.75rem 0;
+}
+
+.heading6block {
+  @extend .headingblock;
+  padding: 0.5rem 0;
+}

@@ -3,7 +3,7 @@ import * as React from 'react';
 import Head from 'next/head';
 
 import { Paper } from '../dom-prototype/model';
-import { Schema, Block, paragraphSchema, todoSchema } from '../dom-prototype/schema';
+import { Schema, Block, paragraphSchema, todoSchema, headingSchema } from '../dom-prototype/schema';
 import { PaperView } from '../dom-prototype/view';
 
 import styles from './dom-prototype.module.scss';
@@ -12,11 +12,11 @@ export function getServerSideProps() {
   return {
     props: {
       blocks: [
-        // schema.createBlock('heading', { text: 'TITLE OF THIS PAPER', attrs: { level: 1 } }),
+        schema.createBlock('heading', { text: 'TITLE OF THIS PAPER', attrs: { level: 1 } }),
         schema.createBlock('todo', { text: 'タスク1' }),
         schema.createBlock('todo', { text: 'タスク2', attrs: { done: true } }),
         schema.createBlock('paragraph', { text: '𠮷野屋で𩸽頼んで𠮟られる😭' }),
-        // schema.createBlock('heading', { text: '000', attrs: { level: 2 } }),
+        schema.createBlock('heading', { text: '000', attrs: { level: 2 } }),
         schema.createBlock('paragraph', { text: '111' }),
         schema.createBlock('paragraph', { text: '222', indent: 1 }),
         schema.createBlock('paragraph', { text: '333', indent: 2 }),
@@ -35,7 +35,7 @@ export function getServerSideProps() {
   };
 }
 
-const schema = new Schema([paragraphSchema, todoSchema]);
+const schema = new Schema([paragraphSchema, todoSchema, headingSchema]);
 const paper = new Paper();
 
 type PaperViewContainerProps = {

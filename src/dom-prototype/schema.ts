@@ -66,7 +66,7 @@ class ParagraphView {
     }
   }
 
-  public static toBlock(blockElement: HTMLDivElement) {
+  public static toBlock(blockElement: HTMLDivElement): ParagraphBlock {
     if (!blockElement) {
       return null;
     }
@@ -83,6 +83,7 @@ class ParagraphView {
       id,
       indent,
       text,
+      attrs: null,
     };
   }
 }
@@ -223,7 +224,123 @@ export const todoSchema = {
   view: TodoView,
 };
 
-export type Block = ParagraphBlock | TodoBlock;
+type HeadingLevel = 1 | 2 | 3 | 4 | 5 | 6;
+
+type HeadingBlock = {
+  id: string;
+  type: 'heading';
+  text: string;
+  indent: number;
+  attrs: {
+    level: HeadingLevel;
+  };
+};
+
+class HeadingView {
+  public el: HTMLDivElement | null = null;
+
+  public props: BlockViewProps<HeadingBlock>;
+
+  constructor(props: BlockViewProps<HeadingBlock>) {
+    this.props = props;
+    this.mount();
+  }
+
+  public mount() {
+    const level = this.props.block.attrs.level;
+    this.el = document.createElement('div');
+    this.el.classList.add(styles[`heading${level}block`]);
+    this.el.innerHTML = `${templates.decoration(
+      `${templates.indentation(this.props.block.indent)}${templates.handle()}`,
+    )}<h${level}>${templates.text(this.props.block.text)}</h${level}>`;
+    if (!this.props.block.text) {
+      this.el.querySelector('[data-focusable]').appendChild(new Text(''));
+    }
+  }
+
+  public update(props: BlockViewProps<HeadingBlock>) {
+    this.props = props;
+
+    const indentElement = this.el.querySelector<HTMLSpanElement>('[data-indent]');
+    if (indentElement.dataset.indent !== String(props.block.indent)) {
+      indentElement.dataset.indent = String(props.block.indent);
+    }
+
+    const textElement = this.el.querySelector<HTMLSpanElement>('[data-focusable]');
+    if (textElement.innerText !== props.block.text) {
+      textElement.innerText = props.block.text;
+    }
+
+    const headingElement = this.el.querySelector<HTMLHeadingElement>('[data-focusable]').parentElement;
+    const level = Number(headingElement.tagName.replace('H', ''));
+    if (level !== props.block.attrs.level) {
+      this.el.classList.remove(styles[`heading${level}block`]);
+      this.el.classList.add(styles[`heading${props.block.attrs.level}block`]);
+      const h = document.createElement('h' + props.block.attrs.level);
+      for (let i = 0; i < headingElement.children.length; i += 1) {
+        h.appendChild(headingElement.children[i]);
+      }
+      headingElement.parentNode.replaceChild(h, headingElement);
+    }
+  }
+
+  public static toBlock(blockElement: HTMLDivElement): HeadingBlock {
+    if (!blockElement) {
+      return null;
+    }
+
+    const id = blockElement.dataset.blockid;
+    const indent = Number(blockElement.querySelector<HTMLSpanElement>('[data-indent]')?.dataset?.indent);
+    const text = blockElement.querySelector<HTMLSpanElement>('[data-focusable]')?.innerText.replace(/\n/g, '');
+    const level = Number(
+      blockElement.querySelector<HTMLHeadingElement>('[data-focusable]').parentElement.tagName.replace('H', ''),
+    ) as HeadingLevel;
+
+    if (text === undefined || Number.isNaN(indent)) {
+      return null;
+    }
+    return {
+      type: 'heading',
+      id,
+      indent,
+      text,
+      attrs: {
+        level,
+      },
+    };
+  }
+}
+
+export const headingSchema = {
+  type: 'heading',
+  isContinuation: false,
+  inputRule: [
+    /^(?<level>#+)\s/,
+    (groups: { level: string }) => {
+      const l = groups.level.length;
+      const level = Math.max(Math.min(l, 6), 1);
+      return {
+        level,
+      };
+    },
+  ],
+  create: (block: Partial<HeadingBlock>): HeadingBlock => {
+    return {
+      id: uuid(),
+      text: '',
+      indent: 0,
+      ...block,
+      type: 'heading',
+      attrs: {
+        level: 1,
+        ...block.attrs,
+      },
+    };
+  },
+  view: HeadingView,
+};
+
+export type Block = ParagraphBlock | TodoBlock | HeadingBlock;
 
 export class Schema {
   private schemas: SchemaType[];
