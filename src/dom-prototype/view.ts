@@ -126,6 +126,20 @@ export class PaperView {
     this.el.addEventListener('paste', this.onPaste.bind(this));
     this.el.addEventListener('keydown', this.onKeyDown.bind(this));
     this.el.addEventListener('input', this.onInput.bind(this));
+    this.el.addEventListener('pointerdown', (event) => {
+      let el = event.target;
+      while (el !== document.body && el.dataset.handle !== '') {
+        el = el.parentElement;
+      }
+      if (el === document.body) {
+        return;
+      }
+      while (el !== document.body && !el.dataset.blockid) {
+        el = el.parentElement;
+      }
+      console.log(el);
+      el.classList.add(styles['is_handling']);
+    });
   }
 
   private createBlock(props: BlockViewProps) {
