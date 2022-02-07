@@ -110,7 +110,7 @@ export class PaperView {
 
   private traverseBlockElement(el): HTMLDivElement | null {
     let blockElement = el;
-    while (blockElement.parentElement) {
+    while (blockElement && blockElement.parentElement) {
       if (blockElement && blockElement.dataset && blockElement.dataset.blockid) {
         return blockElement;
       }
@@ -125,12 +125,10 @@ export class PaperView {
     });
 
     observer.observe(this.el, {
-      attributes: true,
-      attributeOldValue: true,
-      characterData: true,
-      characterDataOldValue: true,
-      childList: true,
       subtree: true,
+      childList: true,
+      attributes: true,
+      characterData: true,
     });
 
     this.props.paper.onChange(() => {
@@ -141,6 +139,11 @@ export class PaperView {
     this.el.addEventListener('paste', this.onPaste.bind(this));
     this.el.addEventListener('keydown', this.onKeyDown.bind(this));
     this.el.addEventListener('input', this.onInput.bind(this));
+    /* FYI
+     * On mobile devices, updating input element such as checkbox isn't observed by MutationObserver.
+     * But change event is fired even if the elements are in contenteditable.
+     * */
+    this.el.addEventListener('change', this.sync.bind(this));
 
     function isHandleElementIncluded(el) {
       let handleElement = el;
@@ -221,6 +224,8 @@ export class PaperView {
     });
 
     this.el.addEventListener('pointerup', (event) => {
+      this.keepCursor(this.getCursor());
+
       const els = document.querySelectorAll('.' + styles['is_handling']);
       for (let i = 0; i < els.length; i += 1) {
         const el = els[i];
@@ -337,11 +342,13 @@ export class PaperView {
 
   private keepCursor(cursor: Cursor) {
     this.afterRendering(() => {
-      const anchorNode: ChildNode = this.el.querySelector(`[data-blockid="${cursor.anchorId}"] [data-focusable]`)
-        .childNodes[0];
-      const focusNode: ChildNode = this.el.querySelector(`[data-blockid="${cursor.focusId}"] [data-focusable]`)
-        .childNodes[0];
-      this.focus(anchorNode, cursor.anchorOffset, focusNode, cursor.focusOffset);
+      if (cursor.anchorId) {
+        const anchorNode: ChildNode = this.el.querySelector(`[data-blockid="${cursor.anchorId}"] [data-focusable]`)
+          .childNodes[0];
+        const focusNode: ChildNode = this.el.querySelector(`[data-blockid="${cursor.focusId}"] [data-focusable]`)
+          .childNodes[0];
+        this.focus(anchorNode, cursor.anchorOffset, focusNode, cursor.focusOffset);
+      }
     });
   }
 
