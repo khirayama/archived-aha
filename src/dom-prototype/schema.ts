@@ -1,9 +1,9 @@
 import { v4 as uuid } from 'uuid';
 
 import { BlockViewProps } from './view';
+import { CommandContext } from './commands';
 
 import styles from '../pages/dom-prototype.module.scss';
-import { CommandContext } from './commands';
 
 type SchemaType = {
   type: Block['type'];
