@@ -15,20 +15,19 @@ type SchemaType = {
   action?: Function | null;
 };
 
+const templates = {
+  decoration: (children) => `<div class="${styles['decoration']}" contenteditable="false">${children}</div>`,
+  handle: () => `<div class="${styles['handle']}" data-handle>${templates.icon('drag_indicator')}</div>`,
+  indentation: (indent) => `<div class="${styles['indentation']}" data-indent=${indent}></div>`,
+  icon: (name) => `<span class="material-icons">${name}</span>`,
+};
+
 type ParagraphBlock = {
   id: string;
   type: 'paragraph';
   text: string;
   indent: number;
   attrs: null;
-};
-
-const templates = {
-  decoration: (children) => `<div class="${styles['decoration']}" contenteditable="false">${children}</div>`,
-  handle: () => `<div class="${styles['handle']}" data-handle>${templates.icon('drag_indicator')}</div>`,
-  indentation: (indent) => `<div class="${styles['indentation']}" data-indent=${indent}></div>`,
-  text: (text) => `<div class="${styles['text']}" data-focusable>${text}</div>`,
-  icon: (name) => `<span class="material-icons">${name}</span>`,
 };
 
 class ParagraphView {
@@ -46,7 +45,7 @@ class ParagraphView {
     this.el.classList.add(styles['paragraphblock']);
     this.el.innerHTML = `${templates.decoration(
       `${templates.indentation(this.props.block.indent)}${templates.handle()}`,
-    )}${templates.text(this.props.block.text)}`;
+    )}<p class="${styles['text']}" data-focusable>${this.props.block.text}</p>`;
     if (!this.props.block.text) {
       this.el.querySelector('[data-focusable]').appendChild(new Text(''));
     }
@@ -135,7 +134,7 @@ class TodoView {
           <input type="checkbox" class=${styles['todocheckbox']} ${this.props.block.attrs.done ? 'checked' : ''} />
         </div>
       `)}
-      ${templates.text(this.props.block.text)}
+      <span class="${styles['text']}" data-focusable>${this.props.block.text}</span>
     `;
     if (!this.props.block.text) {
       this.el.querySelector('[data-focusable]').appendChild(new Text(''));
@@ -252,7 +251,7 @@ class HeadingView {
     this.el.classList.add(styles[`heading${level}block`]);
     this.el.innerHTML = `${templates.decoration(
       `${templates.indentation(this.props.block.indent)}${templates.handle()}`,
-    )}<h${level}>${templates.text(this.props.block.text)}</h${level}>`;
+    )}<h${level} style="${styles['text']}" data-focusable>${this.props.block.text}</h${level}>`;
     if (!this.props.block.text) {
       this.el.querySelector('[data-focusable]').appendChild(new Text(''));
     }
@@ -271,7 +270,7 @@ class HeadingView {
       textElement.innerText = props.block.text;
     }
 
-    const headingElement = this.el.querySelector<HTMLHeadingElement>('[data-focusable]').parentElement;
+    const headingElement = this.el.querySelector<HTMLHeadingElement>('[data-focusable]');
     const level = Number(headingElement.tagName.replace('H', ''));
     if (level !== props.block.attrs.level) {
       this.el.classList.remove(styles[`heading${level}block`]);
@@ -293,7 +292,7 @@ class HeadingView {
     const indent = Number(blockElement.querySelector<HTMLSpanElement>('[data-indent]')?.dataset?.indent);
     const text = blockElement.querySelector<HTMLSpanElement>('[data-focusable]')?.innerText.replace(/\n/g, '');
     const level = Number(
-      blockElement.querySelector<HTMLHeadingElement>('[data-focusable]').parentElement.tagName.replace('H', ''),
+      blockElement.querySelector<HTMLHeadingElement>('[data-focusable]').tagName.replace('H', ''),
     ) as HeadingLevel;
 
     if (text === undefined || Number.isNaN(indent)) {
