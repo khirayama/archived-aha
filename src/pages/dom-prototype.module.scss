@@ -178,3 +178,10 @@
   @extend .headingblock;
   padding: 0.5rem 0;
 }
+
+.imageblock {
+  display: flex;
+
+  .image {
+  }
+}

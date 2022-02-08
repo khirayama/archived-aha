@@ -339,7 +339,96 @@ export const headingSchema = {
   view: HeadingView,
 };
 
-export type Block = ParagraphBlock | TodoBlock | HeadingBlock;
+type ImageBlock = {
+  id: string;
+  type: 'image';
+  text: null;
+  indent: number;
+  attrs: {
+    src: string;
+    caption: string;
+  };
+};
+
+class ImageView {
+  public el: HTMLDivElement | null = null;
+
+  public props: BlockViewProps<ImageBlock>;
+
+  constructor(props: BlockViewProps<ImageBlock>) {
+    this.props = props;
+    this.mount();
+  }
+
+  public mount() {
+    this.el = document.createElement('div');
+    this.el.classList.add(styles['imageblock']);
+    this.el.innerHTML = `${templates.decoration(
+      `${templates.indentation(this.props.block.indent)}${templates.handle()}`,
+    )}<img src="${this.props.block.attrs.src}" alt="${this.props.block.attrs.caption}" data-focusable />`;
+  }
+
+  public update(props: BlockViewProps<ImageBlock>) {
+    this.props = props;
+
+    const indentElement = this.el.querySelector<HTMLSpanElement>('[data-indent]');
+    if (indentElement.dataset.indent !== String(props.block.indent)) {
+      indentElement.dataset.indent = String(props.block.indent);
+    }
+
+    const imageElement = this.el.querySelector<HTMLImageElement>('img');
+    if (imageElement.src !== props.block.attrs.src) {
+      imageElement.src = props.block.attrs.src;
+    }
+    if (imageElement.alt !== props.block.attrs.caption) {
+      imageElement.alt = props.block.attrs.caption;
+    }
+  }
+
+  public static toBlock(blockElement: HTMLDivElement): ImageBlock {
+    if (!blockElement) {
+      return null;
+    }
+
+    const id = blockElement.dataset.blockid;
+    const indent = Number(blockElement.querySelector<HTMLSpanElement>('[data-indent]')?.dataset?.indent);
+    const src = blockElement.querySelector<HTMLImageElement>('img').src;
+    const caption = blockElement.querySelector<HTMLImageElement>('img').alt;
+
+    return {
+      type: 'image',
+      id,
+      indent,
+      text: null,
+      attrs: {
+        src,
+        caption,
+      },
+    };
+  }
+}
+
+export const imageSchema: SchemaType = {
+  type: 'image',
+  isContinuation: false,
+  create: (block: Partial<ImageBlock>): ImageBlock => {
+    return {
+      id: uuid(),
+      text: null,
+      indent: 0,
+      ...block,
+      type: 'image',
+      attrs: {
+        src: '',
+        caption: '',
+        ...block.attrs,
+      },
+    };
+  },
+  view: ImageView,
+};
+
+export type Block = ParagraphBlock | TodoBlock | HeadingBlock | ImageBlock;
 
 export class Schema {
   private schemas: SchemaType[];

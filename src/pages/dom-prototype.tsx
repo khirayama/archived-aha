@@ -3,7 +3,7 @@ import * as React from 'react';
 import Head from 'next/head';
 
 import { Paper } from '../dom-prototype/model';
-import { Schema, Block, paragraphSchema, todoSchema, headingSchema } from '../dom-prototype/schema';
+import { Schema, Block, paragraphSchema, todoSchema, headingSchema, imageSchema } from '../dom-prototype/schema';
 import { PaperView } from '../dom-prototype/view';
 
 import styles from './dom-prototype.module.scss';
@@ -28,14 +28,14 @@ export function getServerSideProps() {
         schema.createBlock('paragraph', { text: '999', indent: 1 }),
         schema.createBlock('paragraph', { text: '101010', indent: 1 }),
         schema.createBlock('paragraph', { text: '111111' }),
-        // schema.createBlock('image', { attrs: { src: 'https://placehold.jp/256x256.png' } }),
+        schema.createBlock('image', { attrs: { src: 'https://placehold.jp/256x256.png' } }),
         schema.createBlock('paragraph', { text: '121212' }),
       ],
     },
   };
 }
 
-const schema = new Schema([paragraphSchema, todoSchema, headingSchema]);
+const schema = new Schema([paragraphSchema, todoSchema, headingSchema, imageSchema]);
 const paper = new Paper();
 
 type PaperViewContainerProps = {
