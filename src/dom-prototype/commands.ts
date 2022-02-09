@@ -30,7 +30,18 @@ function blockBetween(ctx: CommandContext, func: (block: Block) => Block) {
 function getStartAndEnd(ctx: CommandContext) {
   for (let i = 0; i < ctx.paper.blocks.length; i += 1) {
     const block = ctx.paper.blocks[i];
-    if (ctx.cursor.anchorId === block.id) {
+    if (ctx.cursor.anchorId === block.id && ctx.cursor.anchorId === ctx.cursor.focusId) {
+      return {
+        start: {
+          id: ctx.cursor.anchorId,
+          offset: Math.min(ctx.cursor.anchorOffset, ctx.cursor.focusOffset),
+        },
+        end: {
+          id: ctx.cursor.focusId,
+          offset: Math.max(ctx.cursor.anchorOffset, ctx.cursor.focusOffset),
+        },
+      };
+    } else if (ctx.cursor.anchorId === block.id) {
       return {
         start: {
           id: ctx.cursor.anchorId,
