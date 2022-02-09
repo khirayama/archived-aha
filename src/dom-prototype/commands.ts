@@ -24,7 +24,7 @@ function blockBetween(ctx: CommandContext, func: (block: Block) => Block) {
       ...b,
     };
   });
-  return newBlocks;
+  return newBlocks.filter((b) => !!b);
 }
 
 function getStartAndEnd(ctx: CommandContext) {
