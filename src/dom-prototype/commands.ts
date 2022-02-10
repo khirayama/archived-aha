@@ -88,36 +88,40 @@ export const commands = {
     const newBlocks = [];
     const { start, end } = getStartAndEnd(ctx);
 
-    if (start.id === end.id) {
-      const block = ctx.paper.findBlock(start.id);
-      const t = new Text(block.text);
-      const newText = t.splitText(end.offset);
-      t.splitText(start.offset);
-      const defaultSchema = ctx.schema.defaultSchema();
-      const currentSchema = ctx.schema.find(block.type);
-
-      const newBlock =
-        currentSchema.isContinuation !== false
-          ? ctx.schema.createBlock(currentSchema.type as Block['type'], {
-              text: newText.wholeText,
-              indent: block.indent,
-            })
-          : ctx.schema.createBlock(defaultSchema.type as Block['type'], {
-              text: newText.wholeText,
-              indent: block.indent,
-            });
-
-      const newBlocks = [...ctx.paper.blocks];
-      for (let i = 0; i < newBlocks.length; i += 1) {
-        if (newBlocks[i].id === block.id) {
-          newBlocks[i].text = t.wholeText;
-          newBlocks.splice(i + 1, 0, newBlock);
-          break;
-        }
+    let isRemoved = false;
+    for (let i = 0; i < ctx.paper.blocks.length; i += 1) {
+      const block = ctx.paper.blocks[i];
+      if (block.id === start.id) {
+        isRemoved = true;
+        const t = new Text(block.text);
+        t.splitText(start.offset);
+        newBlocks.push({
+          ...block,
+          text: t.wholeText,
+        });
       }
-      ctx.paper.setBlocks(newBlocks);
-    } else {
+      if (block.id === end.id) {
+        isRemoved = false;
+        const t = new Text(block.text);
+        const newText = t.splitText(end.offset);
+        const currentSchema = ctx.schema.find(block.type);
+        const defaultSchema = ctx.schema.defaultSchema();
+        const newBlock =
+          currentSchema.isContinuation !== false
+            ? ctx.schema.createBlock(currentSchema.type as Block['type'], {
+                text: newText.wholeText,
+                indent: block.indent,
+              })
+            : ctx.schema.createBlock(defaultSchema.type as Block['type'], {
+                text: newText.wholeText,
+                indent: block.indent,
+              });
+        newBlocks.push(newBlock);
+      } else if (!isRemoved) {
+        newBlocks.push({ ...block });
+      }
     }
+    ctx.paper.setBlocks(newBlocks);
     return ctx;
   },
   indent: (ctx: CommandContext): CommandContext => {
