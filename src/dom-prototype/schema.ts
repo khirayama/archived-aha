@@ -188,7 +188,7 @@ class TodoView {
   }
 }
 
-export const todoSchema = {
+export const todoSchema: SchemaType = {
   type: 'todo',
   inputRule: [
     /^\[(?<done>.*)\]\s/,
@@ -200,7 +200,7 @@ export const todoSchema = {
   ],
   action: (ctx: CommandContext, block: TodoBlock) => {
     const newBlocks = ctx.paper.blocks.map((b) => {
-      if (block.id === b.id) {
+      if (block.id === b.id && b.type === 'todo') {
         b.attrs.done = !b.attrs.done;
       }
       return { ...b };
@@ -310,7 +310,7 @@ class HeadingView {
   }
 }
 
-export const headingSchema = {
+export const headingSchema: SchemaType = {
   type: 'heading',
   isContinuation: false,
   inputRule: [
