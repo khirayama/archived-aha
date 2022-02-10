@@ -45,9 +45,9 @@ class ParagraphView {
     this.el.classList.add(styles['paragraphblock']);
     this.el.innerHTML = `${templates.decoration(
       `${templates.indentation(this.props.block.indent)}${templates.handle()}`,
-    )}<p class="${styles['text']}" data-focusable>${this.props.block.text}</p>`;
+    )}<p class="${styles['text']}" data-inline>${this.props.block.text}</p>`;
     if (!this.props.block.text) {
-      this.el.querySelector('[data-focusable]').appendChild(new Text(''));
+      this.el.querySelector('[data-inline]').appendChild(new Text(''));
     }
   }
 
@@ -59,7 +59,7 @@ class ParagraphView {
       indentElement.dataset.indent = String(props.block.indent);
     }
 
-    const textElement = this.el.querySelector<HTMLSpanElement>('[data-focusable]');
+    const textElement = this.el.querySelector<HTMLSpanElement>('[data-inline]');
     if (textElement.innerText !== props.block.text) {
       textElement.innerText = props.block.text;
     }
@@ -72,7 +72,7 @@ class ParagraphView {
 
     const id = blockElement.dataset.blockid;
     const indent = Number(blockElement.querySelector<HTMLSpanElement>('[data-indent]')?.dataset?.indent);
-    const text = blockElement.querySelector<HTMLSpanElement>('[data-focusable]')?.innerText.replace(/\n/g, '');
+    const text = blockElement.querySelector<HTMLSpanElement>('[data-inline]')?.innerText.replace(/\n/g, '');
 
     if (text === undefined || Number.isNaN(indent)) {
       return null;
@@ -134,10 +134,10 @@ class TodoView {
           <input type="checkbox" class=${styles['todocheckbox']} ${this.props.block.attrs.done ? 'checked' : ''} />
         </div>
       `)}
-      <span class="${styles['text']}" data-focusable>${this.props.block.text}</span>
+      <span class="${styles['text']}" data-inline>${this.props.block.text}</span>
     `;
     if (!this.props.block.text) {
-      this.el.querySelector('[data-focusable]').appendChild(new Text(''));
+      this.el.querySelector('[data-inline]').appendChild(new Text(''));
     }
   }
 
@@ -149,7 +149,7 @@ class TodoView {
       indentElement.dataset.indent = String(props.block.indent);
     }
 
-    const textElement = this.el.querySelector<HTMLSpanElement>('[data-focusable]');
+    const textElement = this.el.querySelector<HTMLSpanElement>('[data-inline]');
     if (textElement.innerText !== props.block.text) {
       textElement.innerText = props.block.text;
     }
@@ -169,7 +169,7 @@ class TodoView {
 
     const id = blockElement.dataset.blockid;
     const indent = Number(blockElement.querySelector<HTMLSpanElement>('[data-indent]')?.dataset?.indent);
-    const text = blockElement.querySelector<HTMLSpanElement>('[data-focusable]')?.innerText.replace(/\n/g, '');
+    const text = blockElement.querySelector<HTMLSpanElement>('[data-inline]')?.innerText.replace(/\n/g, '');
     const done = blockElement.querySelector<HTMLInputElement>('input[type="checkbox"]')?.checked;
 
     if (text === undefined || Number.isNaN(indent)) {
@@ -251,9 +251,9 @@ class HeadingView {
     this.el.classList.add(styles[`heading${level}block`]);
     this.el.innerHTML = `${templates.decoration(
       `${templates.indentation(this.props.block.indent)}${templates.handle()}`,
-    )}<h${level} style="${styles['text']}" data-focusable>${this.props.block.text}</h${level}>`;
+    )}<h${level} style="${styles['text']}" data-inline>${this.props.block.text}</h${level}>`;
     if (!this.props.block.text) {
-      this.el.querySelector('[data-focusable]').appendChild(new Text(''));
+      this.el.querySelector('[data-inline]').appendChild(new Text(''));
     }
   }
 
@@ -265,12 +265,12 @@ class HeadingView {
       indentElement.dataset.indent = String(props.block.indent);
     }
 
-    const textElement = this.el.querySelector<HTMLSpanElement>('[data-focusable]');
+    const textElement = this.el.querySelector<HTMLSpanElement>('[data-inline]');
     if (textElement.innerText !== props.block.text) {
       textElement.innerText = props.block.text;
     }
 
-    const headingElement = this.el.querySelector<HTMLHeadingElement>('[data-focusable]');
+    const headingElement = this.el.querySelector<HTMLHeadingElement>('[data-inline]');
     const level = Number(headingElement.tagName.replace('H', ''));
     if (level !== props.block.attrs.level) {
       this.el.classList.remove(styles[`heading${level}block`]);
@@ -290,9 +290,9 @@ class HeadingView {
 
     const id = blockElement.dataset.blockid;
     const indent = Number(blockElement.querySelector<HTMLSpanElement>('[data-indent]')?.dataset?.indent);
-    const text = blockElement.querySelector<HTMLSpanElement>('[data-focusable]')?.innerText.replace(/\n/g, '');
+    const text = blockElement.querySelector<HTMLSpanElement>('[data-inline]')?.innerText.replace(/\n/g, '');
     const level = Number(
-      blockElement.querySelector<HTMLHeadingElement>('[data-focusable]').tagName.replace('H', ''),
+      blockElement.querySelector<HTMLHeadingElement>('[data-inline]').tagName.replace('H', ''),
     ) as HeadingLevel;
 
     if (text === undefined || Number.isNaN(indent)) {

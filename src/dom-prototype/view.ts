@@ -349,9 +349,9 @@ export class PaperView {
   private keepCursor(cursor: Cursor) {
     this.afterRendering(() => {
       if (cursor.anchorId) {
-        const anchorNode: ChildNode = this.el.querySelector(`[data-blockid="${cursor.anchorId}"] [data-focusable]`)
+        const anchorNode: ChildNode = this.el.querySelector(`[data-blockid="${cursor.anchorId}"] [data-inline]`)
           .childNodes[0];
-        const focusNode: ChildNode = this.el.querySelector(`[data-blockid="${cursor.focusId}"] [data-focusable]`)
+        const focusNode: ChildNode = this.el.querySelector(`[data-blockid="${cursor.focusId}"] [data-inline]`)
           .childNodes[0];
         this.focus(anchorNode, cursor.anchorOffset, focusNode, cursor.focusOffset);
       }
@@ -401,7 +401,7 @@ export class PaperView {
             commands.splitBlock(ctx);
             this.afterRendering(() => {
               const nextBlock = this.props.paper.findNextBlock(ctx.cursor.anchorId);
-              const anchorNode: ChildNode = this.el.querySelector(`[data-blockid="${nextBlock.id}"] [data-focusable]`);
+              const anchorNode: ChildNode = this.el.querySelector(`[data-blockid="${nextBlock.id}"] [data-inline]`);
               this.focus(anchorNode, 0);
             });
             this.props.paper.commit();
@@ -448,7 +448,7 @@ export class PaperView {
         const pos = Math.max(cursor.anchorOffset - (new Text(val).length - new Text(result.text).length), 0);
         this.afterRendering(() => {
           const blockElement = this.map[block.id].el;
-          const focusableElement = this.map[block.id].el.querySelector('[data-focusable]').childNodes[0];
+          const focusableElement = this.map[block.id].el.querySelector('[data-inline]').childNodes[0];
           if (block.text !== null) {
             this.focus(focusableElement, pos);
           } else {
