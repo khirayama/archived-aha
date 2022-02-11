@@ -93,8 +93,11 @@ export const commands = {
       const block = ctx.paper.blocks[i];
       if (block.id === start.id) {
         isRemoved = true;
-        const t = new Text(block.text);
-        t.splitText(start.offset);
+        const text = block.text !== null ? block.text : '';
+        const t = new Text(text);
+        if (block.text !== null) {
+          t.splitText(start.offset);
+        }
         newBlocks.push({
           ...block,
           text: t.wholeText,
@@ -102,9 +105,10 @@ export const commands = {
       }
       if (block.id === end.id) {
         isRemoved = false;
-        const t = new Text(block.text);
-        const newText = t.splitText(end.offset);
-        const currentSchema = ctx.schema.find(block.type);
+        const text = block.text !== null ? block.text : '';
+        const t = new Text(text);
+        const newText = block.text !== null ? t.splitText(end.offset) : new Text('');
+        const currentSchema = ctx.schema.find(ctx.paper.findBlock(start.id).type);
         const defaultSchema = ctx.schema.defaultSchema();
         const newBlock =
           currentSchema.isContinuation !== false
