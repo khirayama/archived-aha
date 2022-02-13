@@ -349,8 +349,10 @@ export class PaperView {
   private keepCursor(cursor: Cursor) {
     this.afterRendering(() => {
       if (cursor.anchorId) {
+        // TODO support data-focusable
         const anchorNode: ChildNode = this.el.querySelector(`[data-blockid="${cursor.anchorId}"] [data-inline]`)
           .childNodes[0];
+        // TODO support data-focusable
         const focusNode: ChildNode = this.el.querySelector(`[data-blockid="${cursor.focusId}"] [data-inline]`)
           .childNodes[0];
         this.focus(anchorNode, cursor.anchorOffset, focusNode, cursor.focusOffset);
@@ -401,6 +403,7 @@ export class PaperView {
             commands.splitBlock(ctx);
             this.afterRendering(() => {
               const nextBlock = this.props.paper.findNextBlock(ctx.cursor.anchorId);
+              // TODO support data-focusable
               const anchorNode: ChildNode = this.el.querySelector(`[data-blockid="${nextBlock.id}"] [data-inline]`);
               this.focus(anchorNode, 0);
             });
@@ -413,6 +416,10 @@ export class PaperView {
         if (this.props.paper.blocks.length === 1 && this.props.paper.blocks[0].text.length === 0) {
           event.preventDefault();
         }
+        /* TODO 先頭でBackspaceの振る舞い
+         * - paragaraphに変換
+         * - outdentはいらないか
+         */
         break;
       }
       case 'Tab': {
@@ -448,6 +455,7 @@ export class PaperView {
         const pos = Math.max(cursor.anchorOffset - (new Text(val).length - new Text(result.text).length), 0);
         this.afterRendering(() => {
           const blockElement = this.map[block.id].el;
+          // TODO support data-focusable
           const focusableElement = this.map[block.id].el.querySelector('[data-inline]').childNodes[0];
           if (block.text !== null) {
             this.focus(focusableElement, pos);
