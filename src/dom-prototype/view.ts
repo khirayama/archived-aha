@@ -455,7 +455,7 @@ export class PaperView {
         this.afterRendering(() => {
           const blockElement = this.map[block.id].el;
           // TODO support data-focusable
-          const focusableElement = this.map[block.id].el.querySelector('[data-inline]').childNodes[0];
+          const focusableElement = blockElement.querySelector('[data-inline]').childNodes[0];
           if (block.text !== null) {
             this.focus(focusableElement, pos);
           } else {
