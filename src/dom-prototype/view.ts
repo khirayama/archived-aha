@@ -350,10 +350,15 @@ export class PaperView {
     // TODO support data-focusable
     this.afterRendering(() => {
       if (cursor.anchorId) {
-        const anchorNode: ChildNode = this.el.querySelector(`[data-blockid="${cursor.anchorId}"] [data-inline]`)
-          .childNodes[0];
-        const focusNode: ChildNode = this.el.querySelector(`[data-blockid="${cursor.focusId}"] [data-inline]`)
-          .childNodes[0];
+        const block = this.props.paper.findBlock(cursor.anchorId);
+        const anchorNode: ChildNode =
+          block.text !== null
+            ? this.el.querySelector(`[data-blockid="${cursor.anchorId}"] [data-inline]`).childNodes[0]
+            : this.el.querySelector(`[data-blockid="${cursor.anchorId}"] [data-focusable]`);
+        const focusNode: ChildNode =
+          block.text !== null
+            ? this.el.querySelector(`[data-blockid="${cursor.focusId}"] [data-inline]`).childNodes[0]
+            : this.el.querySelector(`[data-blockid="${cursor.focusId}"] [data-focusable]`);
         this.focus(anchorNode, cursor.anchorOffset, focusNode, cursor.focusOffset);
       }
     });
