@@ -347,12 +347,11 @@ export class PaperView {
   }
 
   private keepCursor(cursor: Cursor) {
+    // TODO support data-focusable
     this.afterRendering(() => {
       if (cursor.anchorId) {
-        // TODO support data-focusable
         const anchorNode: ChildNode = this.el.querySelector(`[data-blockid="${cursor.anchorId}"] [data-inline]`)
           .childNodes[0];
-        // TODO support data-focusable
         const focusNode: ChildNode = this.el.querySelector(`[data-blockid="${cursor.focusId}"] [data-inline]`)
           .childNodes[0];
         this.focus(anchorNode, cursor.anchorOffset, focusNode, cursor.focusOffset);
