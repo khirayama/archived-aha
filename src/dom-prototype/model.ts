@@ -66,17 +66,17 @@ export class Paper {
     return blocks;
   }
 
-  public findNextBlock(blockId: string): Block | null {
+  public findNextBlock(currentBlockId: string): Block | null {
     for (let i = 0; i < this.blocks.length; i += 1) {
-      if (this.blocks[i].id === blockId) {
+      if (this.blocks[i].id === currentBlockId) {
         return this.blocks[i + 1] || null;
       }
     }
   }
 
-  public findPrevBlock(blockId: string): Block | null {
+  public findPrevBlock(currentBlockId: string): Block | null {
     for (let i = 0; i < this.blocks.length; i += 1) {
-      if (this.blocks[i].id === blockId) {
+      if (this.blocks[i].id === currentBlockId) {
         return this.blocks[i - 1] || null;
       }
     }
