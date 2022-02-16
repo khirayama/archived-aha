@@ -337,7 +337,7 @@ export class PaperView {
     });
   }
 
-  private focus(anchorNode: ChildNode, anchorOffset: number, focusNode?: ChildNode, focusOffset?: number) {
+  private focus(anchorNode: Node, anchorOffset: number, focusNode?: Node, focusOffset?: number) {
     const range = document.createRange();
     range.setStart(anchorNode, anchorOffset);
     range.setEnd(focusNode || anchorNode, focusOffset !== undefined ? focusOffset : anchorOffset);
@@ -350,14 +350,14 @@ export class PaperView {
     this.afterRendering(() => {
       if (cursor.anchorId) {
         const block = this.props.paper.findBlock(cursor.anchorId);
-        const anchorNode: ChildNode =
+        const anchorNode: Node =
           block.text !== null
             ? this.el.querySelector(`[data-blockid="${cursor.anchorId}"] [data-inline]`).childNodes[0]
-            : this.el.querySelector(`[data-blockid="${cursor.anchorId}"] [data-focusable]`);
-        const focusNode: ChildNode =
+            : this.el.querySelector(`[data-blockid="${cursor.anchorId}"] [data-focusable]`).parentNode;
+        const focusNode: Node =
           block.text !== null
             ? this.el.querySelector(`[data-blockid="${cursor.focusId}"] [data-inline]`).childNodes[0]
-            : this.el.querySelector(`[data-blockid="${cursor.focusId}"] [data-focusable]`);
+            : this.el.querySelector(`[data-blockid="${cursor.focusId}"] [data-focusable]`).parentNode;
         this.focus(anchorNode, cursor.anchorOffset, focusNode, cursor.focusOffset);
       }
     });
@@ -374,6 +374,14 @@ export class PaperView {
     // const meta = event.metaKey;
     const shift = event.shiftKey;
     const ctrl = event.ctrlKey;
+
+    if (!ctrl && this.props.paper.findBlock(ctx.cursor.anchorId)?.text === null) {
+      if (key === 'ArrowLeft' || key === 'ArrowRight' || key === 'ArrowUp' || key === 'ArrowDown') {
+        // noop
+      } else {
+        event.preventDefault();
+      }
+    }
 
     switch (key) {
       case 'b': {
