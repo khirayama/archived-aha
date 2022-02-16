@@ -230,8 +230,6 @@ export class PaperView {
     });
 
     this.el.addEventListener('pointerup', (event) => {
-      this.keepCursor(this.getCursor());
-
       const els = document.querySelectorAll('.' + styles['is_handling']);
       for (let i = 0; i < els.length; i += 1) {
         const el = els[i];
@@ -249,6 +247,7 @@ export class PaperView {
       }
 
       if (sort.targetId && sort.toId) {
+        this.keepCursor(this.getCursor());
         const ctx: CommandContext = {
           schema: this.props.schema,
           paper: this.props.paper,
