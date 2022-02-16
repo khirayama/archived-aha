@@ -311,6 +311,7 @@ export class PaperView {
 
   private getCursor(): Cursor | null {
     const sel = window.getSelection();
+    // TODO Support focusable block offset
     const cursor: Cursor = {
       isCollapsed: sel.isCollapsed,
       anchorId: null,
