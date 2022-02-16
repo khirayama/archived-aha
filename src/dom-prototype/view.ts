@@ -310,7 +310,7 @@ export class PaperView {
 
   private getCursor(): Cursor | null {
     const sel = window.getSelection();
-    // TODO Support focusable block offset
+    /* FYI Doesn't need to support data-focusable */
     const cursor: Cursor = {
       isCollapsed: sel.isCollapsed,
       anchorId: null,
@@ -347,7 +347,6 @@ export class PaperView {
   }
 
   private keepCursor(cursor: Cursor) {
-    // TODO support data-focusable
     this.afterRendering(() => {
       if (cursor.anchorId) {
         const block = this.props.paper.findBlock(cursor.anchorId);
@@ -407,7 +406,7 @@ export class PaperView {
             commands.splitBlock(ctx);
             this.afterRendering(() => {
               const nextBlock = this.props.paper.findNextBlock(ctx.cursor.anchorId);
-              // TODO support data-focusable
+              /* FYI Doesn't need to support data-focusable */
               const anchorNode: ChildNode = this.el.querySelector(`[data-blockid="${nextBlock.id}"] [data-inline]`);
               this.focus(anchorNode, 0);
             });
@@ -459,7 +458,7 @@ export class PaperView {
         const pos = Math.max(cursor.anchorOffset - (new Text(val).length - new Text(result.text).length), 0);
         this.afterRendering(() => {
           const blockElement = this.map[block.id].el;
-          // TODO support data-focusable
+          /* FYI Doesn't need to support data-focusable */
           const focusableElement = blockElement.querySelector('[data-inline]').childNodes[0];
           if (block.text !== null) {
             this.focus(focusableElement, pos);
