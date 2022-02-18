@@ -92,11 +92,11 @@ export const paragraphSchema: SchemaType = {
   create: (block: Partial<ParagraphBlock>): ParagraphBlock => {
     return {
       id: uuid(),
-      text: '',
       indent: 0,
       ...block,
       type: 'paragraph',
       attrs: null,
+      text: block.text || '',
     };
   },
   view: ParagraphView,
