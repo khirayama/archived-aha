@@ -386,25 +386,25 @@ class ImageView {
   }
 
   public static toBlock(blockElement: HTMLDivElement): ImageBlock {
-    if (!blockElement) {
+    try {
+      const id = blockElement.dataset.blockid;
+      const indent = Number(blockElement.querySelector<HTMLSpanElement>('[data-indent]')?.dataset?.indent);
+      const src = blockElement.querySelector<HTMLImageElement>('img').src;
+      const caption = blockElement.querySelector<HTMLImageElement>('img').alt;
+
+      return {
+        type: 'image',
+        id,
+        indent,
+        text: null,
+        attrs: {
+          src,
+          caption,
+        },
+      };
+    } catch (e) {
       return null;
     }
-
-    const id = blockElement.dataset.blockid;
-    const indent = Number(blockElement.querySelector<HTMLSpanElement>('[data-indent]')?.dataset?.indent);
-    const src = blockElement.querySelector<HTMLImageElement>('img').src;
-    const caption = blockElement.querySelector<HTMLImageElement>('img').alt;
-
-    return {
-      type: 'image',
-      id,
-      indent,
-      text: null,
-      attrs: {
-        src,
-        caption,
-      },
-    };
   }
 }
 
