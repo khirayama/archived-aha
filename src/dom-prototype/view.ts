@@ -36,9 +36,11 @@ class BlockView {
   }
 
   public update(props: BlockViewProps) {
+    const prevProps = this.props;
     this.props = props;
+
     const schema = props.schema.find(props.block.type);
-    if (this.child.props.block.type !== this.props.block.type) {
+    if (prevProps.block.type !== this.props.block.type) {
       const view = new schema.view(this.props);
       this.el.replaceChild(view.el, this.child.el);
       this.child = view;
