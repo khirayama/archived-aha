@@ -377,30 +377,34 @@ export class PaperView {
     const shift = event.shiftKey;
     const ctrl = event.ctrlKey;
 
-    if (!ctrl && this.props.paper.findBlock(ctx.cursor.anchorId)?.text === null) {
-      if (key === 'ArrowLeft' || key === 'ArrowRight' || key === 'ArrowUp' || key === 'ArrowDown') {
-        // noop
-      } else {
-        event.preventDefault();
-      }
-    }
-
     switch (key) {
       case 'b': {
         if (ctrl) {
           event.preventDefault();
+        } else {
+          if (ctx.cursor.isCollapsed && this.props.paper.findBlock(ctx.cursor.anchorId)?.text === null) {
+            event.preventDefault();
+          }
         }
         break;
       }
       case 'i': {
         if (ctrl) {
           event.preventDefault();
+        } else {
+          if (ctx.cursor.isCollapsed && this.props.paper.findBlock(ctx.cursor.anchorId)?.text === null) {
+            event.preventDefault();
+          }
         }
         break;
       }
       case 's': {
         if (ctrl) {
           event.preventDefault();
+        } else {
+          if (ctx.cursor.isCollapsed && this.props.paper.findBlock(ctx.cursor.anchorId)?.text === null) {
+            event.preventDefault();
+          }
         }
         break;
       }
@@ -427,12 +431,30 @@ export class PaperView {
       }
       case 'Backspace': {
         if (this.props.paper.blocks.length === 1 && this.props.paper.blocks[0].text.length === 0) {
+          /* FYI Keep at least 1 block */
           event.preventDefault();
         }
-        /* TODO 先頭でBackspaceの振る舞い
-         * - paragaraphに変換
-         * - outdentはいらないか
-         */
+
+        if (ctx.cursor.isCollapsed) {
+          const defaultSchema = this.props.schema.defaultSchema();
+          const block = this.props.paper.findBlock(ctx.cursor.anchorId);
+          if (block.text !== null) {
+            if (ctx.cursor.anchorOffset === 0 && block.type !== defaultSchema.type) {
+              event.preventDefault();
+              commands.turnInto(ctx, defaultSchema.type, { ...block });
+              this.props.paper.commit();
+              this.keepCursor(ctx.cursor);
+            }
+          } else {
+            event.preventDefault();
+            commands.turnInto(ctx, defaultSchema.type, { ...block });
+            this.props.paper.commit();
+            this.afterRendering(() => {
+              const focusableElement = this.map[block.id].el.querySelector('[data-inline]').childNodes[0];
+              this.focus(focusableElement, 0);
+            });
+          }
+        }
         break;
       }
       case 'Tab': {
