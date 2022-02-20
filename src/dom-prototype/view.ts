@@ -469,6 +469,17 @@ export class PaperView {
         this.props.paper.commit();
         break;
       }
+      default: {
+        if (!ctrl) {
+          if (
+            ctx.cursor.isCollapsed &&
+            this.props.paper.findBlock(ctx.cursor.anchorId)?.text === null &&
+            ['ArrowLeft', 'ArrowUp', 'ArrowRight', 'ArrowDown'].indexOf(key) === -1
+          ) {
+            event.preventDefault();
+          }
+        }
+      }
     }
   }
 
