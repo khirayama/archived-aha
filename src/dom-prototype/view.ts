@@ -290,6 +290,7 @@ export class PaperView {
       const block = this.props.paper.findBlock(id);
       if (block) {
         const schema = this.props.schema.find(block.type);
+        // TODO return Blocks?
         const newBlock = schema.view.toBlock(el);
         if (newBlock) {
           newBlocks.push(newBlock);
