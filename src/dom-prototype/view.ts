@@ -290,19 +290,35 @@ export class PaperView {
       const block = this.props.paper.findBlock(id);
       if (block) {
         const schema = this.props.schema.find(block.type);
-        // TODO return Blocks?
-        const newBlock = schema.view.toBlock(el);
-        if (newBlock) {
-          newBlocks.push(newBlock);
-          if (!deepEqual(newBlock, block)) {
-            this.map[newBlock.id].update({
-              paper: this.props.paper,
-              schema: this.props.schema,
-              block: newBlock,
-            });
+        if (block.text !== null) {
+          const newBlock = schema.view.toBlock(el);
+          if (newBlock) {
+            newBlocks.push(newBlock);
+            if (!deepEqual(newBlock, block)) {
+              this.map[newBlock.id].update({
+                paper: this.props.paper,
+                schema: this.props.schema,
+                block: newBlock,
+              });
+            }
+          } else {
+            this.removeBlock(id);
           }
         } else {
-          this.removeBlock(id);
+          const newBlock = schema.view.toBlock(el);
+          // TODO Append text when nontext block has text
+          if (newBlock) {
+            newBlocks.push(newBlock);
+            if (!deepEqual(newBlock, block)) {
+              this.map[newBlock.id].update({
+                paper: this.props.paper,
+                schema: this.props.schema,
+                block: newBlock,
+              });
+            }
+          } else {
+            this.removeBlock(id);
+          }
         }
       } else {
         this.removeBlock(id);
