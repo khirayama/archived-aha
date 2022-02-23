@@ -306,6 +306,10 @@ export class PaperView {
           }
         } else {
           const newBlock = schema.view.toBlock(el);
+          const dupNode = el.cloneNode(true);
+          const decoNode = dupNode.querySelector('.' + styles['decoration']);
+          decoNode.parentNode.removeChild(decoNode);
+          console.log(dupNode.innerText);
           // TODO Append text when nontext block has text
           if (newBlock) {
             newBlocks.push(newBlock);
