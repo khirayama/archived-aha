@@ -505,6 +505,10 @@ export class PaperView {
   }
 
   private onInput() {
+    // TODO ここでsyncを呼び出して、MutationObserverやめる？
+    // this.keepCursor(this.getCursor());
+    // this.update(this.props);
+
     const cursor = this.getCursor();
     const block = this.props.paper.findBlock(cursor.anchorId);
     if (cursor.isCollapsed && block && block.text !== null) {
