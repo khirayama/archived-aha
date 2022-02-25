@@ -290,39 +290,18 @@ export class PaperView {
       const block = this.props.paper.findBlock(id);
       if (block) {
         const schema = this.props.schema.find(block.type);
-        if (block.text !== null) {
-          const newBlock = schema.view.toBlock(el);
-          if (newBlock) {
-            newBlocks.push(newBlock);
-            if (!deepEqual(newBlock, block)) {
-              this.map[newBlock.id].update({
-                paper: this.props.paper,
-                schema: this.props.schema,
-                block: newBlock,
-              });
-            }
-          } else {
-            this.removeBlock(id);
+        const newBlock = schema.view.toBlock(el);
+        if (newBlock) {
+          newBlocks.push(newBlock);
+          if (!deepEqual(newBlock, block)) {
+            this.map[newBlock.id].update({
+              paper: this.props.paper,
+              schema: this.props.schema,
+              block: newBlock,
+            });
           }
         } else {
-          const newBlock = schema.view.toBlock(el);
-          const dupNode = el.cloneNode(true);
-          const decoNode = dupNode.querySelector('.' + styles['decoration']);
-          decoNode.parentNode.removeChild(decoNode);
-          console.log(dupNode.innerText);
-          // TODO Append text when nontext block has text
-          if (newBlock) {
-            newBlocks.push(newBlock);
-            if (!deepEqual(newBlock, block)) {
-              this.map[newBlock.id].update({
-                paper: this.props.paper,
-                schema: this.props.schema,
-                block: newBlock,
-              });
-            }
-          } else {
-            this.removeBlock(id);
-          }
+          this.removeBlock(id);
         }
       } else {
         this.removeBlock(id);
