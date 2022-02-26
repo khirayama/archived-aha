@@ -20,7 +20,7 @@ export type SchemaType = {
   type: string;
   component: React.FC;
   attrs?: {};
-  inputRule?: RegExp;
+  inputRule?: [RegExp, Function?];
   groupsToAttrs?: Function;
   isContinuation?: Boolean;
   create: Function;
@@ -81,14 +81,16 @@ type HeadingBlock = BaseBlock & {
 export const headingSchema = {
   type: 'heading',
   isContinuation: false,
-  inputRule: /^(?<level>#*)\s/,
-  groupsToAttrs: (groups: { level: string }) => {
-    const l = groups.level.length;
-    const level = Math.max(Math.min(l, 6), 0);
-    return {
-      level,
-    };
-  },
+  inputRule: [
+    /^(?<level>#*)\s/,
+    (groups: { level: string }) => {
+      const l = groups.level.length;
+      const level = Math.max(Math.min(l, 6), 0);
+      return {
+        level,
+      };
+    },
+  ],
   create: (block: Partial<HeadingBlock>): HeadingBlock => {
     return {
       ...createBaseBlock(block),
@@ -118,7 +120,7 @@ type ListBlock = BaseBlock & {
 
 export const listSchema = {
   type: 'list',
-  inputRule: /^[-+*]\s/,
+  inputRule: [/^[-+*]\s/],
   create: (block: Partial<ListBlock>): ListBlock => {
     return {
       ...createBaseBlock(block),
@@ -146,12 +148,14 @@ type TodoBlock = BaseBlock & {
 
 export const todoSchema = {
   type: 'todo',
-  inputRule: /^\[(?<done>.*)\]\s/,
-  groupsToAttrs: (groups: { done: string }) => {
-    return {
-      done: !!groups.done.trim(),
-    };
-  },
+  inputRule: [
+    /^\[(?<done>.*)\]\s/,
+    (groups: { done: string }) => {
+      return {
+        done: !!groups.done.trim(),
+      };
+    },
+  ],
   action: (ctx: CommandContext) => {
     const newBlocks = ctx.paper.blocks.map((b) => {
       if (ctx.block.id === b.id && b.type === 'todo') {
@@ -210,7 +214,7 @@ type ImageBlock = BaseBlock & {
 
 export const imageSchema = {
   type: 'image',
-  inputRule: /^\!\[(?<caption>.*)\]\((?<src>.*)\)\s/,
+  inputRule: [/^\!\[(?<caption>.*)\]\((?<src>.*)\)\s/],
   create: (block: Partial<ImageBlock>): ImageBlock => {
     return {
       ...createBaseBlock(block),
@@ -264,12 +268,12 @@ export class Schema {
     for (let i = 0; i < this.schemas.length; i += 1) {
       const schema = this.schemas[i];
       if (schema.inputRule) {
-        if (schema.inputRule.test(text)) {
-          const result = schema.inputRule.exec(text);
-          const attrs = (schema.groupsToAttrs ? schema.groupsToAttrs(result.groups) : result.groups) || null;
+        if (schema.inputRule[0].test(text)) {
+          const result = schema.inputRule[0].exec(text);
+          const attrs = (schema.inputRule[1] ? schema.inputRule[1](result.groups) : result.groups) || null;
           return {
             schema,
-            text: text.replace(schema.inputRule, ''),
+            text: text.replace(schema.inputRule[0], ''),
             attrs,
           };
         }
