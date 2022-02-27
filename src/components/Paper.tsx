@@ -292,7 +292,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
     } else if (key === 'Tab' && shift) {
       event.preventDefault();
       commands.outdent(ctx);
-    } else if (key === 'ArrowDown' && !shift) {
+    } else if ((key === 'ArrowDown' && !shift) || (key === 'ArrowRight' && !shift)) {
       if (sel.isCollapsed && (sel.focusNode as Text).length === sel.focusOffset) {
         event.preventDefault();
         const nextBlock = paper.findNextBlock(block.id);
@@ -306,7 +306,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
           }
         }
       }
-    } else if (key === 'ArrowUp' && !shift) {
+    } else if ((key === 'ArrowUp' && !shift) || (key === 'ArrowLeft' && !shift)) {
       if (sel.isCollapsed && sel.anchorOffset === 0) {
         event.preventDefault();
         const prevBlock = this.props.paper.findPrevBlock(block.id);
