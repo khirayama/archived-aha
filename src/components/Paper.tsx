@@ -292,7 +292,21 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
     } else if (key === 'Tab' && shift) {
       event.preventDefault();
       commands.outdent(ctx);
-    } else if ((key === 'ArrowDown' && !shift) || (key === 'ArrowRight' && !shift)) {
+    } else if (key === 'ArrowDown' && !shift) {
+      if (sel.isCollapsed) {
+        event.preventDefault();
+        const nextBlock = paper.findNextBlock(block.id);
+        if (nextBlock) {
+          const nextBlockEl = this.findBlockElement(nextBlock.id);
+          const nextFocusableElement = this.findFocusableElementFromBlockElement(nextBlockEl);
+          if (nextBlock.text !== null) {
+            this.focus(this.extractTextNodeFromFocusableElement(nextFocusableElement), new Text(nextBlock.text).length);
+          } else {
+            this.focus(nextFocusableElement, nextFocusableElement.childNodes.length);
+          }
+        }
+      }
+    } else if (key === 'ArrowRight' && !shift) {
       if (sel.isCollapsed && (sel.focusNode as Text).length === sel.focusOffset) {
         event.preventDefault();
         const nextBlock = paper.findNextBlock(block.id);
@@ -306,8 +320,22 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
           }
         }
       }
-    } else if ((key === 'ArrowUp' && !shift) || (key === 'ArrowLeft' && !shift)) {
+    } else if (key === 'ArrowLeft' && !shift) {
       if (sel.isCollapsed && sel.anchorOffset === 0) {
+        event.preventDefault();
+        const prevBlock = this.props.paper.findPrevBlock(block.id);
+        if (prevBlock) {
+          const prevBlockEl = this.findBlockElement(prevBlock.id);
+          const prevFocusableElement = this.findFocusableElementFromBlockElement(prevBlockEl);
+          if (prevBlock.text !== null) {
+            this.focus(this.extractTextNodeFromFocusableElement(prevFocusableElement), new Text(prevBlock.text).length);
+          } else {
+            this.focus(prevFocusableElement, prevFocusableElement.childNodes.length);
+          }
+        }
+      }
+    } else if (key === 'ArrowUp' && !shift) {
+      if (sel.isCollapsed) {
         event.preventDefault();
         const prevBlock = this.props.paper.findPrevBlock(block.id);
         if (prevBlock) {
