@@ -510,7 +510,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
                 onFocusableClick={this.onFocusableClick}
                 onPaste={(event, props) => {
                   event.preventDefault();
-                  const content = event.clipboardData.getData('text');
+                  const content = event.clipboardData.getData('text').trim();
                   const blockTexts = content.split('\n');
 
                   const sel = window.getSelection();
@@ -537,6 +537,14 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
                               indent: ctx.block.indent,
                             });
                       console.log(newBlock);
+                      const newBlocks = [...ctx.paper.blocks];
+                      for (let i = 0; i < ctx.paper.blocks.length; i += 1) {
+                        if (newBlocks[i].id === ctx.block.id) {
+                          newBlocks.splice(i + 1, 0, newBlock);
+                          break;
+                        }
+                      }
+                      ctx.paper.setBlocks(newBlocks);
                     }
                   });
                   this.props.paper.commit();
