@@ -519,13 +519,26 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
                     schema: this.schema,
                     paper: this.props.paper,
                   };
-                  for (let i = 0; i < blockTexts.length; i += 1) {
-                    const blockText = blockTexts[i];
-                    const s = Math.min(sel.anchorOffset, sel.focusOffset);
-                    const e = Math.max(sel.anchorOffset, sel.focusOffset);
-                    commands.splitBlock(ctx, s, e);
-                    console.log(blockText.trim());
-                  }
+                  this.props.paper.tr(() => {
+                    for (let i = 0; i < blockTexts.length; i += 1) {
+                      const blockText = blockTexts[i];
+                      const s = Math.min(sel.anchorOffset, sel.focusOffset);
+                      const e = Math.max(sel.anchorOffset, sel.focusOffset);
+                      const defaultSchema = ctx.schema.defaultSchema();
+                      const currentSchema = ctx.schema.find(ctx.block.type);
+                      const newBlock =
+                        currentSchema.isContinuation !== false
+                          ? ctx.schema.createBlock(currentSchema.type as Block['type'], {
+                              text: blockText.trim(),
+                              indent: ctx.block.indent,
+                            })
+                          : ctx.schema.createBlock(defaultSchema.type as Block['type'], {
+                              text: blockText.trim(),
+                              indent: ctx.block.indent,
+                            });
+                      console.log(newBlock);
+                    }
+                  });
                   this.props.paper.commit();
                 }}
               />
