@@ -527,8 +527,6 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
                       const defaultSchema = ctx.schema.defaultSchema();
                       const currentSchema = ctx.schema.find(ctx.block.type);
                       // TODO 最初の文字列は、今いるブロックに結合
-                      // TODO 一旦DOMにしたほうがいいかも、画像とかサポート厳しい
-                      // TODO toBlockしたほうがいい？
                       // TODO inputRuleも適用
                       const newBlock =
                         currentSchema.isContinuation !== false
