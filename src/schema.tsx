@@ -21,7 +21,6 @@ export type SchemaType = {
   component: React.FC;
   attrs?: {};
   inputRule?: [RegExp, Function?];
-  groupsToAttrs?: Function;
   isContinuation?: Boolean;
   create: Function;
   action?: Function | null;
