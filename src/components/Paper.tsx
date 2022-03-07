@@ -538,7 +538,19 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
                               text: blockText.trim(),
                               indent: ctx.block.indent,
                             });
-                      console.log(newBlock);
+                      const value = newBlock.text || '';
+                      const result = this.schema.execInputRule(value);
+                      if (result) {
+                        ctx.block = newBlock;
+                        commands.updateText(ctx, result.text);
+                        commands.turnInto(ctx, result.schema.type as Block['type'], { attrs: result.attrs as any });
+                        const pos = Math.max(
+                          sel.focusOffset - (new Text(value).length - new Text(result.text).length),
+                          0,
+                        );
+                      } else {
+                        commands.updateText(ctx, value);
+                      }
                       const newBlocks = [...ctx.paper.blocks];
                       for (let i = 0; i < ctx.paper.blocks.length; i += 1) {
                         if (newBlocks[i].id === ctx.block.id) {
