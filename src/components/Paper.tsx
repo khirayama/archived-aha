@@ -519,48 +519,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
                     schema: this.schema,
                     paper: this.props.paper,
                   };
-                  this.props.paper.tr(() => {
-                    for (let i = 0; i < blockTexts.length; i += 1) {
-                      const blockText = blockTexts[i];
-                      const s = Math.min(sel.anchorOffset, sel.focusOffset);
-                      const e = Math.max(sel.anchorOffset, sel.focusOffset);
-                      const defaultSchema = ctx.schema.defaultSchema();
-                      const currentSchema = ctx.schema.find(ctx.block.type);
-                      // TODO 最初の文字列は、今いるブロックに結合
-                      // TODO inputRuleも適用
-                      const newBlock =
-                        currentSchema.isContinuation !== false
-                          ? ctx.schema.createBlock(currentSchema.type as Block['type'], {
-                              text: blockText.trim(),
-                              indent: ctx.block.indent,
-                            })
-                          : ctx.schema.createBlock(defaultSchema.type as Block['type'], {
-                              text: blockText.trim(),
-                              indent: ctx.block.indent,
-                            });
-                      const value = newBlock.text || '';
-                      const result = this.schema.execInputRule(value);
-                      if (result) {
-                        ctx.block = newBlock;
-                        commands.updateText(ctx, result.text);
-                        commands.turnInto(ctx, result.schema.type as Block['type'], { attrs: result.attrs as any });
-                        const pos = Math.max(
-                          sel.focusOffset - (new Text(value).length - new Text(result.text).length),
-                          0,
-                        );
-                      } else {
-                        commands.updateText(ctx, value);
-                      }
-                      const newBlocks = [...ctx.paper.blocks];
-                      for (let i = 0; i < ctx.paper.blocks.length; i += 1) {
-                        if (newBlocks[i].id === ctx.block.id) {
-                          newBlocks.splice(i + 1, 0, newBlock);
-                          break;
-                        }
-                      }
-                      ctx.paper.setBlocks(newBlocks);
-                    }
-                  });
+                  commands.paste(ctx);
                   this.props.paper.commit();
                 }}
               />
