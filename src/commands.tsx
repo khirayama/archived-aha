@@ -160,8 +160,6 @@ export const commands = {
       const blockTexts = content.split('\n');
       for (let i = 0; i < blockTexts.length; i += 1) {
         const blockText = blockTexts[i];
-        const s = Math.min(sel.anchorOffset, sel.focusOffset);
-        const e = Math.max(sel.anchorOffset, sel.focusOffset);
         const defaultSchema = ctx.schema.defaultSchema();
         const currentSchema = ctx.schema.find(ctx.block.type);
         // TODO 最初の文字列は、今いるブロックに結合
@@ -177,11 +175,10 @@ export const commands = {
                 indent: ctx.block.indent,
               });
         const value = newBlock.text || '';
-        const result = this.schema.execInputRule(value);
+        const result = ctx.schema.execInputRule(value);
         if (result) {
           commands.updateText(ctx, result.text);
           commands.turnInto(ctx, result.schema.type as Block['type'], { attrs: result.attrs as any });
-          const pos = Math.max(sel.focusOffset - (new Text(value).length - new Text(result.text).length), 0);
         } else {
           commands.updateText(ctx, value);
         }
