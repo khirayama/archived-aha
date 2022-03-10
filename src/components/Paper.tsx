@@ -510,16 +510,12 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
                 onFocusableClick={this.onFocusableClick}
                 onPaste={(event, props) => {
                   event.preventDefault();
-                  const content = event.clipboardData.getData('text').trim();
-                  const blockTexts = content.split('\n');
-
-                  const sel = window.getSelection();
                   const ctx: CommandContext = {
                     block,
                     schema: this.schema,
                     paper: this.props.paper,
                   };
-                  commands.paste(ctx);
+                  commands.paste(ctx, event.clipboardData.getData('text'));
                   this.props.paper.commit();
                 }}
               />
