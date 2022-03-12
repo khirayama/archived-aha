@@ -439,8 +439,20 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
           }
         }
       }
-    } else if (key === 'ArrowLeft' || key === 'ArrowRight') {
-      // noop()
+    } else if (key === 'ArrowRight' && !shift) {
+      if (sel.isCollapsed && sel.focusNode.childNodes.length === sel.focusOffset) {
+        event.preventDefault();
+        const nextBlock = paper.findNextBlock(block.id);
+        if (nextBlock) {
+          const nextBlockEl = this.findBlockElement(nextBlock.id);
+          const nextFocusableElement = this.findFocusableElementFromBlockElement(nextBlockEl);
+          if (nextBlock.text !== null) {
+            this.focus(this.extractTextNodeFromFocusableElement(nextFocusableElement), 0);
+          } else {
+            this.focus(nextFocusableElement, 0);
+          }
+        }
+      }
     } else if (!ctrl) {
       event.preventDefault();
     }
