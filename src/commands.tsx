@@ -156,8 +156,7 @@ export const commands = {
 
   paste: (ctx: CommandContext, text: string): CommandContext => {
     ctx.paper.tr(() => {
-      const content = text.trim();
-      const blockTexts = content.split('\n');
+      const blockTexts = text.split('\n');
       for (let i = 0; i < blockTexts.length; i += 1) {
         const blockText = blockTexts[i];
         const defaultSchema = ctx.schema.defaultSchema();
