@@ -541,7 +541,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
                     schema: this.schema,
                     paper: this.props.paper,
                   };
-                  commands.paste(ctx, event.clipboardData.getData('text/html'));
+                  commands.paste(ctx, event.clipboardData.getData('text'));
                   this.props.paper.commit();
                 }}
               />
