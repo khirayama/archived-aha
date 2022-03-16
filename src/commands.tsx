@@ -176,6 +176,7 @@ export const commands = {
         const value = newBlock.text || '';
         const result = ctx.schema.execInputRule(value);
         if (result) {
+          // TODO ctxがblockに依存してて正しく変換できない
           commands.updateText(ctx, result.text);
           commands.turnInto(ctx, result.schema.type as Block['type'], { attrs: result.attrs as any });
         } else {
