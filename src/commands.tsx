@@ -157,12 +157,12 @@ export const commands = {
   paste: (ctx: CommandContext, text: string): CommandContext => {
     ctx.paper.tr(() => {
       const blockTexts = text.split('\n');
+      const defaultSchema = ctx.schema.defaultSchema();
+      const currentSchema = ctx.schema.find(ctx.block.type);
+
       for (let i = 0; i < blockTexts.length; i += 1) {
         const blockText = blockTexts[i];
-        const defaultSchema = ctx.schema.defaultSchema();
-        const currentSchema = ctx.schema.find(ctx.block.type);
         // TODO 最初の文字列は、今いるブロックに結合
-        // TODO inputRuleも適用
         const newBlock =
           currentSchema.isContinuation !== false
             ? ctx.schema.createBlock(currentSchema.type as Block['type'], {
@@ -173,15 +173,17 @@ export const commands = {
                 text: blockText.trim(),
                 indent: ctx.block.indent,
               });
+
         const value = newBlock.text || '';
         const result = ctx.schema.execInputRule(value);
         if (result) {
-          // TODO ctxがblockに依存してて正しく変換できない
+          // TODO ctxがblockに依存しててinputRuleベースで正しく変換できない
           commands.updateText(ctx, result.text);
           commands.turnInto(ctx, result.schema.type as Block['type'], { attrs: result.attrs as any });
         } else {
           commands.updateText(ctx, value);
         }
+
         const newBlocks = [...ctx.paper.blocks];
         for (let i = 0; i < ctx.paper.blocks.length; i += 1) {
           if (newBlocks[i].id === ctx.block.id) {
