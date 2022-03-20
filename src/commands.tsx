@@ -160,6 +160,7 @@ export const commands = {
       const defaultSchema = ctx.schema.defaultSchema();
       const currentSchema = ctx.schema.find(ctx.block.type);
 
+      const blocks = [];
       for (let i = 0; i < blockTexts.length; i += 1) {
         const blockText = blockTexts[i];
         // TODO 最初の文字列は、今いるブロックに結合
@@ -183,16 +184,17 @@ export const commands = {
         } else {
           commands.updateText(ctx, value);
         }
-
-        const newBlocks = [...ctx.paper.blocks];
-        for (let i = 0; i < ctx.paper.blocks.length; i += 1) {
-          if (newBlocks[i].id === ctx.block.id) {
-            newBlocks.splice(i + 1, 0, newBlock);
-            break;
-          }
-        }
-        ctx.paper.setBlocks(newBlocks);
+        blocks.push(newBlock);
       }
+
+      const newBlocks = [...ctx.paper.blocks];
+      for (let i = 0; i < ctx.paper.blocks.length; i += 1) {
+        if (newBlocks[i].id === ctx.block.id) {
+          newBlocks.splice(i + 1, 0, ...blocks);
+          break;
+        }
+      }
+      ctx.paper.setBlocks(newBlocks);
     });
     return ctx;
   },
