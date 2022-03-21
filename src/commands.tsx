@@ -160,8 +160,17 @@ export const commands = {
       const defaultSchema = ctx.schema.defaultSchema();
       const currentSchema = ctx.schema.find(ctx.block.type);
 
+      let start = 0;
+      if (ctx.block.text !== null) {
+        start = 1;
+        // console.log(ctx.block, blockTexts[0].trim(), ctx.block.text + blockTexts[0].trim());
+        commands.updateText(ctx, ctx.block.text + blockTexts[0].trim());
+      }
+      console.log(ctx.block);
+      console.log(ctx.paper.blocks);
+
       const blocks = [];
-      for (let i = 0; i < blockTexts.length; i += 1) {
+      for (let i = start; i < blockTexts.length; i += 1) {
         const blockText = blockTexts[i];
         // TODO 最初の文字列は、今いるブロックに結合
         const newBlock =
