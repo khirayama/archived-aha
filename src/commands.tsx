@@ -164,7 +164,13 @@ export const commands = {
       if (ctx.block.text !== null) {
         start = 1;
         // console.log(ctx.block, blockTexts[0].trim(), ctx.block.text + blockTexts[0].trim());
-        commands.updateText(ctx, ctx.block.text + blockTexts[0].trim());
+        // commands.updateText(ctx, ctx.block.text + blockTexts[0].trim());
+        for (let i = 0; i < ctx.paper.blocks.length; i += 1) {
+          const block = ctx.paper.blocks[i];
+          if (block.id === ctx.block.id) {
+            block.text = block.text + blockTexts[0].trim();
+          }
+        }
       }
       console.log(ctx.block);
       console.log(ctx.paper.blocks);
