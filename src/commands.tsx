@@ -163,8 +163,6 @@ export const commands = {
       let start = 0;
       if (ctx.block.text !== null) {
         start = 1;
-        // console.log(ctx.block, blockTexts[0].trim(), ctx.block.text + blockTexts[0].trim());
-        // commands.updateText(ctx, ctx.block.text + blockTexts[0].trim());
         for (let i = 0; i < ctx.paper.blocks.length; i += 1) {
           const block = ctx.paper.blocks[i];
           if (block.id === ctx.block.id) {
@@ -172,8 +170,6 @@ export const commands = {
           }
         }
       }
-      console.log(ctx.block);
-      console.log(ctx.paper.blocks);
 
       const blocks = [];
       for (let i = start; i < blockTexts.length; i += 1) {
