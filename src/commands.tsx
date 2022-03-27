@@ -174,7 +174,6 @@ export const commands = {
       const blocks = [];
       for (let i = start; i < blockTexts.length; i += 1) {
         const blockText = blockTexts[i];
-        // TODO 最初の文字列は、今いるブロックに結合
         const newBlock =
           currentSchema.isContinuation !== false
             ? ctx.schema.createBlock(currentSchema.type as Block['type'], {
