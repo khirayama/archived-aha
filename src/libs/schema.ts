@@ -78,7 +78,7 @@ export const schema = new Schema({
             {
               class: styles['text'],
             },
-            ['span', 0],
+            0,
           ],
         ];
       },
