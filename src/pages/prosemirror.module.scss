@@ -1,4 +1,5 @@
 .paragraph {
+  display: flex;
   padding: 0.25rem;
 }
 
@@ -18,17 +19,18 @@
 
 .handle {
   display: inline-block;
-  width: 1rem;
-  background: rgba(155, 155, 155, 0.7);
   cursor: grab;
-  padding: 0;
+  padding: 0 4px;
 }
 
 .indentation {
-  display: inline-block;
+  // FYI Hack for contenteditable caret move
+  // If it doesn't have table attr, caret could not move to upper block
+  display: table;
 }
 
 .text {
+  flex: 1;
   // background: rgba(210, 100, 100, 1);
 }
 

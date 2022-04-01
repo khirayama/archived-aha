@@ -62,19 +62,27 @@ export const schema = new Schema({
             class: styles['paragraph'],
           },
           [
-            'span',
+            'div',
             {
               class: styles['handle'],
+              contentEditable: false,
             },
+            [
+              'span',
+              {
+                class: 'material-icons',
+              },
+              'drag_indicator',
+            ],
           ],
           [
-            'span',
+            'div',
             {
               class: styles['indentation'],
             },
           ],
           [
-            'span',
+            'div',
             {
               class: styles['text'],
             },
