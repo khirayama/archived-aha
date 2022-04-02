@@ -4,6 +4,8 @@ import { InputRule, inputRules } from 'prosemirror-inputrules';
 
 import styles from '../pages/prosemirror.module.scss';
 
+// TODO pasteしたときにindentの維持と合算が必要
+
 function createBlockNode(nodeSpec) {
   const attrs = {
     ...(nodeSpec.attrs || {}),
