@@ -57,7 +57,6 @@ export const schema = new Schema({
         return [
           'p',
           {
-            type: 'paragraph',
             class: styles['paragraph'],
           },
           [
@@ -94,19 +93,41 @@ export const schema = new Schema({
       parseDOM: [
         {
           tag: 'blockquote',
-          attrs: {
-            type: 'quote',
-          },
         },
       ],
       toDOM: (node) => {
         return [
           'blockquote',
           {
-            type: 'quote',
             class: styles['quote'],
           },
-          ['span', 0],
+          [
+            'span',
+            {
+              class: styles['handle'],
+              contentEditable: false,
+            },
+            [
+              'span',
+              {
+                class: 'material-icons',
+                'data-key': 'drag_indicator',
+              },
+            ],
+          ],
+          [
+            'span',
+            {
+              class: styles['indentation'],
+            },
+          ],
+          [
+            'span',
+            {
+              class: styles['text'],
+            },
+            0,
+          ],
         ];
       },
     }),
