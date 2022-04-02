@@ -21,6 +21,16 @@
   display: inline-block;
   cursor: grab;
   padding: 0 4px;
+  user-select: none;
+
+
+  span {
+    opacity: 0.2;
+    &:after {
+      display: inline-block;
+      content: attr(data-key);
+    }
+  }
 }
 
 .indentation {

@@ -51,9 +51,6 @@ export const schema = new Schema({
       parseDOM: [
         {
           tag: 'p',
-          attrs: {
-            type: 'paragraph',
-          },
         },
       ],
       toDOM: (node) => {
@@ -64,7 +61,7 @@ export const schema = new Schema({
             class: styles['paragraph'],
           },
           [
-            'div',
+            'span',
             {
               class: styles['handle'],
               contentEditable: false,
@@ -73,18 +70,18 @@ export const schema = new Schema({
               'span',
               {
                 class: 'material-icons',
+                'data-key': 'drag_indicator',
               },
-              'drag_indicator',
             ],
           ],
           [
-            'div',
+            'span',
             {
               class: styles['indentation'],
             },
           ],
           [
-            'div',
+            'span',
             {
               class: styles['text'],
             },
