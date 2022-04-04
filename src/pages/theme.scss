@@ -38,3 +38,7 @@ body,
   /* Support for IE. */
   font-feature-settings: 'liga';
 }
+
+.ProseMirror {
+  white-space: pre-wrap;
+}
