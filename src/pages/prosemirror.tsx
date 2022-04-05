@@ -27,7 +27,7 @@ let myPlugin = new Plugin({
     handleDOMEvents: {
       mousedown: function (view, event) {
         const el = event.target;
-        if (el.classList.contains(styles['handle'])) {
+        if (el.classList.contains(styles['handle']) || el.parentNode?.classList.contains(styles['handle'])) {
           this.sort = {
             start: el,
             end: null,
