@@ -5,7 +5,10 @@ import { InputRule, inputRules } from 'prosemirror-inputrules';
 import { view } from '../pages/prosemirror';
 import styles from '../pages/prosemirror.module.scss';
 
-// TODO pasteしたときにindentの維持と合算が必要
+/* FYI tmp is for additional indent for paste. */
+const tmp = {
+  indent: null,
+};
 
 function createBlockNode(nodeSpec) {
   const attrs = {
@@ -18,9 +21,16 @@ function createBlockNode(nodeSpec) {
   const originalGetAttrs = nodeSpec.parseDOM[0].getAttrs || (() => ({}));
   const getAttrs = (dom) => {
     const indent = Number(dom.getAttribute('indent'));
+    const state = view.state;
+    state.doc.nodesBetween(state.selection.from, state.selection.to, (node, pos) => {
+      if (node.type.attrs.indent && tmp.indent === null) {
+        tmp.indent = node.attrs.indent;
+        setTimeout(() => (tmp.indent = null), 0);
+      }
+    });
     return {
       ...originalGetAttrs(dom),
-      indent,
+      indent: Math.min(indent + tmp.indent, 8),
     };
   };
   nodeSpec.parseDOM[0].getAttrs = getAttrs;
