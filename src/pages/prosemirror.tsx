@@ -64,6 +64,8 @@ const preventTabKeyPlugin = new Plugin({
   },
 });
 
+export let view = null;
+
 function Editor(props) {
   const ref = useRef();
 
@@ -83,7 +85,7 @@ function Editor(props) {
       ],
     });
 
-    const view = new EditorView(ref.current, {
+    view = new EditorView(ref.current, {
       state,
       dispatchTransaction: (transaction) => {
         // console.log(transaction);

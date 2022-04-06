@@ -2,6 +2,7 @@ import { Schema } from 'prosemirror-model';
 import { schema as basicSchema } from 'prosemirror-schema-basic';
 import { InputRule, inputRules } from 'prosemirror-inputrules';
 
+import { view } from '../pages/prosemirror';
 import styles from '../pages/prosemirror.module.scss';
 
 // TODO pasteしたときにindentの維持と合算が必要
