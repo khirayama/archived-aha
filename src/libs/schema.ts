@@ -5,10 +5,8 @@ import { InputRule, inputRules } from 'prosemirror-inputrules';
 import { view } from '../pages/prosemirror';
 import styles from '../pages/prosemirror.module.scss';
 
-/* FYI tmp is for additional indent for paste. */
-const tmp = {
-  indent: null,
-};
+/* FYI indentContext is context of indentation for specific use cases such as pasting. */
+let indentContext: number | null = null;
 
 function createBlockNode(nodeSpec) {
   const attrs = {
@@ -23,14 +21,15 @@ function createBlockNode(nodeSpec) {
     const indent = Number(dom.getAttribute('indent'));
     const state = view.state;
     state.doc.nodesBetween(state.selection.from, state.selection.to, (node, pos) => {
-      if (node.type.attrs.indent && tmp.indent === null) {
-        tmp.indent = node.attrs.indent;
-        setTimeout(() => (tmp.indent = null), 0);
+      if (node.type.attrs.indent && indentContext === null) {
+        indentContext = node.attrs.indent;
+        /* FYI For keeing indentContext in one event */
+        setTimeout(() => (indentContext = null), 0);
       }
     });
     return {
       ...originalGetAttrs(dom),
-      indent: Math.min(indent + tmp.indent, 8),
+      indent: Math.min(indent + indentContext, 8),
     };
   };
   nodeSpec.parseDOM[0].getAttrs = getAttrs;
