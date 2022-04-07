@@ -26,24 +26,43 @@ let myPlugin = new Plugin({
   props: {
     handleDOMEvents: {
       mousedown: function (view, event) {
-        const el = event.target;
-        if (el.classList.contains(styles['handle']) || el.parentNode?.classList.contains(styles['handle'])) {
-          this.sort = {
-            start: el,
-            end: null,
-          };
+        let el = event.target;
+        while (!el.classList.contains(styles['handle']) && el !== document.body) {
+          el = el.parentNode;
         }
+
+        if (el == document.body) {
+          return;
+        }
+
+        this.sort = {
+          start: el.parentNode,
+          end: null,
+        };
       },
       mousemove: function (view, event) {
         if (this.sort && this.sort.start) {
           event.preventDefault();
+          let blockEl = event.target;
+          while (blockEl.getAttribute('indent') === null) {
+            blockEl = blockEl.parentNode;
+          }
 
-          this.sort.end = event.target;
+          this.sort.end = blockEl;
         }
       },
       mouseup: function (view, event) {
         if (this.sort && this.sort.start && this.sort.end) {
-          console.log(this.sort);
+          const els = document.querySelectorAll('[indent]');
+          let position = 'afterend';
+          for (let i = 0; i < els.length; i += 1) {
+            const el = els[i];
+            if (el === this.sort.start || el === this.sort.end) {
+              position = this.sort.start === el ? 'afterend' : 'beforebegin';
+              break;
+            }
+          }
+          this.sort.end.insertAdjacentElement(position, this.sort.start);
           this.sort = {
             start: null,
             end: null,
@@ -88,7 +107,6 @@ function Editor(props) {
     view = new EditorView(ref.current, {
       state,
       dispatchTransaction: (transaction) => {
-        // console.log(transaction);
         const newState = view.state.apply(transaction);
         view.updateState(newState);
       },
