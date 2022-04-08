@@ -34,9 +34,9 @@ let myPlugin = new Plugin({
         if (el == document.body) {
           return;
         }
-
+        const blockEl = el.parentNode;
         this.sort = {
-          start: el.parentNode,
+          start: blockEl,
           end: null,
         };
       },
@@ -47,12 +47,12 @@ let myPlugin = new Plugin({
           while (blockEl.getAttribute('indent') === null) {
             blockEl = blockEl.parentNode;
           }
-
           this.sort.end = blockEl;
         }
       },
       mouseup: function (view, event) {
-        if (this.sort && this.sort.start && this.sort.end) {
+        if (this.sort && this.sort.start && this.sort.end && this.sort.start !== this.sort.end) {
+          /* TODO Support group sort */
           const els = document.querySelectorAll('[indent]');
           let position = 'afterend';
           for (let i = 0; i < els.length; i += 1) {
@@ -63,11 +63,11 @@ let myPlugin = new Plugin({
             }
           }
           this.sort.end.insertAdjacentElement(position, this.sort.start);
-          this.sort = {
-            start: null,
-            end: null,
-          };
         }
+        this.sort = {
+          start: null,
+          end: null,
+        };
       },
     },
   },
