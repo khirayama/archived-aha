@@ -58,11 +58,7 @@ export const schema = new Schema({
       content: 'block+',
     },
     paragraph: createBlockNode({
-      parseDOM: [
-        {
-          tag: 'p',
-        },
-      ],
+      parseDOM: [{ tag: 'p' }, { tag: 'div' }],
       toDOM: (node) => {
         return [
           'p',
@@ -143,6 +139,46 @@ export const schema = new Schema({
     }),
     text: {
       inline: true,
+    },
+  },
+  marks: {
+    link: {
+      attrs: {
+        href: {},
+        title: { default: null },
+      },
+      inclusive: false,
+      parseDOM: [
+        {
+          tag: 'a[href]',
+          getAttrs(dom) {
+            return {
+              href: dom.getAttribute('href'),
+              title: dom.getAttribute('title'),
+            };
+          },
+        },
+      ],
+      toDOM(node) {
+        const { href, title } = node.attrs;
+        return ['a', { href, title }, 0];
+      },
+    },
+    em: {
+      parseDOM: [{ tag: 'i' }, { tag: 'em' }, { style: 'font-style=italic' }],
+      toDOM() {
+        return ['em', 0];
+      },
+    },
+    strong: {
+      parseDOM: [
+        { tag: 'strong' },
+        { tag: 'b', getAttrs: (node) => node.style.fontWeight != 'normal' && null },
+        { style: 'font-weight', getAttrs: (value) => /^(bold(er)?|[5-9]\d{2,})$/.test(value) && null },
+      ],
+      toDOM() {
+        return ['strong', 0];
+      },
     },
   },
 });
