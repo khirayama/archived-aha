@@ -54,12 +54,20 @@ let myPlugin = new Plugin({
         if (this.sort && this.sort.start && this.sort.end && this.sort.start !== this.sort.end) {
           /* TODO Support group sort */
           const els = document.querySelectorAll('[indent]');
-          const targets = [];
+          let direction: 'up' | 'down' = 'down';
+
           let position = 'afterend';
           for (let i = 0; i < els.length; i += 1) {
             const el = els[i];
             if (el === this.sort.start || el === this.sort.end) {
-              position = this.sort.start === el ? 'afterend' : 'beforebegin';
+              direction = this.sort.start === el ? 'down' : 'up';
+              break;
+            }
+          }
+          const targets = [];
+          for (let i = 0; i < els.length; i += 1) {
+            const el = els[i];
+            if (el === this.sort.start) {
               const indent = Number(el.getAttribute('indent'));
               targets.push(el);
               for (let j = i + 1; j < els.length; j += 1) {
@@ -74,19 +82,15 @@ let myPlugin = new Plugin({
             }
           }
 
-          console.log(targets);
-          if (position === 'afterend') {
+          if (direction === 'down') {
             for (let i = targets.length - 1; 0 <= i; i -= 1) {
               const target = targets[i];
-              this.sort.end.insertAdjacentElement(position, target);
+              this.sort.end.insertAdjacentElement('afterend', target);
             }
           } else {
-            // for (let i = 0; i < targets.length; i += 1) {
-            // FIXME
-            for (let i = targets.length - 1; 0 <= i; i -= 1) {
+            for (let i = 0; i < targets.length; i += 1) {
               const target = targets[i];
-              console.log(target);
-              this.sort.end.insertAdjacentElement(position, target);
+              this.sort.end.insertAdjacentElement('beforebegin', target);
             }
           }
         }
