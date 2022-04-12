@@ -8,6 +8,7 @@ import {
   joinBackward,
   joinForward,
   selectNodeForward,
+  toggleMark,
 } from 'prosemirror-commands';
 import { AllSelection, TextSelection } from 'prosemirror-state';
 import { canSplit } from 'prosemirror-transform';
@@ -127,4 +128,8 @@ export const customKeymap = {
   'Mod-Backspace': backspace,
   Tab: indent,
   'Shift-Tab': outdent,
+  'Mod-b': toggleMark(schema.marks.strong),
+  'Mod-B': toggleMark(schema.marks.strong),
+  'Mod-i': toggleMark(schema.marks.em),
+  'Mod-I': toggleMark(schema.marks.em),
 };
