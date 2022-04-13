@@ -52,7 +52,6 @@ let myPlugin = new Plugin({
       },
       mouseup: function (view, event) {
         if (this.sort && this.sort.start && this.sort.end && this.sort.start !== this.sort.end) {
-          /* TODO Support group sort */
           const els = document.querySelectorAll('[indent]');
           let direction: 'up' | 'down' = 'down';
 
