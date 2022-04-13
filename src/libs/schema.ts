@@ -161,7 +161,15 @@ export const schema = new Schema({
       ],
       toDOM(node) {
         const { href, title } = node.attrs;
-        return ['a', { href, title }, 0];
+        return [
+          'a',
+          {
+            href,
+            title,
+            onclick: '((el) => window.open(el.href))(this)',
+          },
+          0,
+        ];
       },
     },
     em: {
