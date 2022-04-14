@@ -4,6 +4,8 @@ import Head from 'next/head';
 import './reset.scss';
 import './theme.scss';
 
+import './lexical.scss';
+
 export default function App({ Component, pageProps }) {
   return (
     <>
