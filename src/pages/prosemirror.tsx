@@ -9,13 +9,13 @@ import { schema, buildInputRules } from '../libs/schema';
 
 import styles from './prosemirror.module.scss';
 
-/*
- * - Detect keyword
+/* TODO
+ * - Add Image node
+ * - Add Link node
+ * - Add Todo node
+ * - Add Heading node
+ * - Add schedule feature
  * - Export as markdown like text file
- *   - Local file sync
- *     - How to solve conflict?
- * - Support copy and paste with indent
- *   - 2 spaces or tab?
  */
 
 // [prosemirror-test-custom-nodeview - CodeSandbox](https://codesandbox.io/s/vwcrt?file=/src/index.js)
