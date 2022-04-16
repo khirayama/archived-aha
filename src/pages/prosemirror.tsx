@@ -11,6 +11,7 @@ import styles from './prosemirror.module.scss';
 
 /* TODO
  * - Add Image node
+ * - Add sytle for sorting
  * - Add Link node
  * - Add Todo node
  * - Add Heading node
