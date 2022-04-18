@@ -95,6 +95,43 @@ export const schema = new Schema({
         ];
       },
     }),
+    image: createBlockNode({
+      parseDOM: [{ tag: 'img' }],
+      toDOM: (node) => {
+        return [
+          'div',
+          {
+            class: styles['image'],
+          },
+          [
+            'span',
+            {
+              class: styles['handle'],
+              contentEditable: false,
+            },
+            [
+              'span',
+              {
+                class: 'material-icons',
+                'data-key': 'drag_indicator',
+              },
+            ],
+          ],
+          [
+            'span',
+            {
+              class: styles['indentation'],
+            },
+          ],
+          [
+            'img',
+            {
+              src: 'https://dummyimage.com/16:9x1080/',
+            },
+          ],
+        ];
+      },
+    }),
     quote: createBlockNode({
       parseDOM: [
         {
