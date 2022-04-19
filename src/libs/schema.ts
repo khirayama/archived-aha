@@ -237,6 +237,12 @@ export function buildInputRules() {
         tr.setBlockType(start, end, schema.nodes.quote, node.attrs);
         return tr;
       }),
+      new InputRule(/^\s*-\s$/, (state, match, start, end) => {
+        const tr = state.tr.delete(start, end);
+        const node = state.selection.$from.node();
+        tr.setBlockType(start, end, schema.nodes.image, node.attrs);
+        return tr;
+      }),
     ],
   });
 }
