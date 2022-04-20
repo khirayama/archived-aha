@@ -128,6 +128,7 @@ export const schema = new Schema({
             {
               src: 'https://dummyimage.com/16:9x1080/',
             },
+            0,
           ],
         ];
       },
