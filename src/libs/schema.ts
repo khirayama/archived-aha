@@ -127,7 +127,12 @@ export const schema = new Schema({
             'img',
             {
               src: 'https://dummyimage.com/16:9x1080/',
-              contenteditable: false,
+            },
+          ],
+          [
+            'span',
+            {
+              class: styles['text'],
             },
             0,
           ],
