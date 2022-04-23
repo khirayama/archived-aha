@@ -95,50 +95,76 @@ export const schema = new Schema({
         ];
       },
     }),
-    image: createBlockNode({
-      parseDOM: [{ tag: 'img' }],
-      toDOM: (node) => {
-        return [
-          'div',
-          {
-            class: styles['image'],
-          },
-          [
-            'span',
-            {
-              class: styles['handle'],
-              contentEditable: false,
-            },
-            [
-              'span',
-              {
-                class: 'material-icons',
-                'data-key': 'drag_indicator',
-              },
-            ],
-          ],
-          [
-            'span',
-            {
-              class: styles['indentation'],
-            },
-          ],
-          [
-            'img',
-            {
-              src: 'https://dummyimage.com/16:9x1080/',
-            },
-          ],
-          [
-            'span',
-            {
-              class: styles['text'],
-            },
-            0,
-          ],
-        ];
+    image: {
+      attrs: {
+        src: { defult: 'https://dummyimage.com/16:9x1080/' },
+        alt: { default: null },
+        title: { default: null },
       },
-    }),
+      group: 'block',
+      draggable: true,
+      parseDOM: [
+        {
+          tag: 'img[src]',
+          getAttrs(dom) {
+            return {
+              src: dom.getAttribute('src'),
+              title: dom.getAttribute('title'),
+              alt: dom.getAttribute('alt'),
+            };
+          },
+        },
+      ],
+      toDOM(node) {
+        let { src, alt, title } = node.attrs;
+        return ['img', { src, alt, title }];
+      },
+      content: 'text*',
+    },
+    // image: createBlockNode({
+    //   parseDOM: [{ tag: 'img' }],
+    //   toDOM: (node) => {
+    //     return [
+    //       'div',
+    //       {
+    //         class: styles['image'],
+    //       },
+    //       [
+    //         'span',
+    //         {
+    //           class: styles['handle'],
+    //           contentEditable: false,
+    //         },
+    //         [
+    //           'span',
+    //           {
+    //             class: 'material-icons',
+    //             'data-key': 'drag_indicator',
+    //           },
+    //         ],
+    //       ],
+    //       [
+    //         'span',
+    //         {
+    //           class: styles['indentation'],
+    //         },
+    //       ],
+    //       [
+    //         'img',
+    //         {
+    //           src: 'https://dummyimage.com/16:9x1080/',
+    //         },
+    //       ],
+    //       [
+    //         'span',
+    //         {
+    //           class: styles['text'],
+    //         },
+    //         0,
+    //       ],
+    //     ];
+    //   },
+    // }),
     quote: createBlockNode({
       parseDOM: [
         {
