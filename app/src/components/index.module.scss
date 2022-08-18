@@ -1,0 +1,203 @@
+.paper {
+  width: 100%;
+  padding: 1rem 0.5rem 4rem;
+}
+
+.block {
+  display: flex;
+  padding: 0.5rem 0;
+  min-height: 2.5rem;
+  border-bottom: solid 1px #ededed;
+
+  &.is_handling {
+    background: rgba(46, 170, 220, 0.2);
+  }
+
+  &.is_hover {
+    position: relative;
+
+    &:after {
+      display: inline-block;
+      position: absolute;
+      content: '';
+      width: 100%;
+      height: 5px;
+      left: 0;
+      background: rgba(46, 170, 220, 0.3);
+    }
+  }
+
+  &.is_hover_upper {
+    @extend .is_hover;
+
+    &:after {
+      top: 0;
+    }
+  }
+
+  &.is_hover_lower {
+    @extend .is_hover;
+
+    &:after {
+      bottom: 0;
+    }
+  }
+}
+
+.handle {
+  display: inline-block;
+  flex-basis: 2rem;
+  cursor: move;
+  user-select: none;
+  touch-action: none;
+  // background: url(/handle.svg) no-repeat center 0;
+  // background-size: 1.5rem;
+  padding: 0 0.25rem 0 0;
+  opacity: 0.2;
+}
+
+.indentation {
+  display: flex;
+  width: 100%;
+  transition: padding 80ms ease-in-out;
+
+  @for $i from 0 through 8 {
+    &[data-indent="#{$i}"] {
+      padding-inline-start: $i * 1rem;
+    }
+  }
+}
+
+.text {
+  display: inline-block;
+  flex: 1;
+  padding: 0 0.25rem;
+}
+
+.focusable {
+  flex: 1;
+}
+
+.list {
+  position: relative;
+  width: 1rem;
+
+  &:after {
+    position: absolute;
+    top: 0.575rem;
+    left: 0.25rem;
+    display: inline-block;
+    content: '';
+    width: 0.5rem;
+    height: 0.5rem;
+    background: #666;
+    border-radius: 50%;
+  }
+}
+
+.image {
+  // width: 100%;
+  max-width: 768px;
+  height: auto;
+}
+
+.heading {
+  display: flex;
+  width: 100%;
+  font-weight: bold;
+}
+
+.heading1 {
+  @extend .heading;
+  font-size: 2rem;
+  line-height: 2.5rem;
+  padding: 2rem 0 1.75rem;
+}
+
+.heading2 {
+  @extend .heading;
+  font-size: 1.5rem;
+  line-height: 2rem;
+  padding: 2rem 0 0.75rem;
+}
+
+.heading3 {
+  @extend .heading;
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+  padding: 1.5rem 0 1rem;
+}
+
+.heading4 {
+  @extend .heading;
+  padding: 1rem 0;
+}
+
+.heading5 {
+  @extend .heading;
+  padding: 0.75rem 0;
+}
+
+.heading6 {
+  @extend .heading;
+  padding: 0.5rem 0;
+}
+
+.todo {
+  padding: 0.15rem 0.15rem 0.15rem 0.25rem;
+
+  .todocheckbox {
+    border: solid 2px #333;
+    border-radius: 3px;
+    width: 1.125rem;
+    height: 1.125rem;
+
+    &:checked {
+      border-color: #aaa;
+      position: relative;
+      background: #eee;
+
+      &:before,
+      &:after {
+        position: absolute;
+        bottom: 0.125rem;
+        left: 0.25rem;
+        content: '';
+        display: inline-block;
+        width: 4px;
+        background: #999;
+        transform-origin: left bottom;
+      }
+
+      &:before {
+        height: 9px;
+        transform: translate(-50%, 0) rotate(-45deg);
+      }
+
+      &:after {
+        height: 18px;
+        transform: translate(-50%, 0) rotate(45deg);
+      }
+    }
+  }
+
+  &[data-checked=true] + .text {
+    color: #aaa;
+  }
+}
+
+.floating-nav {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  background: #fff;
+  width: 100%;
+  padding: 0.25rem;
+  border-top: solid 1px #aaa;
+}
+
+.commandbutton {
+  cursor: pointer;
+  background: transparent;
+  padding: 0.25rem;
+}
