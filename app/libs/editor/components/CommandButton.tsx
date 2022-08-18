@@ -15,7 +15,7 @@ export function CommandButtonComponent(props) {
         const blockElement = findCurrentBlockElementFromSelection(sel);
         if (blockElement) {
           const blockId = blockElement.dataset.blockid;
-          const block = props.paper.findBlock(blockId);
+          const block = props.state.findBlock(blockId);
           props.onClick(event, block);
         }
       }}

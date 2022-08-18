@@ -1,6 +1,6 @@
 import { Block } from './schema';
 
-export class Paper {
+export class EditorState {
   private listeners: Function[] = [];
 
   private transactions: Function[] = [];

@@ -1,28 +1,28 @@
 import { Schema, Block } from './schema';
-import { Paper } from './model';
+import { EditorState } from './EditorState';
 
 export type CommandContext = {
   block: Block;
   schema: Schema;
-  paper: Paper;
+  state: EditorState;
 };
 
 export const commands = {
   updateText: (ctx: CommandContext, text: string): CommandContext => {
-    ctx.paper.tr(() => {
-      const newBlocks = [...ctx.paper.blocks];
+    ctx.state.tr(() => {
+      const newBlocks = [...ctx.state.blocks];
       for (let i = 0; i < newBlocks.length; i += 1) {
         if (newBlocks[i].id === ctx.block.id) {
           newBlocks[i].text = text;
         }
       }
-      ctx.paper.setBlocks(newBlocks);
+      ctx.state.setBlocks(newBlocks);
     });
     return ctx;
   },
   indent: (ctx: CommandContext): CommandContext => {
-    ctx.paper.tr(() => {
-      const newBlocks = ctx.paper.blocks.map((b) => {
+    ctx.state.tr(() => {
+      const newBlocks = ctx.state.blocks.map((b) => {
         if (b.id === ctx.block.id) {
           b.indent = Math.min(b.indent + 1, 8);
         }
@@ -30,13 +30,13 @@ export const commands = {
           ...b,
         };
       });
-      ctx.paper.setBlocks(newBlocks);
+      ctx.state.setBlocks(newBlocks);
     });
     return ctx;
   },
   outdent: (ctx: CommandContext): CommandContext => {
-    ctx.paper.tr(() => {
-      const newBlocks = ctx.paper.blocks.map((b) => {
+    ctx.state.tr(() => {
+      const newBlocks = ctx.state.blocks.map((b) => {
         if (b.id === ctx.block.id) {
           b.indent = Math.max(b.indent - 1, 0);
         }
@@ -44,13 +44,13 @@ export const commands = {
           ...b,
         };
       });
-      ctx.paper.setBlocks(newBlocks);
+      ctx.state.setBlocks(newBlocks);
     });
     return ctx;
   },
   turnInto: (ctx: CommandContext, blockType: Block['type'], block: Partial<Block> = {}): CommandContext => {
-    ctx.paper.tr(() => {
-      const newBlocks = ctx.paper.blocks.map((b: Block) => {
+    ctx.state.tr(() => {
+      const newBlocks = ctx.state.blocks.map((b: Block) => {
         if (ctx.block.id === b.id) {
           return ctx.schema.createBlock(blockType, { ...b, ...block } as Partial<Block>);
         }
@@ -58,12 +58,12 @@ export const commands = {
           ...b,
         };
       });
-      ctx.paper.setBlocks(newBlocks);
+      ctx.state.setBlocks(newBlocks);
     });
     return ctx;
   },
   splitBlock: (ctx: CommandContext, s: number, e: number): CommandContext => {
-    ctx.paper.tr(() => {
+    ctx.state.tr(() => {
       if (ctx.block.text !== null) {
         const t = new Text(ctx.block.text);
         const newText = t.splitText(e);
@@ -82,15 +82,15 @@ export const commands = {
                 text: newText.wholeText,
                 indent: ctx.block.indent,
               });
-        const newBlocks = [...ctx.paper.blocks];
-        for (let i = 0; i < ctx.paper.blocks.length; i += 1) {
+        const newBlocks = [...ctx.state.blocks];
+        for (let i = 0; i < ctx.state.blocks.length; i += 1) {
           if (newBlocks[i].id === ctx.block.id) {
             newBlocks[i].text = t.wholeText;
             newBlocks.splice(i + 1, 0, newBlock);
             break;
           }
         }
-        ctx.paper.setBlocks(newBlocks);
+        ctx.state.setBlocks(newBlocks);
       } else {
         const defaultSchema = ctx.schema.defaultSchema();
         if (defaultSchema) {
@@ -98,27 +98,27 @@ export const commands = {
             text: '',
             indent: ctx.block.indent,
           });
-          const newBlocks = [...ctx.paper.blocks];
-          for (let i = 0; i < ctx.paper.blocks.length; i += 1) {
+          const newBlocks = [...ctx.state.blocks];
+          for (let i = 0; i < ctx.state.blocks.length; i += 1) {
             if (newBlocks[i].id === ctx.block.id) {
               newBlocks.splice(i + 1, 0, newBlock);
               break;
             }
           }
-          ctx.paper.setBlocks(newBlocks);
+          ctx.state.setBlocks(newBlocks);
         }
       }
     });
     return ctx;
   },
   combineBlock: (ctx: CommandContext): CommandContext => {
-    ctx.paper.tr(() => {
-      const newBlocks = [...ctx.paper.blocks]
+    ctx.state.tr(() => {
+      const newBlocks = [...ctx.state.blocks]
         .map((b, i) => {
-          if (ctx.paper.blocks[i + 1] && ctx.block.id === ctx.paper.blocks[i + 1].id) {
+          if (ctx.state.blocks[i + 1] && ctx.block.id === ctx.state.blocks[i + 1].id) {
             return {
               ...b,
-              text: b.text + ctx.paper.blocks[i + 1].text,
+              text: b.text + ctx.state.blocks[i + 1].text,
             };
           } else if (ctx.block.id === b.id) {
             return null;
@@ -126,36 +126,36 @@ export const commands = {
           return { ...b };
         })
         .filter((b) => !!b);
-      ctx.paper.setBlocks(newBlocks);
+      ctx.state.setBlocks(newBlocks);
     });
     return ctx;
   },
   moveTo: (ctx: CommandContext, targetId: string, toId: string) => {
-    ctx.paper.tr(() => {
+    ctx.state.tr(() => {
       let targetIndex = 0;
       let toIndex = 0;
 
-      for (let i = 0; i < ctx.paper.blocks.length; i += 1) {
-        if (targetId === ctx.paper.blocks[i].id) {
+      for (let i = 0; i < ctx.state.blocks.length; i += 1) {
+        if (targetId === ctx.state.blocks[i].id) {
           targetIndex = i;
         }
 
-        if (toId === ctx.paper.blocks[i].id) {
+        if (toId === ctx.state.blocks[i].id) {
           toIndex = i;
         }
       }
 
-      const l = ctx.paper.findGroupedBlocks(targetId).length;
-      const newBlocks = [...ctx.paper.blocks];
+      const l = ctx.state.findGroupedBlocks(targetId).length;
+      const newBlocks = [...ctx.state.blocks];
       const sort = newBlocks.splice(targetIndex, l);
       newBlocks.splice(toIndex < targetIndex ? toIndex : toIndex - l + 1, 0, ...sort);
-      ctx.paper.setBlocks(newBlocks);
+      ctx.state.setBlocks(newBlocks);
     });
     return ctx;
   },
 
   paste: (ctx: CommandContext, text: string): CommandContext => {
-    ctx.paper.tr(() => {
+    ctx.state.tr(() => {
       const blockTexts = text.split('\n');
       const defaultSchema = ctx.schema.defaultSchema();
       const currentSchema = ctx.schema.find(ctx.block.type);
@@ -163,8 +163,8 @@ export const commands = {
       let start = 0;
       if (ctx.block.text !== null) {
         start = 1;
-        for (let i = 0; i < ctx.paper.blocks.length; i += 1) {
-          const block = ctx.paper.blocks[i];
+        for (let i = 0; i < ctx.state.blocks.length; i += 1) {
+          const block = ctx.state.blocks[i];
           if (block.id === ctx.block.id) {
             block.text = block.text + blockTexts[0].trim();
           }
@@ -197,14 +197,14 @@ export const commands = {
         blocks.push(newBlock);
       }
 
-      const newBlocks = [...ctx.paper.blocks];
-      for (let i = 0; i < ctx.paper.blocks.length; i += 1) {
+      const newBlocks = [...ctx.state.blocks];
+      for (let i = 0; i < ctx.state.blocks.length; i += 1) {
         if (newBlocks[i].id === ctx.block.id) {
           newBlocks.splice(i + 1, 0, ...blocks);
           break;
         }
       }
-      ctx.paper.setBlocks(newBlocks);
+      ctx.state.setBlocks(newBlocks);
     });
     return ctx;
   },

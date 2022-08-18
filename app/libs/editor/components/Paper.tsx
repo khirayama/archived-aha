@@ -1,8 +1,9 @@
 import * as React from 'react';
 import Head from 'next/head';
 
-import { Schema, Block } from '../schema';
-import { Paper } from '../model';
+import { Block } from '../schema';
+import { EditorSchema } from '../EditorSchema';
+import { EditorState } from '../EditorState';
 import { CommandContext, commands } from '../commands';
 import { afterRendering, keepSelectionPosition } from './utils';
 import { BlockComponent, BlockComponentProps } from './Block';
@@ -23,8 +24,8 @@ const k = {
 };
 
 type PaperComponentProps = {
-  schema: Schema;
-  paper: Paper;
+  schema: EditorSchema;
+  state: EditorState;
 };
 
 type PaperComponentState = {
@@ -38,7 +39,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
     blocks: [],
   };
 
-  private schema: Schema;
+  private schema: EditorSchema;
 
   private sort: {
     target: {
@@ -58,7 +59,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
 
   constructor(props: PaperComponentProps) {
     super(props);
-    this.state = { blocks: props.paper.blocks };
+    this.state = { blocks: props.state.blocks };
     this.schema = props.schema;
     this.ref = React.createRef<HTMLDivElement>();
 
@@ -73,15 +74,15 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
   }
 
   public componentDidMount() {
-    this.props.paper.onChange(this.onPaperChange);
+    this.props.state.onChange(this.onPaperChange);
   }
 
   public componentWillUnmount() {
-    this.props.paper.offChange(this.onPaperChange);
+    this.props.state.offChange(this.onPaperChange);
   }
 
   private extractTitleFromBlocks() {
-    const blocks = this.props.paper.blocks;
+    const blocks = this.props.state.blocks;
     const cur = {
       title: blocks[0].text || '',
       level: 8,
@@ -122,12 +123,12 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
     sel.addRange(range);
   }
 
-  private onPaperChange(paper: Paper) {
-    this.setState({ blocks: paper.blocks });
+  private onPaperChange(state: EditorState) {
+    this.setState({ blocks: state.blocks });
   }
 
   private onHandlePointerDown(event: React.MouseEvent<HTMLSpanElement>, props: BlockComponentProps) {
-    const blocks = this.props.paper.findGroupedBlocks(props.block.id);
+    const blocks = this.props.state.findGroupedBlocks(props.block.id);
     for (let i = 0; i < blocks.length; i += 1) {
       const b = blocks[i];
       const el = this.findBlockElement(b.id);
@@ -142,7 +143,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
   }
 
   private onPointerMove(event: React.MouseEvent<HTMLSpanElement>, props: BlockComponentProps) {
-    const blocks = this.props.paper.blocks;
+    const blocks = this.props.state.blocks;
 
     if (this.sort.target) {
       if (this.sort.to) {
@@ -155,7 +156,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
         el = el.parentElement;
       }
       const blockId = el.dataset.blockid;
-      const blockIds = this.props.paper.findGroupedBlocks(this.sort.target.id).map((b) => b.id);
+      const blockIds = this.props.state.findGroupedBlocks(this.sort.target.id).map((b) => b.id);
 
       if (!blockIds.includes(blockId)) {
         this.sort.to = {
@@ -190,7 +191,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
   }
 
   private onPointerUp(event: React.MouseEvent<HTMLSpanElement>, props: BlockComponentProps) {
-    const paper = this.props.paper;
+    const state = this.props.state;
     const blocks = this.state.blocks;
     const block = props.block;
     const sel = window.getSelection();
@@ -198,16 +199,16 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
     const ctx: CommandContext = {
       block,
       schema: this.schema,
-      paper: this.props.paper,
+      state: this.props.state,
     };
 
     if (this.sort.target && this.sort.to) {
       commands.moveTo(ctx, this.sort.target.id, this.sort.to.id);
-      this.props.paper.commit();
+      this.props.state.commit();
     }
 
     if (this.sort.target) {
-      const blocks = this.props.paper.findGroupedBlocks(this.sort.target.id);
+      const blocks = this.props.state.findGroupedBlocks(this.sort.target.id);
       for (let i = 0; i < blocks.length; i += 1) {
         const b = blocks[i];
         const el = this.findBlockElement(b.id);
@@ -225,7 +226,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
   }
 
   private onTextKeyDown(event: React.KeyboardEvent<HTMLSpanElement>, props: BlockComponentProps) {
-    const paper = this.props.paper;
+    const state = this.props.state;
     const blocks = this.state.blocks;
     const block = props.block;
 
@@ -239,7 +240,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
     const ctx: CommandContext = {
       block,
       schema: this.schema,
-      paper: this.props.paper,
+      state: this.props.state,
     };
 
     if ((key === k.b && ctrl) || (key === k.i && ctrl) || (key === k.s && ctrl)) {
@@ -257,7 +258,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
         commands.turnInto(ctx, defaultSchema.type as Block['type']);
       } else {
         afterRendering(() => {
-          const nextBlock = paper.findNextBlock(block.id);
+          const nextBlock = state.findNextBlock(block.id);
           if (nextBlock) {
             const nextBlockEl = this.findBlockElement(nextBlock.id);
             const nextFocusableElement = this.findFocusableElementFromBlockElement(nextBlockEl);
@@ -269,7 +270,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
         commands.splitBlock(ctx, s, e);
       }
     } else if (key === k.Delete && ctrl) {
-      const prevBlock = this.props.paper.findPrevBlock(block.id);
+      const prevBlock = this.props.state.findPrevBlock(block.id);
       if (prevBlock) {
         event.preventDefault();
         const prevBlockEl = this.findBlockElement(prevBlock.id);
@@ -286,7 +287,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
           keepSelectionPosition(sel);
           commands.turnInto(ctx, defaultSchema.type as Block['type']);
         } else {
-          const prevBlock = this.props.paper.findPrevBlock(block.id);
+          const prevBlock = this.props.state.findPrevBlock(block.id);
           if (prevBlock) {
             event.preventDefault();
             const prevBlockEl = this.findBlockElement(prevBlock.id);
@@ -306,7 +307,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
       commands.outdent(ctx);
     } else if (key === k.ArrowDown && !shift) {
       if (sel.isCollapsed) {
-        const nextBlock = paper.findNextBlock(block.id);
+        const nextBlock = state.findNextBlock(block.id);
         if (nextBlock && sel.anchorOffset === sel.anchorNode.length) {
           event.preventDefault();
           const nextBlockEl = this.findBlockElement(nextBlock.id);
@@ -321,7 +322,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
     } else if (key === k.ArrowRight && !shift) {
       if (sel.isCollapsed && (sel.focusNode as Text).length === sel.focusOffset) {
         event.preventDefault();
-        const nextBlock = paper.findNextBlock(block.id);
+        const nextBlock = state.findNextBlock(block.id);
         if (nextBlock) {
           const nextBlockEl = this.findBlockElement(nextBlock.id);
           const nextFocusableElement = this.findFocusableElementFromBlockElement(nextBlockEl);
@@ -335,7 +336,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
     } else if (key === k.ArrowLeft && !shift) {
       if (sel.isCollapsed && sel.anchorOffset === 0) {
         event.preventDefault();
-        const prevBlock = this.props.paper.findPrevBlock(block.id);
+        const prevBlock = this.props.state.findPrevBlock(block.id);
         if (prevBlock) {
           const prevBlockEl = this.findBlockElement(prevBlock.id);
           const prevFocusableElement = this.findFocusableElementFromBlockElement(prevBlockEl);
@@ -348,7 +349,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
       }
     } else if (key === k.ArrowUp && !shift) {
       if (sel.isCollapsed) {
-        const prevBlock = this.props.paper.findPrevBlock(block.id);
+        const prevBlock = this.props.state.findPrevBlock(block.id);
         if (prevBlock && sel.anchorOffset === 0) {
           event.preventDefault();
           const prevBlockEl = this.findBlockElement(prevBlock.id);
@@ -361,11 +362,11 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
         }
       }
     }
-    paper.commit();
+    state.commit();
   }
 
   private onFocusableKeyDown(event: React.KeyboardEvent<HTMLSpanElement>, props: BlockComponentProps) {
-    const paper = this.props.paper;
+    const state = this.props.state;
     const blocks = this.state.blocks;
     const block = props.block;
 
@@ -379,7 +380,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
     const ctx: CommandContext = {
       block,
       schema: this.schema,
-      paper: this.props.paper,
+      state: this.props.state,
     };
 
     if (key === k.Enter) {
@@ -393,7 +394,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
         });
       } else {
         afterRendering(() => {
-          const nextBlock = paper.findNextBlock(block.id);
+          const nextBlock = state.findNextBlock(block.id);
           if (nextBlock) {
             const nextBlockEl = this.findBlockElement(nextBlock.id);
             const nextFocusableElement = this.findFocusableElementFromBlockElement(nextBlockEl);
@@ -424,7 +425,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
         (sel.isCollapsed && (sel.focusNode as Text).length === sel.focusOffset) ||
         (focusableElement === sel.focusNode && focusableElement.childNodes.length === sel.focusOffset)
       ) {
-        const nextBlock = paper.findNextBlock(block.id);
+        const nextBlock = state.findNextBlock(block.id);
         if (nextBlock) {
           event.preventDefault();
           const nextBlockEl = this.findBlockElement(nextBlock.id);
@@ -438,7 +439,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
       }
     } else if (key === k.ArrowUp && !shift) {
       if (sel.isCollapsed && sel.anchorOffset === 0) {
-        const prevBlock = this.props.paper.findPrevBlock(block.id);
+        const prevBlock = this.props.state.findPrevBlock(block.id);
         if (prevBlock) {
           event.preventDefault();
           const prevBlockEl = this.findBlockElement(prevBlock.id);
@@ -453,7 +454,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
     } else if (key === k.ArrowRight && !shift) {
       if (sel.isCollapsed && sel.focusNode.childNodes.length === sel.focusOffset) {
         event.preventDefault();
-        const nextBlock = paper.findNextBlock(block.id);
+        const nextBlock = state.findNextBlock(block.id);
         if (nextBlock) {
           const nextBlockEl = this.findBlockElement(nextBlock.id);
           const nextFocusableElement = this.findFocusableElementFromBlockElement(nextBlockEl);
@@ -467,7 +468,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
     } else if (key === k.ArrowLeft && !shift) {
       if (sel.isCollapsed && sel.anchorOffset === 0) {
         event.preventDefault();
-        const prevBlock = this.props.paper.findPrevBlock(block.id);
+        const prevBlock = this.props.state.findPrevBlock(block.id);
         if (prevBlock) {
           const prevBlockEl = this.findBlockElement(prevBlock.id);
           const prevFocusableElement = this.findFocusableElementFromBlockElement(prevBlockEl);
@@ -481,7 +482,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
     } else if (!ctrl) {
       event.preventDefault();
     }
-    paper.commit();
+    state.commit();
   }
 
   private onFocusableClick(event: React.MouseEvent<HTMLSpanElement>, props: BlockComponentProps) {
@@ -497,7 +498,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
     const ctx: CommandContext = {
       block: props.block,
       schema: this.schema,
-      paper: this.props.paper,
+      state: this.props.state,
     };
 
     const result = this.schema.execInputRule(value);
@@ -508,7 +509,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
       afterRendering(() => {
         const blockElement = this.findBlockElement(props.block.id);
         const focusableElement = this.findFocusableElementFromBlockElement(blockElement);
-        const block = this.props.paper.findBlock(props.block.id);
+        const block = this.props.state.findBlock(props.block.id);
         if (block.text !== null) {
           this.focus(focusableElement, pos);
         } else {
@@ -518,7 +519,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
     } else {
       commands.updateText(ctx, value);
     }
-    ctx.paper.commit();
+    ctx.state.commit();
   }
 
   public render() {
@@ -535,7 +536,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
             return (
               <BlockComponent
                 key={block.id}
-                paper={this.props.paper}
+                state={this.props.state}
                 schema={this.schema}
                 block={block}
                 onHandlePointerDown={this.onHandlePointerDown}
@@ -550,10 +551,10 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
                   const ctx: CommandContext = {
                     block,
                     schema: this.schema,
-                    paper: this.props.paper,
+                    state: this.props.state,
                   };
                   commands.paste(ctx, event.clipboardData.getData('text'));
-                  this.props.paper.commit();
+                  this.props.state.commit();
                 }}
               />
             );

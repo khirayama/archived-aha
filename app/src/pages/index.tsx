@@ -1,9 +1,15 @@
 import * as React from 'react';
 
-import { PaperComponent, FloatingNavComponent, CommandButtonComponent, IconComponent } from '../components';
-import { Schema, paragraphSchema, headingSchema, listSchema, todoSchema, imageSchema } from '../schema';
-import { Paper } from '../model';
-import { commands } from '../commands';
+import {
+  PaperComponent,
+  FloatingNavComponent,
+  CommandButtonComponent,
+  IconComponent,
+} from '../../libs/editor/components';
+import { EditorSchema } from '../../libs/editor/EditorSchema';
+import { paragraphSchema, headingSchema, listSchema, todoSchema, imageSchema } from '../../libs/editor/schema';
+import { EditorState } from '../../libs/editor/EditorState';
+import { commands } from '../../libs/editor/commands';
 
 import styles from './index.module.scss';
 
@@ -34,40 +40,40 @@ export function getServerSideProps() {
   };
 }
 
-const schema = new Schema([paragraphSchema, headingSchema, listSchema, todoSchema, imageSchema]);
-const paper = new Paper();
+const schema = new EditorSchema([paragraphSchema, headingSchema, listSchema, todoSchema, imageSchema]);
+const state = new EditorState();
 
 export default function ProtoPage(props) {
-  paper.setBlocks(props.blocks);
+  state.setBlocks(props.blocks);
 
   return (
     <div className={styles['container']}>
-      <PaperComponent schema={schema} paper={paper} />
+      <PaperComponent schema={schema} state={state} />
       <FloatingNavComponent>
         <CommandButtonComponent
           schema={schema}
-          paper={paper}
+          state={state}
           onClick={(event, block) => {
             commands.outdent({
               block,
               schema,
-              paper,
+              state,
             });
-            paper.commit();
+            state.commit();
           }}
         >
           <IconComponent name="format_indent_decrease" />
         </CommandButtonComponent>
         <CommandButtonComponent
           schema={schema}
-          paper={paper}
+          state={state}
           onClick={(event, block) => {
             commands.indent({
               block,
               schema,
-              paper,
+              state,
             });
-            paper.commit();
+            state.commit();
           }}
         >
           <IconComponent name="format_indent_increase" />

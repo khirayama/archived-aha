@@ -1,13 +1,13 @@
 import * as React from 'react';
 
 import { Schema, Block } from '../schema';
-import { Paper } from '../model';
+import { EditorState } from '../EditorState';
 
 import styles from './index.module.scss';
 
 export type BlockComponentProps = {
   block: Block;
-  paper: Paper;
+  state: EditorState;
   schema: Schema;
   onHandlePointerDown: Function;
   onPointerMove: Function;

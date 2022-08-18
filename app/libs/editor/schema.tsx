@@ -153,14 +153,14 @@ export const todoSchema = {
     },
   ],
   action: (ctx: CommandContext) => {
-    const newBlocks = ctx.paper.blocks.map((b) => {
+    const newBlocks = ctx.state.blocks.map((b) => {
       if (ctx.block.id === b.id && b.type === 'todo') {
         b.attrs.done = !b.attrs.done;
       }
       return { ...b };
     });
-    ctx.paper.setBlocks(newBlocks);
-    ctx.paper.commit();
+    ctx.state.setBlocks(newBlocks);
+    ctx.state.commit();
   },
   create: (block: Partial<TodoBlock>): TodoBlock => {
     return {
@@ -188,7 +188,7 @@ export const todoSchema = {
                 schema.action({
                   block,
                   schema: props.schema,
-                  paper: props.paper,
+                  state: props.state,
                 });
               }
             }}
@@ -235,44 +235,3 @@ export const imageSchema = {
 };
 
 export type Block = ParagraphBlock | HeadingBlock | ListBlock | TodoBlock | ImageBlock;
-
-export class Schema {
-  private schemas: SchemaType[];
-
-  constructor(schemas: SchemaType[]) {
-    this.schemas = schemas;
-  }
-
-  public createBlock(typ?: Block['type'], block: Partial<Block> = {}): Block {
-    typ = typ || block.type;
-    const schema = this.find(typ) || this.schemas[0];
-
-    return schema.create(block);
-  }
-
-  public find(typ: Block['type']) {
-    return this.schemas.filter((s) => s.type == typ)[0] || null;
-  }
-
-  public defaultSchema() {
-    return this.schemas[0] || null;
-  }
-
-  public execInputRule(text: string) {
-    for (let i = 0; i < this.schemas.length; i += 1) {
-      const schema = this.schemas[i];
-      if (schema.inputRule) {
-        if (schema.inputRule[0].test(text)) {
-          const result = schema.inputRule[0].exec(text);
-          const attrs = (schema.inputRule[1] ? schema.inputRule[1](result.groups) : result.groups) || null;
-          return {
-            schema,
-            text: text.replace(schema.inputRule[0], ''),
-            attrs,
-          };
-        }
-      }
-    }
-    return null;
-  }
-}
