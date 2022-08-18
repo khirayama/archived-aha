@@ -308,7 +308,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
     } else if (key === k.ArrowDown && !shift) {
       if (sel.isCollapsed) {
         const nextBlock = state.findNextBlock(block.id);
-        if (nextBlock && sel.anchorOffset === sel.anchorNode.length) {
+        if (nextBlock && sel.anchorOffset === (sel.anchorNode as Text).length) {
           event.preventDefault();
           const nextBlockEl = this.findBlockElement(nextBlock.id);
           const nextFocusableElement = this.findFocusableElementFromBlockElement(nextBlockEl);

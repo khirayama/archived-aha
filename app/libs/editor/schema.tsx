@@ -9,6 +9,7 @@ import {
   FocusableComponent,
 } from './components';
 import { CommandContext } from './commands';
+import { SchemaType } from './EditorSchema';
 
 import styles from './components/index.module.scss';
 
@@ -41,7 +42,7 @@ type ParagraphBlock = BaseBlock & {
   type: 'paragraph';
 };
 
-export const paragraphSchema = {
+export const paragraphSchema: SchemaType = {
   type: 'paragraph',
   create: (block: Partial<ParagraphBlock>): ParagraphBlock => {
     return {
@@ -66,7 +67,7 @@ type HeadingBlock = BaseBlock & {
   };
 };
 
-export const headingSchema = {
+export const headingSchema: SchemaType = {
   type: 'heading',
   isContinuation: false,
   inputRule: [
@@ -105,7 +106,7 @@ type ListBlock = BaseBlock & {
   type: 'list';
 };
 
-export const listSchema = {
+export const listSchema: SchemaType = {
   type: 'list',
   inputRule: [/^[-+*]\s/],
   create: (block: Partial<ListBlock>): ListBlock => {
@@ -132,7 +133,7 @@ type TodoBlock = BaseBlock & {
   };
 };
 
-export const todoSchema = {
+export const todoSchema: SchemaType = {
   type: 'todo',
   inputRule: [
     /^\[(?<done>.*)\]\s/,
@@ -197,7 +198,7 @@ type ImageBlock = BaseBlock & {
   };
 };
 
-export const imageSchema = {
+export const imageSchema: SchemaType = {
   type: 'image',
   inputRule: [/^\!\[(?<caption>.*)\]\((?<src>.*)\)\s/],
   create: (block: Partial<ImageBlock>): ImageBlock => {

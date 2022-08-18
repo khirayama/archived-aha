@@ -1,14 +1,15 @@
 import * as React from 'react';
 
-import { Schema, Block } from '../schema';
+import { EditorSchema } from '../EditorSchema';
 import { EditorState } from '../EditorState';
+import { Block } from '../schema';
 
 import styles from './index.module.scss';
 
 export type BlockComponentProps = {
   block: Block;
   state: EditorState;
-  schema: Schema;
+  schema: EditorSchema;
   onHandlePointerDown: Function;
   onPointerMove: Function;
   onPointerUp: Function;
@@ -17,7 +18,7 @@ export type BlockComponentProps = {
   onFocusableKeyDown: Function;
   onFocusableClick: Function;
   onPaste: Function;
-  children?: React.ReactElement;
+  children?: React.ReactNode;
 };
 
 export function BlockComponent(props: BlockComponentProps) {

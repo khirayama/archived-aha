@@ -1,6 +1,9 @@
+import { BlockComponentProps } from './components';
+import { Block } from './schema';
+
 export type SchemaType = {
   type: string;
-  component: React.FC;
+  component: (props: BlockComponentProps) => JSX.Element;
   attrs?: {};
   inputRule?: [RegExp, Function?];
   isContinuation?: Boolean;

@@ -1,9 +1,10 @@
-import { Schema, Block } from './schema';
+import { EditorSchema } from './EditorSchema';
 import { EditorState } from './EditorState';
+import { Block } from './schema';
 
 export type CommandContext = {
   block: Block;
-  schema: Schema;
+  schema: EditorSchema;
   state: EditorState;
 };
 
