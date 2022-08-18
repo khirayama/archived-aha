@@ -1,4 +1,4 @@
-import { createElement, useCallback, useEffect } from 'react';
+import { createElement, useCallback, useEffect, useState } from 'react';
 import { renderToString } from 'react-dom/server';
 import { v4 as uuid } from 'uuid';
 
@@ -53,17 +53,49 @@ type NodeProps = {
   node: Node;
 };
 
+function Indent(props: NodeProps) {
+  return <span style={{ paddingLeft: props.node.attrs.indent + 'rem' }} />;
+}
+
 function Text(props: NodeProps) {
   const onKeyDown = useCallback((event) => {
     const key = event.key;
-    console.log(key);
+    const meta = event.metaKey;
+    const shift = event.shiftKey;
     if (key === 'Enter') {
       event.preventDefault();
-      let nodeSchema = props.schema.getNodeSchema(props.node.type);
-      if (typeof nodeSchema.attrs.text === 'undefined' || nodeSchema.continuation === false) {
-        nodeSchema = props.schema.getNodeSchema('paragraph');
+      if (!meta) {
+        let nodeSchema = props.schema.getNodeSchema(props.node.type);
+        if (typeof nodeSchema.attrs.text === 'undefined' || nodeSchema.continuation === false) {
+          nodeSchema = props.schema.getNodeSchema('paragraph');
+        }
+        const node = props.schema.createNode(nodeSchema.type, { indent: props.node.attrs.indent });
+        props.state.update(() => {
+          for (let i = 0; i < props.state.nodes.length; i += 1) {
+            const n = props.state.nodes[i];
+            console.log(props.state.selection, n.id, props.state.nodes);
+            if (n.id === props.state.selection) {
+              props.state.nodes.splice(i + 1, 0, node);
+              console.log(props.state.nodes);
+              break;
+            }
+          }
+          props.state.selection = node.id;
+        });
+      } else if (meta) {
+        console.log('take action');
       }
-      console.log(nodeSchema);
+    } else if (key === 'Tab') {
+      event.preventDefault();
+      if (!shift) {
+        props.state.update(() => {
+          props.node.attrs.indent = Math.min(props.node.attrs.indent + 1, 8);
+        });
+      } else {
+        props.state.update(() => {
+          props.node.attrs.indent = Math.min(props.node.attrs.indent - 1, 0);
+        });
+      }
     }
   });
 
@@ -84,7 +116,8 @@ function Text(props: NodeProps) {
   });
 
   return (
-    <div
+    <span
+      data-nodeid={props.node.id}
       className={styles['text']}
       contentEditable
       onKeyDown={onKeyDown}
@@ -113,7 +146,8 @@ function Focusable(props: NodeProps) {
   });
 
   return (
-    <div
+    <span
+      data-nodeid={props.node.id}
       className={styles['focusable']}
       contentEditable
       onKeyDown={onKeyDown}
@@ -124,7 +158,12 @@ function Focusable(props: NodeProps) {
 }
 
 function Paragraph(props: NodeProps) {
-  return <Text {...props} />;
+  return (
+    <p>
+      <Indent {...props} />
+      <Text {...props} />
+    </p>
+  );
 }
 
 function Image(props: NodeProps) {
@@ -138,10 +177,24 @@ function Image(props: NodeProps) {
 function Editor(props: { schema: EditorSchema; state: EditorState }) {
   const schema = props.schema;
   const state = props.state;
+  const [selection, setSelection] = useState(props.state.nodes);
+  const [nodes, setNodes] = useState(props.state.nodes);
 
   useEffect(() => {
-    const onStateChange = () => {
-      console.log(state);
+    const onStateChange = (prevState) => {
+      console.log('change', prevState, props.state);
+      setNodes(props.state.nodes);
+      setSelection(props.state.selection);
+
+      if (props.state.selection !== prevState.selection) {
+        const query = `[data-nodeid="${props.state.selection}"]`;
+        setTimeout(() => {
+          const nodeEl = document.querySelector(`[data-nodeid="${props.state.selection}"]`);
+          if (nodeEl) {
+            nodeEl.focus();
+          }
+        }, 0);
+      }
     };
     state.addChangeListener(onStateChange);
     return () => {
@@ -149,13 +202,18 @@ function Editor(props: { schema: EditorSchema; state: EditorState }) {
     };
   });
 
-  return state.nodes.map((node) => {
-    const nodeSchema = props.schema.getNodeSchema(node.type);
-    if (!nodeSchema) {
-      return null;
-    }
-    return createElement(nodeSchema.component, { schema: props.schema, state: props.state, node, key: node.id });
-  });
+  console.log(nodes);
+  return (
+    <>
+      {nodes.map((node) => {
+        const nodeSchema = props.schema.getNodeSchema(node.type);
+        if (!nodeSchema) {
+          return null;
+        }
+        return createElement(nodeSchema.component, { schema: props.schema, state: props.state, node, key: node.id });
+      })}
+    </>
+  );
 }
 
 class EditorSchema {
@@ -163,21 +221,23 @@ class EditorSchema {
     this.nodeSchemas = nodeSchemas;
   }
 
-  public create(nodeType, init?) {
-    const nodeSchema = this.getNodeSchema(nodeType);
+  public getNodeSchema(nodeType) {
+    return this.nodeSchemas.filter((nodeSchema) => nodeSchema.type === nodeType)[0] || null;
+  }
 
+  public createNode(nodeType, init?) {
+    const nodeSchema = this.getNodeSchema(nodeType);
     if (!nodeSchema) {
       return null;
     }
     return {
       id: uuid(),
-      ...nodeSchema.attrs,
-      ...(init || {}),
+      type: nodeType,
+      attrs: {
+        ...nodeSchema.attrs,
+        ...(init || {}),
+      },
     };
-  }
-
-  public getNodeSchema(nodeType) {
-    return this.nodeSchemas[nodeType] || null;
   }
 }
 
@@ -187,15 +247,23 @@ class EditorState {
   constructor(state) {
     this.selection = state.selection;
     this.nodes = state.nodes;
+    this.prev = {
+      selection: null,
+      nodes: [],
+    };
   }
 
   public update(fn: Function) {
+    this.prev = {
+      selection: this.selection,
+      nodes: JSON.parse(JSON.stringify(this.nodes)),
+    };
     fn();
     this.emit();
   }
 
   public addChangeListener(listener) {
-    this.listeners.push(listener);
+    this.listeners.push(() => listener(this.prev));
   }
 
   public removeChangeListener(listener) {
@@ -212,22 +280,24 @@ class EditorState {
 }
 
 export default function SimplePage() {
-  const schema = new EditorSchema({
-    paragraph: {
+  const schema = new EditorSchema([
+    {
+      type: 'paragraph',
       component: Paragraph,
       attrs: {
         text: '',
         indent: 0,
       },
     },
-    image: {
+    {
+      type: 'image',
       component: Image,
       attrs: {
         src: '',
         indent: 0,
       },
     },
-  });
+  ]);
 
   const nodes = [
     {
