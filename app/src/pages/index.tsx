@@ -6,9 +6,9 @@ import {
   CommandButtonComponent,
   IconComponent,
 } from '../../libs/editor/components';
+import { EditorState } from '../../libs/editor/EditorState';
 import { EditorSchema } from '../../libs/editor/EditorSchema';
 import { paragraphSchema, headingSchema, listSchema, todoSchema, imageSchema } from '../../libs/editor/schema';
-import { EditorState } from '../../libs/editor/EditorState';
 import { commands } from '../../libs/editor/commands';
 
 import styles from './index.module.scss';

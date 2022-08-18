@@ -16,16 +16,6 @@ import styles from './components/index.module.scss';
  * TODO add attrs editor component to imageSchema width
  */
 
-export type SchemaType = {
-  type: string;
-  component: React.FC;
-  attrs?: {};
-  inputRule?: [RegExp, Function?];
-  isContinuation?: Boolean;
-  create: Function;
-  action?: Function | null;
-};
-
 type BaseBlock = {
   id: string;
   text: string | null;
