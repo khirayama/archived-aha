@@ -84,7 +84,7 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
   private extractTitleFromBlocks() {
     const blocks = this.props.state.blocks;
     const cur = {
-      title: blocks[0].text || '',
+      title: blocks[0]?.text || '',
       level: 8,
     };
     for (let i = 0; i < blocks.length; i += 1) {
