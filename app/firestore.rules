@@ -1,0 +1,78 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isPaperAdminOrPermittedAuther(paperId, userId) {
+      return (
+        request.auth != null &&
+        (
+          get(/databases/$(database)/documents/ownerships/$(paperId)/$(userId)) == 'admin' ||
+          (
+            get(/databases/$(database)/documents/papers/$(paperId)).data.uid == userId &&
+            (
+              get(/databases/$(database)/documents/ownerships/$(paperId)/$(userId)) == null ||
+              get(/databases/$(database)/documents/ownerships/$(paperId)/$(userId)) != 'none'
+            )
+          )
+        )
+      );
+    }
+
+    function isReaderOrHigherPermittedUser(paperId, userId) {
+      return (
+        request.auth != null && (
+          get(/databases/$(database)/documents/ownerships/$(paperId)/$(userId)) == 'reader' ||
+          get(/databases/$(database)/documents/ownerships/$(paperId)/$(userId)) == 'editor' ||
+          get(/databases/$(database)/documents/ownerships/$(paperId)/$(userId)) == 'admin'
+        )
+      );
+    }
+
+    function isEditorOrHigherPermittedUser(paperId, userId) {
+      return (
+        request.auth != null && (
+          get(/databases/$(database)/documents/ownerships/$(paperId)/$(userId)) == 'editor' ||
+          get(/databases/$(database)/documents/ownerships/$(paperId)/$(userId)) == 'admin'
+        )
+      );
+    }
+
+    function isLimitedOrPublicPaper(paperId) {
+      return (
+        get(/databases/$(database)/documents/accesses/$(paperId)).target == 'limited' ||
+        get(/databases/$(database)/documents/accesses/$(paperId)).target == 'public'
+      );
+    }
+
+    match /profiles/{userId} {
+      allow list: if false;
+      allow get, update, delete: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null;
+    }
+
+    match /arrangements/{userId} {
+      allow list: if false;
+      allow get, update, delete: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null;
+    }
+
+    match /papers/{paperId} {
+      allow get, list: if isReaderOrHigherPermittedUser(paperId, request.auth.uid) || isLimitedOrPublicPaper(paperId);
+      allow create: if request.auth != null;
+      allow update: if (
+        isEditorOrHigherPermittedUser(paperId, request.auth.uid) ||
+        (isLimitedOrPublicPaper(paperId) && get(/databases/$(database)/documents/accesses/$(paperId).role == 'editor'))
+      );
+      allow delete: if isPaperAdminOrPermittedAuther(paperId, request.auth.uid);
+    }
+
+    match /ownerships/{paperId}/{userId} {
+      allow get, list: if isReaderOrHigherPermittedUser(paperId, request.auth.uid) || isLimitedOrPublicPaper(paperId);
+      allow create, update, delete: if isPaperAdminOrPermittedAuther(paperId, userId);
+    }
+
+    match /accesses/{paperId} {
+      allow get, list: if isReaderOrHigherPermittedUser(paperId, request.auth.uid) || isLimitedOrPublicPaper(paperId);
+      allow create, update, delete: if isPaperAdminOrPermittedAuther(paperId, userId);
+    }
+  }
+}
