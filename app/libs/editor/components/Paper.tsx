@@ -1,5 +1,4 @@
 import * as React from 'react';
-import Head from 'next/head';
 
 import { Block } from '../schema';
 import { EditorSchema } from '../EditorSchema';
@@ -79,22 +78,6 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
 
   public componentWillUnmount() {
     this.props.state.offChange(this.onPaperChange);
-  }
-
-  private extractTitleFromBlocks() {
-    const blocks = this.props.state.blocks;
-    const cur = {
-      title: blocks[0]?.text || '',
-      level: 8,
-    };
-    for (let i = 0; i < blocks.length; i += 1) {
-      const block = blocks[i];
-      if (block.type === 'heading' && block.attrs.level < cur.level) {
-        cur.title = block.text;
-        cur.level = block.attrs.level;
-      }
-    }
-    return cur.title;
   }
 
   private findBlockElement(blockId: string): HTMLDivElement | null {
@@ -524,13 +507,9 @@ export class PaperComponent extends React.Component<PaperComponentProps, PaperCo
 
   public render() {
     const blocks = this.state.blocks;
-    const title = this.extractTitleFromBlocks();
 
     return (
       <>
-        <Head>
-          <title>{title}</title>
-        </Head>
         <div className={styles['paper']} ref={this.ref}>
           {blocks.map((block) => {
             return (
