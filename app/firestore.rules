@@ -5,14 +5,14 @@ service cloud.firestore {
       return (
         request.auth != null &&
         (
-          get(/databases/$(database)/documents/ownerships/$(paperId)/$(userId)) == 'admin' ||
           (
             get(/databases/$(database)/documents/papers/$(paperId)).data.uid == userId &&
             (
-              get(/databases/$(database)/documents/ownerships/$(paperId)/$(userId)) == null ||
-              get(/databases/$(database)/documents/ownerships/$(paperId)/$(userId)) != 'none'
+              !exists(/databases/$(database)/documents/ownerships/$(paperId)) ||
+              get(/databases/$(database)/documents/ownerships/$(paperId)).data[userId] != 'none'
             )
-          )
+          ) ||
+          get(/databases/$(database)/documents/ownerships/$(paperId)).data[userId] == 'admin'
         )
       );
     }
@@ -20,9 +20,9 @@ service cloud.firestore {
     function isReaderOrHigherPermittedUser(paperId, userId) {
       return (
         request.auth != null && (
-          get(/databases/$(database)/documents/ownerships/$(paperId)/$(userId)) == 'reader' ||
-          get(/databases/$(database)/documents/ownerships/$(paperId)/$(userId)) == 'editor' ||
-          get(/databases/$(database)/documents/ownerships/$(paperId)/$(userId)) == 'admin'
+          get(/databases/$(database)/documents/ownerships/$(paperId)).data[userId] == 'reader' ||
+          get(/databases/$(database)/documents/ownerships/$(paperId)).data[userId] == 'editor' ||
+          get(/databases/$(database)/documents/ownerships/$(paperId)).data[userId] == 'admin'
         )
       );
     }
@@ -30,16 +30,16 @@ service cloud.firestore {
     function isEditorOrHigherPermittedUser(paperId, userId) {
       return (
         request.auth != null && (
-          get(/databases/$(database)/documents/ownerships/$(paperId)/$(userId)) == 'editor' ||
-          get(/databases/$(database)/documents/ownerships/$(paperId)/$(userId)) == 'admin'
+          get(/databases/$(database)/documents/ownerships/$(paperId)).data[userId] == 'editor' ||
+          get(/databases/$(database)/documents/ownerships/$(paperId)).data[userId] == 'admin'
         )
       );
     }
 
     function isLimitedOrPublicPaper(paperId) {
       return (
-        get(/databases/$(database)/documents/accesses/$(paperId)).target == 'limited' ||
-        get(/databases/$(database)/documents/accesses/$(paperId)).target == 'public'
+        get(/databases/$(database)/documents/accesses/$(paperId)).data.target == 'limited' ||
+        get(/databases/$(database)/documents/accesses/$(paperId)).data.target == 'public'
       );
     }
 
@@ -60,19 +60,19 @@ service cloud.firestore {
       allow create: if request.auth != null;
       allow update: if (
         isEditorOrHigherPermittedUser(paperId, request.auth.uid) ||
-        (isLimitedOrPublicPaper(paperId) && get(/databases/$(database)/documents/accesses/$(paperId).role == 'editor'))
+        (isLimitedOrPublicPaper(paperId) && get(/databases/$(database)/documents/accesses/$(paperId)).data.role == 'editor')
       );
       allow delete: if isPaperAdminOrPermittedAuther(paperId, request.auth.uid);
     }
 
-    match /ownerships/{paperId}/{userId} {
+    match /ownerships/{paperId} {
       allow get, list: if isReaderOrHigherPermittedUser(paperId, request.auth.uid) || isLimitedOrPublicPaper(paperId);
-      allow create, update, delete: if isPaperAdminOrPermittedAuther(paperId, userId);
+      allow create, update, delete: if isPaperAdminOrPermittedAuther(paperId, request.auth.uid);
     }
 
     match /accesses/{paperId} {
       allow get, list: if isReaderOrHigherPermittedUser(paperId, request.auth.uid) || isLimitedOrPublicPaper(paperId);
-      allow create, update, delete: if isPaperAdminOrPermittedAuther(paperId, userId);
+      allow create, update, delete: if isPaperAdminOrPermittedAuther(paperId, request.auth.uid);
     }
   }
 }
