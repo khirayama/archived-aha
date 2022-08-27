@@ -9,7 +9,7 @@ import {
   FocusableComponent,
 } from './components';
 import { CommandContext } from './commands';
-import { SchemaType } from './EditorSchema';
+import { EditorSchema, SchemaType } from './EditorSchema';
 
 import styles from './components/index.module.scss';
 
