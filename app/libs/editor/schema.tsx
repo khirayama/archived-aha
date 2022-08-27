@@ -226,3 +226,20 @@ export const imageSchema: SchemaType = {
 };
 
 export type Block = ParagraphBlock | HeadingBlock | ListBlock | TodoBlock | ImageBlock;
+
+export const schema = new EditorSchema([todoSchema, paragraphSchema, headingSchema, listSchema, imageSchema]);
+
+export function extractTitle(blocks: Block[]) {
+  const cur = {
+    title: blocks[0]?.text || '',
+    level: 8,
+  };
+  for (let i = 0; i < blocks.length; i += 1) {
+    const block = blocks[i];
+    if (block.type === 'heading' && block.attrs.level < cur.level) {
+      cur.title = block.text;
+      cur.level = block.attrs.level;
+    }
+  }
+  return cur.title;
+}
