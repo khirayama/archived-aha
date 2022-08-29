@@ -1,84 +1,109 @@
 import * as React from 'react';
+import { useRouter } from 'next/router';
+import Link from 'next/link';
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth';
+import { getFirestore, doc, collection, setDoc, addDoc } from 'firebase/firestore';
 
-import {
-  PaperComponent,
-  FloatingNavComponent,
-  CommandButtonComponent,
-  IconComponent,
-} from '../../libs/editor/components';
-import { EditorState } from '../../libs/editor/EditorState';
-import { EditorSchema } from '../../libs/editor/EditorSchema';
-import { paragraphSchema, headingSchema, listSchema, todoSchema, imageSchema } from '../../libs/editor/schema';
-import { commands } from '../../libs/editor/commands';
+import { schema } from '../../libs/editor/schema';
 
-import styles from './index.module.scss';
+const db = getFirestore();
 
-export function getServerSideProps() {
-  return {
-    props: {
-      blocks: [
-        schema.createBlock('heading', { text: 'TITLE OF THIS PAPER', attrs: { level: 1 } }),
-        schema.createBlock('todo', { text: 'タスク1' }),
-        schema.createBlock('todo', { text: 'タスク2', attrs: { done: true } }),
-        schema.createBlock('paragraph', { text: '𠮷野屋で𩸽頼んで𠮟られる😭' }),
-        schema.createBlock('heading', { text: '000', attrs: { level: 2 } }),
-        schema.createBlock('paragraph', { text: '111' }),
-        schema.createBlock('paragraph', { text: '222', indent: 1 }),
-        schema.createBlock('paragraph', { text: '333', indent: 2 }),
-        schema.createBlock('paragraph', { text: '444' }),
-        schema.createBlock('paragraph', { text: '555' }),
-        schema.createBlock('paragraph', { text: '666', indent: 1 }),
-        schema.createBlock('paragraph', { text: '777', indent: 1 }),
-        schema.createBlock('paragraph', { text: '888', indent: 2 }),
-        schema.createBlock('paragraph', { text: '999', indent: 1 }),
-        schema.createBlock('paragraph', { text: '101010', indent: 1 }),
-        schema.createBlock('paragraph', { text: '111111' }),
-        schema.createBlock('image', { attrs: { src: 'https://placehold.jp/256x256.png' } }),
-        schema.createBlock('paragraph', { text: '121212' }),
-      ],
-    },
-  };
-}
+export default function IndexPage() {
+  const router = useRouter();
+  const auth = getAuth();
+  const [username, setUsername] = React.useState('khirayama');
+  const [email, setEmail] = React.useState('khirayama@example.com');
+  const [password, setPassword] = React.useState('abcdefg');
+  const [errorMessage, setErrorMessage] = React.useState('');
+  const [user, setUser] = React.useState(auth.currentUser);
 
-const schema = new EditorSchema([paragraphSchema, headingSchema, listSchema, todoSchema, imageSchema]);
-const state = new EditorState();
+  function handleFirebaseError(err) {
+    setErrorMessage(err.message);
+    throw err;
+  }
 
-export default function ProtoPage(props) {
-  state.setBlocks(props.blocks);
+  React.useEffect(() => {
+    const off = onAuthStateChanged(auth, (u) => {
+      setUser(u);
+    });
+    return () => {
+      off();
+    };
+  }, [user]);
 
   return (
-    <div className={styles['container']}>
-      <PaperComponent schema={schema} state={state} />
-      <FloatingNavComponent>
-        <CommandButtonComponent
-          schema={schema}
-          state={state}
-          onClick={(event, block) => {
-            commands.outdent({
-              block,
-              schema,
-              state,
-            });
-            state.commit();
+    <div>
+      <p>{errorMessage}</p>
+      {user ? (
+        <p>
+          You are already signed in. Move to <Link href="/app">App page</Link> or{' '}
+          <button onClick={() => auth.signOut()}>Sign out</button>.
+        </p>
+      ) : null}
+      <div>
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            signInWithEmailAndPassword(auth, email, password)
+              .then((userCredential) => {
+                router.push('/app');
+                setErrorMessage('');
+              })
+              .catch(handleFirebaseError);
           }}
         >
-          <IconComponent name="format_indent_decrease" />
-        </CommandButtonComponent>
-        <CommandButtonComponent
-          schema={schema}
-          state={state}
-          onClick={(event, block) => {
-            commands.indent({
-              block,
-              schema,
-              state,
-            });
-            state.commit();
+          <input
+            type="text"
+            name="username"
+            value={username}
+            onChange={(event) => setUsername(event.currentTarget.value)}
+          />
+          <input type="text" name="email" value={email} onChange={(event) => setEmail(event.currentTarget.value)} />
+          <input
+            type="password"
+            name="password"
+            value={password}
+            onChange={(event) => setPassword(event.currentTarget.value)}
+          />
+          <button>SUBMIT</button>
+        </form>
+        <button
+          onClick={() => {
+            createUserWithEmailAndPassword(auth, email, password)
+              .then((userCredential) => {
+                const u = userCredential.user;
+                setErrorMessage('');
+                setDoc(doc(db, 'profiles', u.uid), { username });
+                addDoc(collection(db, 'papers'), {
+                  uid: user.uid,
+                  tags: [],
+                  blocks: [schema.createBlock('heading', { text: '', attrs: { level: 1 } })],
+                })
+                  .then((paperRef) => {
+                    Promise.all([
+                      setDoc(doc(db, 'arrangements', u.uid), {
+                        front: [paperRef.id],
+                        archived: [],
+                      }),
+                      setDoc(doc(db, 'ownerships', paperRef.id), { [u.uid]: 'admin' }),
+                      setDoc(doc(db, 'accesses', paperRef.id), {
+                        target: 'private',
+                        role: 'none',
+                      }),
+                    ])
+                      .then(() => {
+                        router.push('/app');
+                      })
+                      .catch(handleFirebaseError);
+                  })
+                  .catch(handleFirebaseError);
+              })
+              .catch(handleFirebaseError);
           }}
         >
-          <IconComponent name="format_indent_increase" />
-        </CommandButtonComponent>
-      </FloatingNavComponent>
+          SIGN UP
+        </button>
+      </div>
     </div>
   );
 }
