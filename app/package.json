@@ -21,6 +21,7 @@
     "eslint-plugin-node": "11.1.0",
     "eslint-plugin-prettier": "4.0.0",
     "eslint-plugin-react": "7.26.1",
+    "firebase-tools": "11.8.0",
     "prettier": "2.4.1",
     "prisma": "2.24.1",
     "prosemirror-inputrules": "1.1.3",
