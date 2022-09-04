@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import useSWR from 'swr';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import {
@@ -18,50 +19,42 @@ const fetcher = (...args) => fetch(...args).then((res) => res.json());
 
 const db = getFirestore();
 
-/* [はじめに – SWR](https://swr.vercel.app/ja/docs/getting-started) */
-function useUser(id) {
-  const { data, error } = useSWR(`/api/user/${id}`, fetcher);
-
-  return {
-    user: data,
-    isLoading: !error && !data,
-    isError: error,
-  };
-}
-
-type User = {
-  email: string;
-  profile: {
-    username: string;
-  };
-};
-
-function useUser(): User {
+export function useUser(): User {
   const [user, setUser] = useState(null);
+  const [err, setError] = useState(null);
 
-  const auth = getAuth();
-  if (auth) {
-    getDoc(doc(db, 'profiles', auth.currentUser.uid)).then((res) => {
-      const profile = res.data();
-      setUser({
-        email: auth.currentUser.email,
-        profile,
-      });
-    });
-  }
-
-  onAuthStateChanged(auth, (u) => {
+  function fetchProfile() {
     const auth = getAuth();
-    if (auth) {
-      getDoc(doc(db, 'profiles', auth.currentUser.uid)).then((res) => {
+    const u = auth.currentUser;
+    setError(null);
+    if (u) {
+      getDoc(doc(db, 'profiles', u.uid)).then((res) => {
         const profile = res.data();
         setUser({
-          email: auth.currentUser.email,
+          email: u.email,
           profile,
         });
       });
+    } else if (auth._isInitialized) {
+      setUser(null);
+      setError(new Error('Not logged in'));
     }
-  });
+  }
 
-  return user;
+  useEffect(() => {
+    fetchProfile();
+    const unsubscribe = onAuthStateChanged(getAuth(), (u) => {
+      fetchProfile();
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, []);
+
+  return {
+    user,
+    isLoading: !user && !err,
+    isError: err,
+  };
 }
