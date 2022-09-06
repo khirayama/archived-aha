@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import useSWR from 'swr';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import {
   getFirestore,
@@ -15,11 +14,30 @@ import {
   onSnapshot,
 } from 'firebase/firestore';
 
-const fetcher = (...args) => fetch(...args).then((res) => res.json());
-
 const db = getFirestore();
 
-export function useUser(): User {
+type PaperId = string;
+
+type Async<T> = {
+  data: T;
+  isLoading: boolean;
+  isError: Error;
+};
+
+type User = {
+  uid: string;
+  email: string;
+  profile: {
+    username: string;
+  };
+};
+
+type Arrangement = {
+  front: PaperId[];
+  archived: PaperId[];
+};
+
+export function useUser(): Async<User> {
   const [user, setUser] = useState(null);
   const [err, setError] = useState(null);
 
@@ -28,14 +46,19 @@ export function useUser(): User {
     const u = auth.currentUser;
     setError(null);
     if (u) {
-      getDoc(doc(db, 'profiles', u.uid)).then((res) => {
-        const profile = res.data();
-        setUser({
-          email: u.email,
-          profile,
+      getDoc(doc(db, 'profiles', u.uid))
+        .then((res) => {
+          const profile = res.data();
+          setUser({
+            uid: u.uid,
+            email: u.email,
+            profile,
+          });
+        })
+        .catch((e) => {
+          setError(e);
         });
-      });
-    } else if (auth._isInitialized) {
+    } else if ((auth as any) /* TODO */._isInitialized) {
       setUser(null);
       setError(new Error('Not logged in'));
     }
@@ -53,8 +76,44 @@ export function useUser(): User {
   }, []);
 
   return {
-    user,
+    data: user,
     isLoading: !user && !err,
+    isError: err,
+  };
+}
+
+export function useArrangement(): Async<Arrangement> {
+  const [arrangement, setArrangment] = useState(null);
+  const [err, setError] = useState(null);
+  const { data: user } = useUser();
+
+  function fetchArrangement(u) {
+    getDoc(doc(db, 'arrangements', u.uid))
+      .then((res) => {
+        const arrangement = res.data();
+        setArrangment(arrangement);
+      })
+      .catch((e) => {
+        setError(e);
+      });
+  }
+
+  useEffect(() => {
+    if (user) {
+      fetchArrangement(user);
+      const unsubscribe = onSnapshot(doc(db, 'arrangements', user.uid), () => {
+        fetchArrangement(user);
+      });
+
+      return () => {
+        unsubscribe();
+      };
+    }
+  }, [user]);
+
+  return {
+    data: arrangement,
+    isLoading: !arrangement && !err,
     isError: err,
   };
 }
