@@ -10,7 +10,12 @@ import { EditorState } from '../../libs/editor/EditorState';
 import { schema, paragraphSchema, headingSchema, listSchema, todoSchema, imageSchema } from '../../libs/editor/schema';
 export { schema, extractTitle } from '../../libs/editor/schema';
 
-export class Editor extends React.Component {
+type EditorProps = {
+  blocks: EditorState['blocks'];
+  onChange: (blocks: EditorState['blocks']) => void;
+};
+
+export class Editor extends React.Component<EditorProps> {
   private editorState: EditorState;
 
   constructor(props) {
