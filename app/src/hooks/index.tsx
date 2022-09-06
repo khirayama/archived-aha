@@ -37,6 +37,16 @@ type Arrangement = {
   archived: PaperId[];
 };
 
+type Paper = {
+  id: PaperId;
+  tags: string[];
+  access: {
+    target: 'private' | 'limited' | 'public';
+    permission: 'write' | 'read';
+  };
+  blocks: any[] /* TODO */;
+};
+
 export function useUser(): Async<User> {
   const [user, setUser] = useState(null);
   const [err, setError] = useState(null);
@@ -114,6 +124,45 @@ export function useArrangement(): Async<Arrangement> {
   return {
     data: arrangement,
     isLoading: !arrangement && !err,
+    isError: err,
+  };
+}
+
+export function usePapers(paperIds): Async<Paper[]> {
+  const [papers, setPapers] = useState([]);
+  const [err, setError] = useState(null);
+  const { data: user } = useUser();
+
+  function fetchPapers(u) {
+    getDocs(query(collection(db, 'papers'), where(documentId(), 'in', paperIds)))
+      .then((res) => {
+        const ps = [];
+        res.forEach((d) => {
+          ps.push({ id: d.id, ...d.data() });
+        });
+        setPapers(ps);
+      })
+      .catch((e) => {
+        setError(e);
+      });
+  }
+
+  useEffect(() => {
+    if (user && paperIds?.length) {
+      fetchPapers(user);
+      const unsubscribe = onSnapshot(query(collection(db, 'papers'), where(documentId(), 'in', paperIds)), () => {
+        fetchPapers(user);
+      });
+
+      return () => {
+        unsubscribe();
+      };
+    }
+  }, [user, paperIds]);
+
+  return {
+    data: papers,
+    isLoading: !papers.length && !err,
     isError: err,
   };
 }
