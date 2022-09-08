@@ -16,6 +16,8 @@ import {
 
 const db = getFirestore();
 
+type UserId = string;
+
 type PaperId = string;
 
 type Async<T> = {
@@ -24,12 +26,14 @@ type Async<T> = {
   isError: Error;
 };
 
+type Profile = {
+  username: string;
+};
+
 type User = {
-  uid: string;
+  uid: UserId;
   email: string;
-  profile: {
-    username: string;
-  };
+  profile: Profile;
 };
 
 type Arrangement = {
@@ -40,11 +44,20 @@ type Arrangement = {
 type Paper = {
   id: PaperId;
   tags: string[];
-  access: {
-    target: 'private' | 'limited' | 'public';
-    permission: 'write' | 'read';
-  };
   blocks: any[] /* TODO */;
+};
+
+type Role = 'none' | 'read' | 'editor' | 'admin';
+
+type Ownership = {
+  uid: UserId;
+  profile: Profile;
+  role: Role;
+};
+
+type Access = {
+  target: 'private' | 'limited' | 'public';
+  role: Role;
 };
 
 export function useUser(): Async<User> {
