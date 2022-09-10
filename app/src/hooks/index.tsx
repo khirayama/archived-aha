@@ -141,7 +141,7 @@ export function useArrangement(): Async<Arrangement> {
   };
 }
 
-export function usePapers(paperIds): Async<Paper[]> {
+export function usePapers(paperIds: PaperId[]): Async<Paper[]> {
   const [papers, setPapers] = useState([]);
   const [err, setError] = useState(null);
   const { data: user } = useUser();
