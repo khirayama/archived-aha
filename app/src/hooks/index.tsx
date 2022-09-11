@@ -174,8 +174,80 @@ export function usePapers(paperIds: PaperId[]): Async<Paper[]> {
   }, [user, paperIds]);
 
   return {
-    data: papers,
+    data: papers || [],
     isLoading: !papers.length && !err,
+    isError: err,
+  };
+}
+
+export function useOwnership(paperId: PaperId): Async<Ownership> {
+  const [ownership, setOwnership] = useState(null);
+  const [err, setError] = useState(null);
+  const { data: user } = useUser();
+
+  function fetchOwnership() {
+    getDoc(doc(db, 'ownerships', paperId))
+      .then((res) => {
+        const ownership = res.data();
+        setOwnership(ownership);
+      })
+      .catch((e) => {
+        setError(e);
+      });
+  }
+
+  useEffect(() => {
+    if (user && paperId) {
+      fetchOwnership(paperId);
+      const unsubscribe = onSnapshot(doc(db, 'ownerships', paperId), () => {
+        fetchOwnership(paperId);
+      });
+
+      return () => {
+        unsubscribe();
+      };
+    }
+  }, [user, paperId]);
+
+  return {
+    data: ownership || null,
+    isLoading: !ownership && !err,
+    isError: err,
+  };
+}
+
+export function useAccess(paperId: PaperId): Async<Access> {
+  const [access, setAccess] = useState(null);
+  const [err, setError] = useState(null);
+  const { data: user } = useUser();
+
+  function fetchAccess() {
+    getDoc(doc(db, 'accesses', paperId))
+      .then((res) => {
+        const access = res.data();
+        setAccess(access);
+      })
+      .catch((e) => {
+        setError(e);
+      });
+  }
+
+  useEffect(() => {
+    if (user && paperId) {
+      fetchAccess(paperId);
+      const unsubscribe = onSnapshot(doc(db, 'accesses', paperId), () => {
+        fetchAccess(paperId);
+      });
+
+      return () => {
+        unsubscribe();
+      };
+    }
+  }, [user, paperId]);
+
+  return {
+    data: access || null,
+    isLoading: !access && !err,
     isError: err,
   };
 }
