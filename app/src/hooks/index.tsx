@@ -99,7 +99,7 @@ export function useUser(): Async<User> {
   }, []);
 
   return {
-    data: user,
+    data: user || null,
     isLoading: !user && !err,
     isError: err,
   };
@@ -135,7 +135,7 @@ export function useArrangement(): Async<Arrangement> {
   }, [user]);
 
   return {
-    data: arrangement,
+    data: arrangement || null,
     isLoading: !arrangement && !err,
     isError: err,
   };
