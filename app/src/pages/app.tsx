@@ -19,84 +19,12 @@ import {
   getDoc,
   documentId,
   setDoc,
-  onSnapshot,
 } from 'firebase/firestore';
 
 import { extractTitle, schema, Editor } from '../components/Editor';
-import { useUser } from '../hooks';
-
-/* TODO
- * - [ ] paperのタグ削除
- * - [ ] paperの共有
- * - [ ] paperの公開
- * - [ ] paperの並び替え
- * - [ ] paperのアーカイブ
- * - [ ] paperの削除
- * - [x] paperの更新
- * - [x] paperの新規作成
- * - [x] paperのタグ付け
- */
+import { useUser, useArrangement, usePapers, useOwnership, useAccess } from '../hooks';
 
 const db = getFirestore();
-
-type PaperId = string;
-
-type User = {};
-
-type Arrangement = {
-  front: PaperId[];
-  archived: PaperId[];
-};
-
-type Paper = {
-  tags: string[];
-  access: {
-    target: 'private' | 'limited' | 'public';
-    permission: 'write' | 'read';
-  };
-  blocks: string;
-};
-
-type Request = {
-  member: User;
-  status: 'pending' | 'accepted' | 'rejected';
-  permission: 'write' | 'read' | 'admin';
-};
-
-type State = {
-  user: User;
-  arrangement: Arrangement;
-  requests: Request[];
-  papers: {
-    [paperId: PaperId]: Paper;
-  };
-  currentPaperId: PaperId;
-};
-
-onSnapshot(collection(db, 'papers'), () => {
-  console.log('update');
-});
-
-function fetchData(user) {
-  return new Promise((resolve) => {
-    Promise.all([getDoc(doc(db, 'profiles', user.uid)), getDoc(doc(db, 'arrangements', user.uid))]).then((res) => {
-      const profile = res[0].data();
-      const arrangement = res[1].data();
-      onSnapshot(query(collection(db, 'papers'), where(documentId(), 'in', arrangement.front)), () => {
-        console.log('update');
-      });
-      getDocs(query(collection(db, 'papers'), where(documentId(), 'in', arrangement.front))).then((res) => {
-        const papers = {};
-        res.forEach((d) => {
-          console.log(d.data());
-          papers[d.id] = d.data();
-        });
-        console.log(papers);
-        resolve({ profile, arrangement, papers });
-      });
-    });
-  });
-}
 
 const debounce = function (fn, interval = 0) {
   let timerId;
@@ -115,13 +43,36 @@ const debouncedSetBlocks = debounce((paperId, paper) => {
 export default function AppPage() {
   const router = useRouter();
   const auth = getAuth();
+
+  const { data: user, isError: isUserError } = useUser();
+  const { data: arrangement, isError: isArrangementError } = useArrangement();
+  const { data: papers, isError: isPapersError } = usePapers(arrangement?.front);
+  const { data: ownership, isError: isOwnershipError } = useOwnership(arrangement?.front[0]);
+  const { data: access, isError: isAccessError } = useAccess(arrangement?.front[0]);
+
   const [errorMessage, setErrorMessage] = React.useState('');
-  const [user, setUser] = React.useState(auth.currentUser);
-  const [profile, setProfile] = React.useState(auth.currentUser);
-  const [arrangement, setArrangement] = React.useState(null);
   const [currentPaperId, setCurrentPaperId] = React.useState(null);
-  const [papers, setPapers] = React.useState({});
   const [tag, setTag] = React.useState('');
+  const [paperSnapshot, setPaperSnapshot] = React.useState(null);
+
+  if (isUserError) {
+    /* TODO: display sign in form modal would be better */
+    router.push('/');
+  }
+
+  React.useEffect(() => {
+    if (arrangement?.front.length && paperSnapshot == null) {
+      const p = papers.filter((p) => p.id === arrangement.front[0])[0];
+      setPaperSnapshot(p);
+    }
+  }, [arrangement, papers, paperSnapshot]);
+
+  React.useEffect(() => {
+    if (paperSnapshot) {
+      const p = papers.filter((p) => p.id === paperSnapshot.id)[0];
+      setPaperSnapshot(p);
+    }
+  }, [papers, paperSnapshot]);
 
   function handleFirebaseError(err) {
     setErrorMessage(err.message);
@@ -130,140 +81,106 @@ export default function AppPage() {
   const onBlocksChange = React.useCallback(
     (newBlocks) => {
       const newPaper = {
-        ...papers[currentPaperId],
+        ...paperSnapshot,
         blocks: newBlocks,
       };
-      setPapers({
-        ...papers,
-        [currentPaperId]: newPaper,
-      });
-      debouncedSetBlocks(currentPaperId, newPaper);
+      debouncedSetBlocks(newPaper.id, newPaper);
     },
-    [papers, currentPaperId],
+    [papers, paperSnapshot],
   );
 
-  React.useEffect(() => {
-    if (user) {
-      fetchData(user).then((res) => {
-        setProfile(res.profile);
-        setArrangement(res.arrangement);
-        setCurrentPaperId(res.arrangement.front[0]);
-        setPapers(res.papers);
-      });
-    }
-    onAuthStateChanged(auth, (u) => {
-      setUser(u);
-      if (u) {
-        fetchData(u).then((res) => {
-          console.log(res);
-          setProfile(res.profile);
-          setArrangement(res.arrangement);
-          setCurrentPaperId(res.arrangement.front[0]);
-          setPapers(res.papers);
-        });
-      } else {
-        router.push('/');
-      }
-    });
-  }, []);
-
-  console.log(papers);
   return (
     <>
       <Head>
-        <title>{papers[currentPaperId] ? extractTitle(papers[currentPaperId].blocks) : 'aha'}</title>
+        <title>{paperSnapshot ? extractTitle(paperSnapshot.blocks) : 'aha'}</title>
       </Head>
       <div>
         <p>{errorMessage}</p>
         <p>{user?.email}</p>
         <p>{user?.uid}</p>
-        <p>{profile?.username}</p>
-        <button
-          onClick={() => {
-            auth.signOut();
-          }}
-        >
-          SIGN OUT
-        </button>
-        <button
-          onClick={() => {
-            deleteUser(user)
-              .then(() => {
-                console.log('deleted');
+        <p>{user?.profile?.username}</p>
+        <div>
+          <button
+            onClick={() => {
+              auth.signOut();
+            }}
+          >
+            SIGN OUT
+          </button>
+        </div>
+        <div>
+          <button
+            onClick={() => {
+              deleteUser(user)
+                .then(() => {
+                  console.log('deleted');
+                })
+                .catch(handleFirebaseError);
+            }}
+          >
+            DELETE ACCOUNT
+          </button>
+        </div>
+        <div>
+          <button
+            onClick={() => {
+              addDoc(collection(db, 'papers'), {
+                uid: user.uid,
+                tags: [],
+                blocks: [schema.createBlock('heading', { text: '', attrs: { level: 1 } })],
               })
-              .catch(handleFirebaseError);
-          }}
-        >
-          DELETE ACCOUNT
-        </button>
-        <button
-          onClick={() => {
-            addDoc(collection(db, 'papers'), {
-              uid: user.uid,
-              tags: [],
-              blocks: [schema.createBlock('heading', { text: '', attrs: { level: 1 } })],
-            })
-              .then((paperRef) => {
-                const front = arrangement.front.concat();
-                front.push(paperRef.id);
-                Promise.all([
-                  setDoc(doc(db, 'arrangements', user.uid), {
-                    ...arrangement,
-                    front,
-                  }),
-                  setDoc(doc(db, 'ownerships', paperRef.id), { [user.uid]: 'admin' }),
-                  setDoc(doc(db, 'accesses', paperRef.id), {
-                    target: 'private',
-                    role: 'none',
-                  }),
-                ])
-                  .then(() => {
-                    fetchData(user).then((res) => {
-                      setArrangement(res.arrangement);
-                      setPapers(res.papers);
-                    });
-                  })
-                  .catch(handleFirebaseError);
-              })
-              .catch(handleFirebaseError);
-          }}
-        >
-          CREATE NEW PAPER
-        </button>
+                .then((paperRef) => {
+                  const front = arrangement.front.concat();
+                  front.push(paperRef.id);
+                  Promise.all([
+                    setDoc(doc(db, 'arrangements', user.uid), {
+                      ...arrangement,
+                      front,
+                    }),
+                    setDoc(doc(db, 'ownerships', paperRef.id), { [user.uid]: 'admin' }),
+                    setDoc(doc(db, 'accesses', paperRef.id), {
+                      target: 'private',
+                      role: 'none',
+                    }),
+                  ]).catch(handleFirebaseError);
+                })
+                .catch(handleFirebaseError);
+            }}
+          >
+            CREATE NEW PAPER
+          </button>
+        </div>
         <ul>
           {arrangement
             ? arrangement.front.map((paperId) => {
+                const p = papers.filter((p) => p.id === paperId)[0];
                 return (
                   <li
                     key={paperId}
                     onClick={() => {
-                      setCurrentPaperId(paperId);
+                      setPaperSnapshot(p || null);
                     }}
                   >
-                    <div>{papers[paperId] ? extractTitle(papers[paperId].blocks) || paperId : null}</div>
+                    <div>{p ? extractTitle(p.blocks) || paperId : null}</div>
                   </li>
                 );
               })
             : null}
         </ul>
-        {currentPaperId && papers[currentPaperId] ? (
+        {paperSnapshot ? (
           <>
             <form
               onSubmit={(event) => {
                 event.preventDefault();
                 const t = tag.trim();
-                const newTags = papers[currentPaperId].tags.concat();
+                const newTags = paperSnapshot.tags.concat();
                 if (t && newTags.indexOf(t) === -1) {
                   newTags.push(t);
                   const newPaper = {
-                    ...papers[currentPaperId],
+                    ...paperSnapshot,
                     tags: newTags,
                   };
-                  setDoc(doc(db, 'papers', currentPaperId), newPaper);
-                  setPapers({
-                    ...papers,
-                    [currentPaperId]: newPaper,
-                  });
+                  setDoc(doc(db, 'papers', paperSnapshot.id), newPaper);
                   setTag('');
                 }
               }}
@@ -272,21 +189,17 @@ export default function AppPage() {
               <button>CREATE TAG</button>
             </form>
             <ul>
-              {papers[currentPaperId].tags.map((tag) => {
+              {paperSnapshot.tags.map((tag) => {
                 return (
                   <li
                     key={tag}
                     onClick={() => {
-                      const newTags = papers[currentPaperId].tags.filter((t) => t !== tag);
+                      const newTags = paperSnapshot.tags.filter((t) => t !== tag);
                       const newPaper = {
-                        ...papers[currentPaperId],
+                        ...paperSnapshot,
                         tags: newTags,
                       };
-                      setDoc(doc(db, 'papers', currentPaperId), newPaper);
-                      setPapers({
-                        ...papers,
-                        [currentPaperId]: newPaper,
-                      });
+                      setDoc(doc(db, 'papers', paperSnapshot.id), newPaper);
                     }}
                   >
                     #{tag}
@@ -294,7 +207,7 @@ export default function AppPage() {
                 );
               })}
             </ul>
-            <Editor key={currentPaperId} blocks={papers[currentPaperId].blocks} onChange={onBlocksChange} />
+            <Editor key={paperSnapshot.id} blocks={paperSnapshot.blocks} onChange={onBlocksChange} />
           </>
         ) : null}
       </div>
