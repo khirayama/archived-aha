@@ -86,10 +86,6 @@ export default function IndexPage() {
                         archived: [],
                       }),
                       setDoc(doc(db, 'ownerships', paperRef.id), { [u.uid]: 'admin' }),
-                      setDoc(doc(db, 'accesses', paperRef.id), {
-                        target: 'private',
-                        role: 'none',
-                      }),
                     ])
                       .then(() => {
                         router.push('/app');
