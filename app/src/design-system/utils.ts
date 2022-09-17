@@ -15,7 +15,7 @@ function mapStyle(props, style, propsKeys: string[], mappedKeys: string[], unit:
   }
 }
 
-export function dsp(props: {
+function designSysytemProps(props: {
   /* padding */
   p?: number;
   padding?: number;
@@ -53,3 +53,5 @@ export function dsp(props: {
   newProps.style = { ...newProps.style, ...style };
   return newProps;
 }
+
+export const dsp = designSysytemProps;
