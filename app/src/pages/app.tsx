@@ -24,18 +24,9 @@ import {
 import { extractTitle, schema, Editor } from '../components/Editor';
 import { useUser, useArrangement, usePapers, useOwnership, useAccess } from '../hooks';
 import { Button } from '../design-system';
+import { debounce } from '../utils';
 
 const db = getFirestore();
-
-const debounce = function (fn, interval = 0) {
-  let timerId;
-  return function (...args) {
-    clearTimeout(timerId);
-    timerId = setTimeout(() => {
-      fn(...args);
-    }, interval);
-  };
-};
 
 const debouncedSetBlocks = debounce((paperId, paper) => {
   setDoc(doc(db, 'papers', paperId), paper);
