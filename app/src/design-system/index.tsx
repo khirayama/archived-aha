@@ -10,3 +10,6 @@ export { Link } from './Link';
 /* Typography */
 export { Text } from './Text';
 export { Heading } from './Heading';
+/* Display */
+export { List } from './List';
+export { ListItem } from './ListItem';
