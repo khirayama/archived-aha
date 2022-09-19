@@ -23,8 +23,8 @@ import {
 
 import { extractTitle, schema, Editor } from '../components/Editor';
 import { useUser, useArrangement, usePapers, useOwnership, useAccess } from '../hooks';
-import { Button } from '../design-system';
 import { debounce } from '../utils';
+import { Box, Flex, FormControl, Button, Text, List, ListItem } from '../design-system';
 
 const db = getFirestore();
 
@@ -86,42 +86,18 @@ export default function AppPage() {
       <Head>
         <title>{paperSnapshot ? extractTitle(paperSnapshot.blocks) : 'aha'}</title>
       </Head>
-      <div>
-        <p>{errorMessage}</p>
-        <p>{user?.email}</p>
-        <p>{user?.uid}</p>
-        <p>{user?.profile?.username}</p>
-        <div>
-          <Button
-            onClick={() => {
-              auth.signOut();
-            }}
-          >
-            SIGN OUT
-          </Button>
-        </div>
-        <div>
-          <Button
-            onClick={() => {
-              deleteUser(user)
-                .then(() => {
-                  console.log('deleted');
-                })
-                .catch(handleFirebaseError);
-            }}
-          >
-            DELETE ACCOUNT
-          </Button>
-        </div>
-        <div>
-          <Button
-            onClick={() => {
-              addDoc(collection(db, 'papers'), {
-                uid: user.uid,
-                tags: [],
-                blocks: [schema.createBlock('heading', { text: '', attrs: { level: 1 } })],
-              })
-                .then((paperRef) => {
+      <Flex>
+        <Box w="240px" p={4}>
+          <Text>{user?.profile?.username}</Text>
+          <Text>{user?.email}</Text>
+          <Box>
+            <Button
+              onClick={() => {
+                addDoc(collection(db, 'papers'), {
+                  uid: user.uid,
+                  tags: [],
+                  blocks: [schema.createBlock('heading', { text: '', attrs: { level: 1 } })],
+                }).then((paperRef) => {
                   const front = arrangement.front.concat();
                   front.push(paperRef.id);
                   Promise.all([
@@ -134,75 +110,103 @@ export default function AppPage() {
                       target: 'private',
                       role: 'none',
                     }),
-                  ]).catch(handleFirebaseError);
-                })
-                .catch(handleFirebaseError);
-            }}
-          >
-            CREATE NEW PAPER
-          </Button>
-        </div>
-        <ul>
-          {arrangement
-            ? arrangement.front.map((paperId) => {
-                const p = papers.filter((p) => p.id === paperId)[0];
-                return (
-                  <li
-                    key={paperId}
-                    onClick={() => {
-                      setPaperSnapshot(p || null);
-                    }}
-                  >
-                    <div>{p ? extractTitle(p.blocks) || paperId : null}</div>
-                  </li>
-                );
-              })
-            : null}
-        </ul>
-        {paperSnapshot ? (
-          <>
-            <form
-              onSubmit={(event) => {
-                event.preventDefault();
-                const t = tag.trim();
-                const newTags = paperSnapshot.tags.concat();
-                if (t && newTags.indexOf(t) === -1) {
-                  newTags.push(t);
-                  const newPaper = {
-                    ...paperSnapshot,
-                    tags: newTags,
-                  };
-                  setDoc(doc(db, 'papers', paperSnapshot.id), newPaper);
-                  setTag('');
-                }
+                  ]);
+                });
               }}
             >
-              <input type="text" value={tag} onChange={(event) => setTag(event.currentTarget.value.trim())} />
-              <Button>CREATE TAG</Button>
-            </form>
-            <ul>
-              {paperSnapshot.tags.map((tag) => {
-                return (
-                  <li
-                    key={tag}
-                    onClick={() => {
-                      const newTags = paperSnapshot.tags.filter((t) => t !== tag);
+              CREATE NEW PAPER
+            </Button>
+          </Box>
+          <List>
+            {arrangement
+              ? arrangement.front.map((paperId) => {
+                  const p = papers.filter((p) => p.id === paperId)[0];
+                  return (
+                    <ListItem
+                      key={paperId}
+                      onClick={() => {
+                        setPaperSnapshot(p || null);
+                      }}
+                    >
+                      <Box>{p ? extractTitle(p.blocks) || paperId : null}</Box>
+                    </ListItem>
+                  );
+                })
+              : null}
+          </List>
+          <Box>
+            <Box>
+              <Button
+                onClick={() => {
+                  auth.signOut();
+                }}
+              >
+                SIGN OUT
+              </Button>
+            </Box>
+            <Box>
+              <Button
+                onClick={() => {
+                  deleteUser(user).then(() => {
+                    console.log('deleted');
+                  });
+                }}
+              >
+                DELETE ACCOUNT
+              </Button>
+            </Box>
+          </Box>
+        </Box>
+        <Box flex={1}>
+          {paperSnapshot ? (
+            <>
+              <Box p={4}>
+                <FormControl
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    const t = tag.trim();
+                    const newTags = paperSnapshot.tags.concat();
+                    if (t && newTags.indexOf(t) === -1) {
+                      newTags.push(t);
                       const newPaper = {
                         ...paperSnapshot,
                         tags: newTags,
                       };
                       setDoc(doc(db, 'papers', paperSnapshot.id), newPaper);
-                    }}
-                  >
-                    #{tag}
-                  </li>
-                );
-              })}
-            </ul>
-            <Editor key={paperSnapshot.id} blocks={paperSnapshot.blocks} onChange={onBlocksChange} />
-          </>
-        ) : null}
-      </div>
+                      setTag('');
+                    }
+                  }}
+                >
+                  <input type="text" value={tag} onChange={(event) => setTag(event.currentTarget.value.trim())} />
+                  <Button>CREATE TAG</Button>
+                </FormControl>
+                <Flex>
+                  {paperSnapshot.tags.map((tag) => {
+                    return (
+                      <Button
+                        key={tag}
+                        onClick={() => {
+                          const newTags = paperSnapshot.tags.filter((t) => t !== tag);
+                          const newPaper = {
+                            ...paperSnapshot,
+                            tags: newTags,
+                          };
+                          setDoc(doc(db, 'papers', paperSnapshot.id), newPaper);
+                        }}
+                      >
+                        #{tag}
+                      </Button>
+                    );
+                  })}
+                </Flex>
+              </Box>
+              <Box>
+                <Editor key={paperSnapshot.id} blocks={paperSnapshot.blocks} onChange={onBlocksChange} />
+              </Box>
+            </>
+          ) : null}
+        </Box>
+      </Flex>
     </>
   );
 }
