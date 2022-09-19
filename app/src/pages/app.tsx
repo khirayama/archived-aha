@@ -23,6 +23,7 @@ import {
 
 import { extractTitle, schema, Editor } from '../components/Editor';
 import { useUser, useArrangement, usePapers, useOwnership, useAccess } from '../hooks';
+import { Button } from '../design-system';
 
 const db = getFirestore();
 
@@ -100,16 +101,16 @@ export default function AppPage() {
         <p>{user?.uid}</p>
         <p>{user?.profile?.username}</p>
         <div>
-          <button
+          <Button
             onClick={() => {
               auth.signOut();
             }}
           >
             SIGN OUT
-          </button>
+          </Button>
         </div>
         <div>
-          <button
+          <Button
             onClick={() => {
               deleteUser(user)
                 .then(() => {
@@ -119,10 +120,10 @@ export default function AppPage() {
             }}
           >
             DELETE ACCOUNT
-          </button>
+          </Button>
         </div>
         <div>
-          <button
+          <Button
             onClick={() => {
               addDoc(collection(db, 'papers'), {
                 uid: user.uid,
@@ -148,7 +149,7 @@ export default function AppPage() {
             }}
           >
             CREATE NEW PAPER
-          </button>
+          </Button>
         </div>
         <ul>
           {arrangement
@@ -186,7 +187,7 @@ export default function AppPage() {
               }}
             >
               <input type="text" value={tag} onChange={(event) => setTag(event.currentTarget.value.trim())} />
-              <button>CREATE TAG</button>
+              <Button>CREATE TAG</Button>
             </form>
             <ul>
               {paperSnapshot.tags.map((tag) => {
