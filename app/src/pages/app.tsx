@@ -42,7 +42,6 @@ export default function AppPage() {
   const { data: ownership, isError: isOwnershipError } = useOwnership(arrangement?.front[0]);
   const { data: access, isError: isAccessError } = useAccess(arrangement?.front[0]);
 
-  const [errorMessage, setErrorMessage] = React.useState('');
   const [currentPaperId, setCurrentPaperId] = React.useState(null);
   const [tag, setTag] = React.useState('');
   const [paperSnapshot, setPaperSnapshot] = React.useState(null);
@@ -65,10 +64,6 @@ export default function AppPage() {
       setPaperSnapshot(p);
     }
   }, [papers, paperSnapshot]);
-
-  function handleFirebaseError(err) {
-    setErrorMessage(err.message);
-  }
 
   const onBlocksChange = React.useCallback(
     (newBlocks) => {
