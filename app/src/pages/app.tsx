@@ -1,4 +1,4 @@
-import * as React from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import {
@@ -42,30 +42,30 @@ export default function AppPage() {
   const { data: ownership, isError: isOwnershipError } = useOwnership(arrangement?.front[0]);
   const { data: access, isError: isAccessError } = useAccess(arrangement?.front[0]);
 
-  const [currentPaperId, setCurrentPaperId] = React.useState(null);
-  const [tag, setTag] = React.useState('');
-  const [paperSnapshot, setPaperSnapshot] = React.useState(null);
+  const [currentPaperId, setCurrentPaperId] = useState(null);
+  const [tag, setTag] = useState('');
+  const [paperSnapshot, setPaperSnapshot] = useState(null);
 
   if (isUserError) {
     /* TODO: display sign in form modal would be better */
     router.push('/');
   }
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (arrangement?.front.length && paperSnapshot == null) {
       const p = papers.filter((p) => p.id === arrangement.front[0])[0];
       setPaperSnapshot(p);
     }
   }, [arrangement, papers, paperSnapshot]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (paperSnapshot) {
       const p = papers.filter((p) => p.id === paperSnapshot.id)[0];
       setPaperSnapshot(p);
     }
   }, [papers, paperSnapshot]);
 
-  const onBlocksChange = React.useCallback(
+  const onBlocksChange = useCallback(
     (newBlocks) => {
       const newPaper = {
         ...paperSnapshot,
