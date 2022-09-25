@@ -34,7 +34,6 @@ const debouncedSetBlocks = debounce((paperId, paper) => {
 
 export default function AppPage() {
   const router = useRouter();
-  const auth = getAuth();
 
   const { data: user, isError: isUserError } = useUser();
   const { data: arrangement, isError: isArrangementError } = useArrangement();
@@ -45,6 +44,8 @@ export default function AppPage() {
   const [currentPaperId, setCurrentPaperId] = useState(null);
   const [tag, setTag] = useState('');
   const [paperSnapshot, setPaperSnapshot] = useState(null);
+
+  const auth = getAuth();
 
   if (isUserError) {
     /* TODO: display sign in form modal would be better */
