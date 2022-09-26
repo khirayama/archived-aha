@@ -47,11 +47,6 @@ export default function AppPage() {
 
   const auth = getAuth();
 
-  if (isUserError) {
-    /* TODO: display sign in form modal would be better */
-    router.push('/');
-  }
-
   useEffect(() => {
     if (arrangement?.front.length && paperSnapshot == null) {
       const p = papers.filter((p) => p.id === arrangement.front[0])[0];
@@ -76,6 +71,11 @@ export default function AppPage() {
     },
     [papers, paperSnapshot],
   );
+
+  if (isUserError) {
+    /* TODO: display sign in form modal would be better */
+    router.push('/');
+  }
 
   return (
     <>
