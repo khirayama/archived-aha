@@ -1,13 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import {
-  getAuth,
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  onAuthStateChanged,
-  deleteUser,
-} from 'firebase/auth';
+import { deleteUser } from 'firebase/auth';
 import {
   getFirestore,
   collection,
@@ -20,6 +14,7 @@ import {
   documentId,
   setDoc,
 } from 'firebase/firestore';
+import { signOut } from '../usecases';
 
 import { extractTitle, schema, Editor } from '../components/Editor';
 import { useUser, useArrangement, usePapers, useOwnership, useAccess } from '../hooks';
@@ -44,8 +39,6 @@ export default function AppPage() {
   const [currentPaperId, setCurrentPaperId] = useState(null);
   const [tag, setTag] = useState('');
   const [paperSnapshot, setPaperSnapshot] = useState(null);
-
-  const auth = getAuth();
 
   useEffect(() => {
     if (arrangement?.front.length && paperSnapshot == null) {
@@ -132,13 +125,7 @@ export default function AppPage() {
           </List>
           <Box>
             <Box>
-              <Button
-                onClick={() => {
-                  auth.signOut();
-                }}
-              >
-                SIGN OUT
-              </Button>
+              <Button onClick={signOut}>SIGN OUT</Button>
             </Box>
             <Box>
               <Button
