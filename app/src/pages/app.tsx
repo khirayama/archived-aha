@@ -16,6 +16,7 @@ import {
 } from 'firebase/firestore';
 import { signOut } from '../usecases';
 
+import { t } from '../i18n';
 import { extractTitle, schema, Editor } from '../components/Editor';
 import { useUser, useArrangement, usePapers, useOwnership, useAccess } from '../hooks';
 import { debounce } from '../utils';
@@ -103,7 +104,7 @@ export default function AppPage() {
                 });
               }}
             >
-              CREATE NEW PAPER
+              {t('Button.CreatePaper')}
             </Button>
           </Box>
           <List>

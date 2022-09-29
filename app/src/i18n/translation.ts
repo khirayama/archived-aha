@@ -3,6 +3,7 @@ export const enTranslation = {
     SignIn: 'SIGN IN',
     SignUp: 'SIGN UP',
     SignOut: 'SIGN OUT',
+    CreatePaper: 'CREATE PAPER',
   },
   Page: {
     index: {
@@ -21,6 +22,7 @@ export const jaTranslation = {
     SignIn: 'サインイン',
     SignUp: '登録する',
     SignOut: 'サインアウト',
+    CreatePaper: 'ペーパーを新規作成',
   },
   Page: {
     index: {
