@@ -3,7 +3,9 @@ export const enTranslation = {
     SignIn: 'SIGN IN',
     SignUp: 'SIGN UP',
     SignOut: 'SIGN OUT',
+    DeleteAccount: 'DELETE ACCOUNT',
     CreatePaper: 'CREATE PAPER',
+    AddTag: 'ADD TAG',
   },
   Page: {
     index: {
@@ -22,7 +24,9 @@ export const jaTranslation = {
     SignIn: 'サインイン',
     SignUp: '登録する',
     SignOut: 'サインアウト',
+    DeleteAccount: 'アカウントを削除',
     CreatePaper: 'ペーパーを新規作成',
+    AddTag: 'タグを追加',
   },
   Page: {
     index: {
