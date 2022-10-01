@@ -146,13 +146,25 @@ export function usePapers(paperIds: PaperId[]): Async<Paper[]> {
   const [err, setError] = useState(null);
   const { data: user } = useUser();
 
+  const paperIdChunks: PaperId[][] = [];
+  for (let i = 0; i < paperIds.length; i += 10) {
+    const paperIdChunk = paperIds.concat().splice(i, 10, 0);
+    paperIdChunks.push(paperIdChunk);
+  }
+
   function fetchPapers(u) {
-    getDocs(query(collection(db, 'papers'), where(documentId(), 'in', paperIds)))
+    Promise.all(
+      paperIdChunks.map((paperIdChunk) => {
+        return getDocs(query(collection(db, 'papers'), where(documentId(), 'in', paperIdChunk)));
+      }),
+    )
       .then((res) => {
         const ps = [];
-        res.forEach((d) => {
-          ps.push({ id: d.id, ...d.data() });
-        });
+        for (let i = 0; i < res.length; i += 1) {
+          res[i].forEach((d) => {
+            ps.push({ id: d.id, ...d.data() });
+          });
+        }
         setPapers(ps);
       })
       .catch((e) => {
@@ -163,12 +175,17 @@ export function usePapers(paperIds: PaperId[]): Async<Paper[]> {
   useEffect(() => {
     if (user && paperIds?.length) {
       fetchPapers(user);
-      const unsubscribe = onSnapshot(query(collection(db, 'papers'), where(documentId(), 'in', paperIds)), () => {
-        fetchPapers(user);
+
+      const unsubscribes = paperIdChunks.map((paperIdChunk) => {
+        return onSnapshot(query(collection(db, 'papers'), where(documentId(), 'in', paperIdChunk)), () => {
+          fetchPapers(user);
+        });
       });
 
       return () => {
-        unsubscribe();
+        unsubscribes.forEach((unsubscribe) => {
+          unsubscribe();
+        });
       };
     }
   }, [user, paperIds]);
