@@ -33,7 +33,7 @@ export default function AppPage() {
 
   const { data: user, isError: isUserError } = useUser();
   const { data: arrangement, isError: isArrangementError } = useArrangement();
-  const { data: papers, isError: isPapersError } = usePapers(arrangement?.front);
+  const { data: papers, isError: isPapersError } = usePapers(arrangement?.front || []);
   const { data: ownership, isError: isOwnershipError } = useOwnership(arrangement?.front[0]);
   const { data: access, isError: isAccessError } = useAccess(arrangement?.front[0]);
 
@@ -66,6 +66,57 @@ export default function AppPage() {
     [papers, paperSnapshot],
   );
 
+  const onCreatePaperClick = () => {
+    addDoc(collection(db, 'papers'), {
+      uid: user.uid,
+      tags: [],
+      blocks: [schema.createBlock('heading', { text: '', attrs: { level: 1 } })],
+    }).then((paperRef) => {
+      const front = arrangement.front.concat();
+      front.push(paperRef.id);
+      Promise.all([
+        setDoc(doc(db, 'arrangements', user.uid), {
+          ...arrangement,
+          front,
+        }),
+        setDoc(doc(db, 'ownerships', paperRef.id), { [user.uid]: 'admin' }),
+        setDoc(doc(db, 'accesses', paperRef.id), {
+          target: 'private',
+          role: 'none',
+        }),
+      ]);
+    });
+  };
+
+  const onPaperListItemClick = () => {
+    setPaperSnapshot(p || null);
+  };
+
+  const onSignOutButtonClick = () => {
+    signOut();
+  };
+
+  const onDeleteAccountButton = () => {
+    deleteUser(user).then(() => {
+      console.log('deleted');
+    });
+  };
+
+  const onTagFormSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const t = tag.trim();
+    const newTags = paperSnapshot.tags.concat();
+    if (t && newTags.indexOf(t) === -1) {
+      newTags.push(t);
+      const newPaper = {
+        ...paperSnapshot,
+        tags: newTags,
+      };
+      setDoc(doc(db, 'papers', paperSnapshot.id), newPaper);
+      setTag('');
+    }
+  };
+
   if (isUserError) {
     /* TODO: display sign in form modal would be better */
     router.push('/');
@@ -81,43 +132,14 @@ export default function AppPage() {
           <Text>{user?.profile?.username}</Text>
           <Text>{user?.email}</Text>
           <Box>
-            <Button
-              onClick={() => {
-                addDoc(collection(db, 'papers'), {
-                  uid: user.uid,
-                  tags: [],
-                  blocks: [schema.createBlock('heading', { text: '', attrs: { level: 1 } })],
-                }).then((paperRef) => {
-                  const front = arrangement.front.concat();
-                  front.push(paperRef.id);
-                  Promise.all([
-                    setDoc(doc(db, 'arrangements', user.uid), {
-                      ...arrangement,
-                      front,
-                    }),
-                    setDoc(doc(db, 'ownerships', paperRef.id), { [user.uid]: 'admin' }),
-                    setDoc(doc(db, 'accesses', paperRef.id), {
-                      target: 'private',
-                      role: 'none',
-                    }),
-                  ]);
-                });
-              }}
-            >
-              {t('Button.CreatePaper')}
-            </Button>
+            <Button onClick={onCreatePaperClick}>{t('Button.CreatePaper')}</Button>
           </Box>
           <List>
             {arrangement
               ? arrangement.front.map((paperId) => {
                   const p = papers.filter((p) => p.id === paperId)[0];
                   return (
-                    <ListItem
-                      key={paperId}
-                      onClick={() => {
-                        setPaperSnapshot(p || null);
-                      }}
-                    >
+                    <ListItem key={paperId} onClick={onPaperListItemClick}>
                       <Box>{p ? extractTitle(p.blocks) || paperId : null}</Box>
                     </ListItem>
                   );
@@ -126,18 +148,10 @@ export default function AppPage() {
           </List>
           <Box>
             <Box>
-              <Button onClick={signOut}>SIGN OUT</Button>
+              <Button onClick={onSignOutButtonClick}>{t('Button.SignOut')}</Button>
             </Box>
             <Box>
-              <Button
-                onClick={() => {
-                  deleteUser(user).then(() => {
-                    console.log('deleted');
-                  });
-                }}
-              >
-                DELETE ACCOUNT
-              </Button>
+              <Button onClick={onDeleteAccountButton}>{t('Button.DeleteAccount')}</Button>
             </Box>
           </Box>
         </Box>
@@ -145,39 +159,22 @@ export default function AppPage() {
           {paperSnapshot ? (
             <>
               <Box p={4}>
-                <FormControl
-                  onSubmit={(event) => {
-                    event.preventDefault();
-                    const t = tag.trim();
-                    const newTags = paperSnapshot.tags.concat();
-                    if (t && newTags.indexOf(t) === -1) {
-                      newTags.push(t);
+                <FormControl onSubmit={onTagFormSubmit}>
+                  <input type="text" value={tag} onChange={(event) => setTag(event.currentTarget.value.trim())} />
+                  <Button>{t('Button.AddTag')}</Button>
+                </FormControl>
+                <Flex>
+                  {paperSnapshot.tags.map((tag) => {
+                    const onTagClick = () => {
+                      const newTags = paperSnapshot.tags.filter((t) => t !== tag);
                       const newPaper = {
                         ...paperSnapshot,
                         tags: newTags,
                       };
                       setDoc(doc(db, 'papers', paperSnapshot.id), newPaper);
-                      setTag('');
-                    }
-                  }}
-                >
-                  <input type="text" value={tag} onChange={(event) => setTag(event.currentTarget.value.trim())} />
-                  <Button>CREATE TAG</Button>
-                </FormControl>
-                <Flex>
-                  {paperSnapshot.tags.map((tag) => {
+                    };
                     return (
-                      <Button
-                        key={tag}
-                        onClick={() => {
-                          const newTags = paperSnapshot.tags.filter((t) => t !== tag);
-                          const newPaper = {
-                            ...paperSnapshot,
-                            tags: newTags,
-                          };
-                          setDoc(doc(db, 'papers', paperSnapshot.id), newPaper);
-                        }}
-                      >
+                      <Button key={tag} onClick={onTagClick}>
                         #{tag}
                       </Button>
                     );
