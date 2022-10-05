@@ -88,10 +88,6 @@ export default function AppPage() {
     });
   };
 
-  const onPaperListItemClick = () => {
-    setPaperSnapshot(p || null);
-  };
-
   const onSignOutButtonClick = () => {
     signOut();
   };
@@ -138,6 +134,10 @@ export default function AppPage() {
             {arrangement
               ? arrangement.front.map((paperId) => {
                   const p = papers.filter((p) => p.id === paperId)[0];
+                  const onPaperListItemClick = () => {
+                    setPaperSnapshot(p || null);
+                  };
+
                   return (
                     <ListItem key={paperId} onClick={onPaperListItemClick}>
                       <Box>{p ? extractTitle(p.blocks) || paperId : null}</Box>
