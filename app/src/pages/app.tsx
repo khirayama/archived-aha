@@ -2,15 +2,11 @@ import { useState, useEffect, useCallback } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 
-import { getFirestore, collection, doc, addDoc, setDoc } from 'firebase/firestore';
-
 import { t } from '../i18n';
 import { extractTitle, schema, Editor } from '../components/Editor';
 import { useUser, useArrangement, usePapers, useOwnership, useAccess } from '../hooks';
-import { signOut, deleteAcount, createPaper, debouncedSavePaper } from '../usecases';
+import { signOut, deleteAcount, createPaper, updatePaper, debouncedUpdatePaper } from '../usecases';
 import { Box, Flex, FormControl, Button, Text, List, ListItem } from '../design-system';
-
-const db = getFirestore();
 
 export default function AppPage() {
   const router = useRouter();
@@ -45,7 +41,7 @@ export default function AppPage() {
         ...paperSnapshot,
         blocks: newBlocks,
       };
-      debouncedSavePaper(newPaper);
+      debouncedUpdatePaper(newPaper);
     },
     [papers, paperSnapshot],
   );
@@ -72,7 +68,7 @@ export default function AppPage() {
         ...paperSnapshot,
         tags: newTags,
       };
-      setDoc(doc(db, 'papers', paperSnapshot.id), newPaper);
+      updatePaper(newPaper);
       setTag('');
     }
   };
@@ -135,7 +131,7 @@ export default function AppPage() {
                         ...paperSnapshot,
                         tags: newTags,
                       };
-                      setDoc(doc(db, 'papers', paperSnapshot.id), newPaper);
+                      updatePaper(newPaper);
                     };
                     return (
                       <Button key={tag} onClick={onTagClick}>
