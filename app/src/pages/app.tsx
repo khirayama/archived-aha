@@ -7,15 +7,10 @@ import { getFirestore, collection, doc, addDoc, setDoc } from 'firebase/firestor
 import { t } from '../i18n';
 import { extractTitle, schema, Editor } from '../components/Editor';
 import { useUser, useArrangement, usePapers, useOwnership, useAccess } from '../hooks';
-import { signOut, deleteAcount, createPaper } from '../usecases';
-import { debounce } from '../utils';
+import { signOut, deleteAcount, createPaper, debouncedSavePaper } from '../usecases';
 import { Box, Flex, FormControl, Button, Text, List, ListItem } from '../design-system';
 
 const db = getFirestore();
-
-const debouncedSetBlocks = debounce((paperId, paper) => {
-  setDoc(doc(db, 'papers', paperId), paper);
-}, 600);
 
 export default function AppPage() {
   const router = useRouter();
@@ -50,7 +45,7 @@ export default function AppPage() {
         ...paperSnapshot,
         blocks: newBlocks,
       };
-      debouncedSetBlocks(newPaper.id, newPaper);
+      debouncedSavePaper(newPaper);
     },
     [papers, paperSnapshot],
   );
