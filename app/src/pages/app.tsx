@@ -2,13 +2,12 @@ import { useState, useEffect, useCallback } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 
-import { deleteUser } from 'firebase/auth';
 import { getFirestore, collection, doc, addDoc, setDoc } from 'firebase/firestore';
 
 import { t } from '../i18n';
 import { extractTitle, schema, Editor } from '../components/Editor';
 import { useUser, useArrangement, usePapers, useOwnership, useAccess } from '../hooks';
-import { signOut } from '../usecases';
+import { signOut, deleteAcount, createPaper } from '../usecases';
 import { debounce } from '../utils';
 import { Box, Flex, FormControl, Button, Text, List, ListItem } from '../design-system';
 
@@ -57,25 +56,7 @@ export default function AppPage() {
   );
 
   const onCreatePaperClick = () => {
-    addDoc(collection(db, 'papers'), {
-      uid: user.uid,
-      tags: [],
-      blocks: [schema.createBlock('heading', { text: '', attrs: { level: 1 } })],
-    }).then((paperRef) => {
-      const front = arrangement.front.concat();
-      front.push(paperRef.id);
-      Promise.all([
-        setDoc(doc(db, 'arrangements', user.uid), {
-          ...arrangement,
-          front,
-        }),
-        setDoc(doc(db, 'ownerships', paperRef.id), { [user.uid]: 'admin' }),
-        setDoc(doc(db, 'accesses', paperRef.id), {
-          target: 'private',
-          role: 'none',
-        }),
-      ]);
-    });
+    createPaper();
   };
 
   const onSignOutButtonClick = () => {
@@ -83,9 +64,7 @@ export default function AppPage() {
   };
 
   const onDeleteAccountButton = () => {
-    deleteUser(user).then(() => {
-      console.log('deleted');
-    });
+    deleteAcount();
   };
 
   const onTagFormSubmit = (event: React.FormEvent<HTMLFormElement>) => {
