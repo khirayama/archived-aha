@@ -1,4 +1,10 @@
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth';
+import {
+  getAuth,
+  deleteUser,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  onAuthStateChanged,
+} from 'firebase/auth';
 import { getFirestore, doc, collection, setDoc, addDoc } from 'firebase/firestore';
 
 const db = getFirestore();
@@ -46,6 +52,16 @@ export function signOut() {
     const auth = getAuth();
     if (auth) {
       auth.signOut().then(resolve);
+    }
+  });
+}
+
+export function deleteAccount() {
+  return new Promise((resolve) => {
+    /* TODO Delete profiles, arrangements, ownerships, papers, and accesses */
+    const auth = getAuth();
+    if (auth) {
+      deleteUser(auth.currentUser).then(resolve);
     }
   });
 }
