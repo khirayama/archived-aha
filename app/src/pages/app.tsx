@@ -1,24 +1,14 @@
 import { useState, useEffect, useCallback } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
+
 import { deleteUser } from 'firebase/auth';
-import {
-  getFirestore,
-  collection,
-  doc,
-  query,
-  where,
-  addDoc,
-  getDocs,
-  getDoc,
-  documentId,
-  setDoc,
-} from 'firebase/firestore';
-import { signOut } from '../usecases';
+import { getFirestore, collection, doc, addDoc, setDoc } from 'firebase/firestore';
 
 import { t } from '../i18n';
 import { extractTitle, schema, Editor } from '../components/Editor';
 import { useUser, useArrangement, usePapers, useOwnership, useAccess } from '../hooks';
+import { signOut } from '../usecases';
 import { debounce } from '../utils';
 import { Box, Flex, FormControl, Button, Text, List, ListItem } from '../design-system';
 
