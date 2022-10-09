@@ -1,6 +1,8 @@
-import { schema } from '../components/Editor';
 import { getAuth } from 'firebase/auth';
 import { getFirestore, collection, doc, addDoc, setDoc, getDoc } from 'firebase/firestore';
+
+import { schema } from '../components/Editor';
+import { debounce } from '../utils';
 
 const db = getFirestore();
 
@@ -42,3 +44,7 @@ export function createPaper() {
     }
   });
 }
+
+export const debouncedSavePaper = debounce((paper) => {
+  setDoc(doc(db, 'papers', paper.id), paper);
+}, 600);
