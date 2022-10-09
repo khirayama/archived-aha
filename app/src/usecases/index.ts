@@ -1,2 +1,2 @@
 export { signUp, signIn, signOut } from './auth';
-export { createPaper, debouncedSavePaper } from './action';
+export { createPaper, updatePaper, debouncedUpdatePaper } from './action';

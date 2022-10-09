@@ -45,6 +45,10 @@ export function createPaper() {
   });
 }
 
-export const debouncedSavePaper = debounce((paper) => {
+export function updatePaper(paper) {
   setDoc(doc(db, 'papers', paper.id), paper);
+}
+
+export const debouncedUpdatePaper = debounce((paper) => {
+  updatePaper(paper);
 }, 600);
