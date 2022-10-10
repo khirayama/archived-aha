@@ -52,3 +52,13 @@ export function updatePaper(paper) {
 export const debouncedUpdatePaper = debounce((paper) => {
   updatePaper(paper);
 }, 600);
+
+export function updateArrangement(arrangement) {
+  const auth = getAuth();
+
+  if (auth.currentUser) {
+    const uid = auth.currentUser.uid;
+    /* TODO Check and delete papers */
+    setDoc(doc(db, 'arrangements', uid), arrangement);
+  }
+}
