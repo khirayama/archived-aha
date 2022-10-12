@@ -3,9 +3,9 @@ import Head from 'next/head';
 import { useRouter } from 'next/router';
 
 import { t } from '../i18n';
-import { extractTitle, schema, Editor } from '../components/Editor';
+import { extractTitle, Editor } from '../components/Editor';
 import { useUser, useArrangement, usePapers, useOwnership, useAccess } from '../hooks';
-import { signOut, deleteAcount, createPaper, updatePaper, debouncedUpdatePaper } from '../usecases';
+import { signOut, deleteAcount, createPaper, updatePaper, debouncedUpdatePaper, updateArrangement } from '../usecases';
 import { Box, Flex, FormControl, Button, Text, List, ListItem } from '../design-system';
 
 export default function AppPage() {
@@ -94,13 +94,31 @@ export default function AppPage() {
             {arrangement
               ? arrangement.front.map((paperId) => {
                   const p = papers.filter((p) => p.id === paperId)[0];
+
                   const onPaperListItemClick = () => {
                     setPaperSnapshot(p || null);
                   };
 
+                  const onDeletePaperButtonClick = () => {
+                    const newArrangement = {
+                      ...arrangement,
+                      front: arrangement.front.filter((pid) => {
+                        return pid !== paperId;
+                      }),
+                    };
+                    updateArrangement(newArrangement);
+                  };
+
                   return (
-                    <ListItem key={paperId} onClick={onPaperListItemClick}>
-                      <Box>{p ? extractTitle(p.blocks) || paperId : null}</Box>
+                    <ListItem key={paperId}>
+                      <Box>
+                        <Text onClick={onPaperListItemClick}>
+                          {p ? extractTitle(p.blocks) || paperId : null}{' '}
+                          {paperSnapshot && paperId === paperSnapshot.id ? '*' : null}
+                        </Text>
+                        {p ? p.tags.join(', ') : null}
+                        <Button onClick={onDeletePaperButtonClick}>X</Button>
+                      </Box>
                     </ListItem>
                   );
                 })
