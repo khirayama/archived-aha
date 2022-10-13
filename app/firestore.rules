@@ -36,11 +36,8 @@ service cloud.firestore {
       );
     }
 
-    function isLimitedOrPublicPaper(paperId) {
-      return (
-        get(/databases/$(database)/documents/accesses/$(paperId)).data.target == 'limited' ||
-        get(/databases/$(database)/documents/accesses/$(paperId)).data.target == 'public'
-      );
+    function isReadablePaper(paperId) {
+      return get(/databases/$(database)/documents/accesses/$(paperId))
     }
 
     match /profiles/{userId} {
@@ -56,22 +53,22 @@ service cloud.firestore {
     }
 
     match /papers/{paperId} {
-      allow get, list: if isReaderOrHigherPermittedUser(paperId, request.auth.uid) || isLimitedOrPublicPaper(paperId);
+      allow get, list: if isReaderOrHigherPermittedUser(paperId, request.auth.uid) || isReadablePaper(paperId);
       allow create: if request.auth != null;
       allow update: if (
         isEditorOrHigherPermittedUser(paperId, request.auth.uid) ||
-        (isLimitedOrPublicPaper(paperId) && get(/databases/$(database)/documents/accesses/$(paperId)).data.role == 'editor')
+        (isReadablePaper(paperId) && get(/databases/$(database)/documents/accesses/$(paperId)).data.editable)
       );
       allow delete: if isPaperAdminOrPermittedAuther(paperId, request.auth.uid);
     }
 
     match /ownerships/{paperId} {
-      allow get, list: if isReaderOrHigherPermittedUser(paperId, request.auth.uid) || isLimitedOrPublicPaper(paperId);
+      allow get, list: if isReaderOrHigherPermittedUser(paperId, request.auth.uid) || isReadablePaper(paperId);
       allow create, update, delete: if isPaperAdminOrPermittedAuther(paperId, request.auth.uid);
     }
 
     match /accesses/{paperId} {
-      allow get, list: if isReaderOrHigherPermittedUser(paperId, request.auth.uid) || isLimitedOrPublicPaper(paperId);
+      allow get, list: if isReaderOrHigherPermittedUser(paperId, request.auth.uid) || isReadablePaper(paperId);
       allow create, update, delete: if isPaperAdminOrPermittedAuther(paperId, request.auth.uid);
     }
   }
