@@ -17,7 +17,6 @@ export default function AppPage() {
   const { data: ownership, isError: isOwnershipError } = useOwnership(arrangement?.front[0]);
   const { data: access, isError: isAccessError } = useAccess(arrangement?.front[0]);
 
-  const [currentPaperId, setCurrentPaperId] = useState(null);
   const [tag, setTag] = useState('');
   const [paperSnapshot, setPaperSnapshot] = useState(null);
 
