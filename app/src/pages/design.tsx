@@ -80,6 +80,15 @@ export default function DesignPage() {
 
       <Box p={4}>
         <Heading as="h2">Display</Heading>
+        <Box p={4}>
+          <Preview>
+            <List>
+              <ListItem>Item 1</ListItem>
+              <ListItem>Item 2</ListItem>
+              <ListItem>Item 3</ListItem>
+            </List>
+          </Preview>
+        </Box>
       </Box>
     </Box>
   );
