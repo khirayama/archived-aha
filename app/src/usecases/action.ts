@@ -34,10 +34,6 @@ export function createPaper() {
               front,
             }),
             setDoc(doc(db, 'ownerships', paperRef.id), { [uid]: 'admin' }),
-            setDoc(doc(db, 'accesses', paperRef.id), {
-              target: 'private',
-              role: 'none',
-            }),
           ]);
         })
         .then(resolve);
