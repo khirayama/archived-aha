@@ -236,6 +236,7 @@ export function useOwnership(paperId: PaperId): Async<Ownership> {
 export function useAccess(paperId: PaperId): Async<Access> {
   const [access, setAccess] = useState(null);
   const [err, setError] = useState(null);
+
   const { data: user } = useUser();
 
   function fetchAccess() {
