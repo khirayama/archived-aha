@@ -58,3 +58,18 @@ export function updateArrangement(arrangement) {
     setDoc(doc(db, 'arrangements', uid), arrangement);
   }
 }
+
+export function createAccess(paperId) {
+  return new Promise((resolve) => {
+    const auth = getAuth();
+
+    if (auth.currentUser) {
+      const uid = auth.currentUser.uid;
+      setDoc(doc(db, 'accesses', paperId), {
+        editable: false,
+        ahaindexable: false,
+        webindexable: false,
+      });
+    }
+  });
+}
