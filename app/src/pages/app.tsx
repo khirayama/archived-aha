@@ -5,7 +5,15 @@ import { useRouter } from 'next/router';
 import { t } from '../i18n';
 import { extractTitle, Editor } from '../components/Editor';
 import { useUser, useArrangement, usePapers, useOwnership, useAccess } from '../hooks';
-import { signOut, deleteAcount, createPaper, updatePaper, debouncedUpdatePaper, updateArrangement } from '../usecases';
+import {
+  signOut,
+  deleteAcount,
+  createPaper,
+  updatePaper,
+  debouncedUpdatePaper,
+  updateArrangement,
+  createAccess,
+} from '../usecases';
 import { Box, Flex, FormControl, Button, Text, List, ListItem } from '../design-system';
 
 export default function AppPage() {
@@ -15,15 +23,16 @@ export default function AppPage() {
   const { data: arrangement, isError: isArrangementError } = useArrangement();
   const { data: papers, isError: isPapersError } = usePapers(arrangement?.front || []);
   const { data: ownership, isError: isOwnershipError } = useOwnership(arrangement?.front[0]);
-  const { data: access, isError: isAccessError } = useAccess(arrangement?.front[0]);
 
+  const [paperSnapshot, setPaperSnapshot] = useState(arrangement?.front[0] || null);
   const [tag, setTag] = useState('');
-  const [paperSnapshot, setPaperSnapshot] = useState(null);
+
+  const { data: access, isError: isAccessError } = useAccess(paperSnapshot?.id || null);
 
   useEffect(() => {
     if (arrangement?.front.length && paperSnapshot == null) {
       const p = papers.filter((p) => p.id === arrangement.front[0])[0];
-      setPaperSnapshot(p);
+      setPaperSnapshot(p || null);
     }
   }, [arrangement, papers, paperSnapshot]);
 
@@ -135,6 +144,16 @@ export default function AppPage() {
         <Box flex={1}>
           {paperSnapshot ? (
             <>
+              <Box>
+                <Button
+                  onClick={() => {
+                    createAccess(paperSnapshot.id);
+                  }}
+                >
+                  PUBLISH
+                </Button>
+                <Box>{JSON.stringify(access)}</Box>
+              </Box>
               <Box p={4}>
                 <FormControl onSubmit={onTagFormSubmit}>
                   <input type="text" value={tag} onChange={(event) => setTag(event.currentTarget.value.trim())} />
