@@ -1,5 +1,5 @@
 import { getAuth } from 'firebase/auth';
-import { getFirestore, collection, doc, addDoc, setDoc, getDoc } from 'firebase/firestore';
+import { getFirestore, collection, doc, addDoc, setDoc, getDoc, deleteDoc } from 'firebase/firestore';
 
 import { schema } from '../components/Editor';
 import { debounce } from '../utils';
@@ -70,6 +70,17 @@ export function createAccess(paperId) {
         ahaindexable: false,
         webindexable: false,
       });
+    }
+  });
+}
+
+export function deleteAccess(paperId) {
+  return new Promise((resolve) => {
+    const auth = getAuth();
+
+    if (auth.currentUser) {
+      const uid = auth.currentUser.uid;
+      deleteDoc(doc(db, 'accesses', paperId));
     }
   });
 }
