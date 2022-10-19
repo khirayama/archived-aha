@@ -13,6 +13,7 @@ import {
   debouncedUpdatePaper,
   updateArrangement,
   createAccess,
+  deleteAccess,
 } from '../usecases';
 import { Box, Flex, FormControl, Button, Text, List, ListItem } from '../design-system';
 
@@ -151,6 +152,13 @@ export default function AppPage() {
                   }}
                 >
                   PUBLISH
+                </Button>
+                <Button
+                  onClick={() => {
+                    deleteAccess(paperSnapshot.id);
+                  }}
+                >
+                  UNPUBLISH
                 </Button>
                 <Box>{JSON.stringify(access)}</Box>
               </Box>
