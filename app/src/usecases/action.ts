@@ -64,7 +64,6 @@ export function createAccess(paperId) {
     const auth = getAuth();
 
     if (auth.currentUser) {
-      const uid = auth.currentUser.uid;
       setDoc(doc(db, 'accesses', paperId), {
         editable: false,
         ahaindexable: false,
@@ -79,7 +78,6 @@ export function deleteAccess(paperId) {
     const auth = getAuth();
 
     if (auth.currentUser) {
-      const uid = auth.currentUser.uid;
       deleteDoc(doc(db, 'accesses', paperId));
     }
   });
