@@ -6,6 +6,8 @@ export const enTranslation = {
     DeleteAccount: 'DELETE ACCOUNT',
     CreatePaper: 'CREATE PAPER',
     AddTag: 'ADD TAG',
+    Publish: 'PUBLISH',
+    Unpublish: 'UNPUBLISH',
   },
   Page: {
     index: {
@@ -27,6 +29,8 @@ export const jaTranslation = {
     DeleteAccount: 'アカウントを削除',
     CreatePaper: 'ペーパーを新規作成',
     AddTag: 'タグを追加',
+    Publish: '共有する',
+    Unpublish: '共有を止める',
   },
   Page: {
     index: {

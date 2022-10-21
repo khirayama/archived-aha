@@ -151,14 +151,14 @@ export default function AppPage() {
                     createAccess(paperSnapshot.id);
                   }}
                 >
-                  PUBLISH
+                  {t('Button.Publish')}
                 </Button>
                 <Button
                   onClick={() => {
                     deleteAccess(paperSnapshot.id);
                   }}
                 >
-                  UNPUBLISH
+                  {t('Button.Unpublish')}
                 </Button>
                 <Box>{JSON.stringify(access)}</Box>
               </Box>
