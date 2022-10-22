@@ -4,6 +4,7 @@ export { Flex } from './Flex';
 /* Form */
 export { FormControl } from './FormControl';
 export { Input } from './Input';
+export { Checkbox } from './Checkbox';
 export { Button } from './Button';
 /* Navigation */
 export { Link } from './Link';
