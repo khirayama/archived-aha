@@ -171,7 +171,7 @@ export default function AppPage() {
               </Box>
               <Box p={4}>
                 <FormControl onSubmit={onTagFormSubmit}>
-                  <input type="text" value={tag} onChange={(event) => setTag(event.currentTarget.value.trim())} />
+                  <Input value={tag} onChange={(event) => setTag(event.currentTarget.value.trim())} />
                   <Button>{t('Button.AddTag')}</Button>
                 </FormControl>
                 <Flex>

@@ -50,8 +50,8 @@ export default function IndexPage() {
       ) : null}
       <Box>
         <FormControl onSubmit={onSignInFormSubmit}>
-          <Input type="text" name="username" value={username} onChange={onUsernameChange} />
-          <Input type="text" name="email" value={email} onChange={onEmailChange} />
+          <Input name="username" value={username} onChange={onUsernameChange} />
+          <Input name="email" value={email} onChange={onEmailChange} />
           <Input type="password" name="password" value={password} onChange={onPasswordChange} />
           <Button>{t('Button.SignIn')}</Button>
         </FormControl>
