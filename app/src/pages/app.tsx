@@ -15,7 +15,7 @@ import {
   createAccess,
   deleteAccess,
 } from '../usecases';
-import { Box, Flex, FormControl, Button, Text, List, ListItem } from '../design-system';
+import { Box, Flex, FormControl, Button, Text, List, ListItem, Input, Checkbox } from '../design-system';
 
 export default function AppPage() {
   const router = useRouter();
@@ -153,14 +153,21 @@ export default function AppPage() {
                 >
                   {t('Button.Publish')}
                 </Button>
-                <Button
-                  onClick={() => {
-                    deleteAccess(paperSnapshot.id);
-                  }}
-                >
-                  {t('Button.Unpublish')}
-                </Button>
-                <Box>{JSON.stringify(access)}</Box>
+                {access ? (
+                  <Box>
+                    {JSON.stringify(access)}
+                    <Checkbox>Editable</Checkbox>
+                    <Checkbox>aha Indexable</Checkbox>
+                    <Checkbox>Web Indexable</Checkbox>
+                    <Button
+                      onClick={() => {
+                        deleteAccess(paperSnapshot.id);
+                      }}
+                    >
+                      {t('Button.Unpublish')}
+                    </Button>
+                  </Box>
+                ) : null}
               </Box>
               <Box p={4}>
                 <FormControl onSubmit={onTagFormSubmit}>
