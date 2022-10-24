@@ -7,7 +7,7 @@ export function Checkbox(props) {
 
   return (
     <label>
-      <input type="checkbox" {...p} />
+      <input type="checkbox" {...p} value={p.isChecked} />
       {children}
     </label>
   );
