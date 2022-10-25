@@ -156,9 +156,9 @@ export default function AppPage() {
                 {access ? (
                   <Box>
                     {JSON.stringify(access)}
-                    <Checkbox>Editable</Checkbox>
-                    <Checkbox>aha Indexable</Checkbox>
-                    <Checkbox>Web Indexable</Checkbox>
+                    <Checkbox isChecked={access.editable}>Editable</Checkbox>
+                    <Checkbox isChecked={access.ahaindexable}>aha Indexable</Checkbox>
+                    <Checkbox isChecked={access.webindexable}>Web Indexable</Checkbox>
                     <Button
                       onClick={() => {
                         deleteAccess(paperSnapshot.id);
