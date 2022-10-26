@@ -4,6 +4,7 @@ export function Checkbox(props) {
   const p = dsp(props);
   const children = p.children;
   delete p.children;
+  delete p.value;
 
   return (
     <label>
