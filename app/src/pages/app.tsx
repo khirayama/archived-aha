@@ -155,7 +155,6 @@ export default function AppPage() {
                 </Button>
                 {access ? (
                   <Box>
-                    {JSON.stringify(access)}
                     <Checkbox isChecked={access.editable}>Editable</Checkbox>
                     <Checkbox isChecked={access.ahaindexable}>aha Indexable</Checkbox>
                     <Checkbox isChecked={access.webindexable}>Web Indexable</Checkbox>
