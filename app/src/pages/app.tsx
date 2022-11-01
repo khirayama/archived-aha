@@ -67,6 +67,11 @@ export default function AppPage() {
     deleteAcount();
   };
 
+  const onAccessChange = (event) => {
+    const val = event.currentTarget.isChecked;
+    console.log(val);
+  };
+
   const onTagFormSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const t = tag.trim();
@@ -155,9 +160,15 @@ export default function AppPage() {
                 </Button>
                 {access ? (
                   <Box>
-                    <Checkbox isChecked={access.editable}>Editable</Checkbox>
-                    <Checkbox isChecked={access.ahaindexable}>aha Indexable</Checkbox>
-                    <Checkbox isChecked={access.webindexable}>Web Indexable</Checkbox>
+                    <Checkbox isChecked={access.editable} onChange={onAccessChange}>
+                      Editable
+                    </Checkbox>
+                    <Checkbox isChecked={access.ahaindexable} onChange={onAccessChange}>
+                      aha Indexable
+                    </Checkbox>
+                    <Checkbox isChecked={access.webindexable} onChange={onAccessChange}>
+                      Web Indexable
+                    </Checkbox>
                     <Button
                       onClick={() => {
                         deleteAccess(paperSnapshot.id);
