@@ -35,10 +35,11 @@ page.getText('title').insert(0, 'THIS IS TITLE');
 const section0 = new Y.Map();
 section0.set('heading', new Y.Text('THIS IS HEADING OF SECTION 0'));
 page.getArray('sections').insert(0, [section0]);
-const item0 = new Y.Map();
 const items0 = new Y.Array();
+const item0 = new Y.Map();
 items0.insert(0, [item0]);
 section0.set('items', items0);
+item0.set('text', new Y.Text('THIS IS TASK'));
 console.log(page.toJSON());
 
 export default function YjsPage() {
