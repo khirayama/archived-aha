@@ -49,96 +49,202 @@ const tmp = new Y.Doc();
 const val = tmp.getText('text').insert(0, 'THIS IS SAMPLE TEXT');
 console.log(tmp.getText('text').toString());
 
-export function keepSelectionPosition(sel: Selection) {
-  if (sel.anchorNode === null) {
-    return;
-  }
+type YjsTextareProps = {
+  text: Y.Text;
+};
 
-  let blockElement = sel.anchorNode.parentElement;
-  while (!blockElement.dataset.blockid) {
-    blockElement = blockElement.parentElement;
-  }
-  const isTextBlock = blockElement.querySelector('[contenteditable]')?.childNodes[0] instanceof Text;
-  const anchorOffset = sel.anchorOffset;
-  const focusOffset = sel.focusOffset;
-
-  afterRendering(() => {
-    const range = document.createRange();
-    const el = blockElement.querySelector('[contenteditable]') as HTMLDivElement | HTMLSpanElement;
-    if (isTextBlock) {
-      if (el.childNodes.length === 0) {
-        el.appendChild(document.createTextNode(''));
-      }
-      const node = el.childNodes[0];
-      range.setStart(node, anchorOffset);
-      range.setEnd(node, focusOffset);
-      sel.removeAllRanges();
-      sel.addRange(range);
-    } else {
-    }
-  });
-}
-
-export class YjsText extends React.Component {
+export class YjsTextarea extends React.Component<YjsTextareProps> {
   private ref: React.RefObject<HTMLParagraphElement>;
+
+  private sel: {
+    prev: {
+      anchorOffset: number;
+      focusOffset: number;
+    } | null;
+    current: {
+      anchorOffset: number;
+      focusOffset: number;
+    } | null;
+  } = {
+    prev: null,
+    current: null,
+  };
+
+  private text: {
+    prev: string | null;
+    current: string | null;
+  } = {
+    prev: null,
+    current: null,
+  };
+
+  private isComposing: boolean = false;
 
   constructor(props) {
     super(props);
     this.ref = React.createRef<HTMLParagraphElement>();
   }
 
-  public shouldComponentUpdate(nextProps) {
-    this.manualDiffPatch(nextProps);
-    return false;
-  }
+  public componentDidMount() {
+    this.text.current = this.ref.current.textContent;
+    this.sel.current = {
+      anchorOffset: document.getSelection().anchorOffset,
+      focusOffset: document.getSelection().focusOffset,
+    };
+    this.forceUpdate(); // debug
 
-  private manualDiffPatch(nextProps) {
-    const el = this.ref.current;
-    if (el.innerText !== nextProps.text) {
-      keepSelectionPosition(document.getSelection());
-      el.innerText = nextProps.text;
-    }
+    this.props.text.doc.on('update', () => {
+      console.log(this.props.text.toString());
+    });
+
+    const update = () => {
+      if (
+        this.sel.prev.anchorOffset === this.sel.current.anchorOffset &&
+        this.sel.prev.focusOffset === this.sel.current.focusOffset
+      ) {
+        return;
+      }
+
+      this.text.prev = this.text.current;
+      this.text.current = this.ref.current.textContent;
+      const prevText = new Text(this.text.prev);
+      const currentText = new Text(this.text.current);
+
+      const isPrevCollapsed = this.sel.prev.anchorOffset === this.sel.prev.focusOffset;
+      if (isPrevCollapsed) {
+        if (prevText.length <= currentText.length) {
+          const index = this.sel.prev.anchorOffset;
+          const end = this.sel.current.focusOffset;
+          let txt = new Text(this.ref.current.textContent);
+          txt.splitText(end);
+          txt = txt.splitText(index);
+          console.log('insert', index, txt.textContent);
+        } else {
+          const index = this.sel.prev.anchorOffset;
+          const end = this.sel.current.focusOffset;
+          const length = index - end;
+          console.log('delete', index, length);
+        }
+      } else {
+        // const index = this.sel.prev.anchorOffset;
+        // const end = this.sel.current.anchorOffset;
+        // const length = index - end;
+        // console.log('--- start delete and insert ---');
+        // console.log('delete', index, length);
+        // let txt = new Text(this.ref.current.textContent);
+        // txt.splitText(end);
+        // txt = txt.splitText(index);
+        // console.log('insert', index, txt.textContent);
+        // console.log('--- end delete and insert ---');
+      }
+    };
+
+    const updateSelection = () => {
+      if (this.sel.prev) {
+        this.sel.prev.anchorOffset = this.sel.current.anchorOffset;
+        this.sel.prev.focusOffset = this.sel.current.focusOffset;
+      } else {
+        this.sel.prev = {
+          anchorOffset: this.sel.current.anchorOffset,
+          focusOffset: this.sel.current.focusOffset,
+        };
+      }
+      this.sel.current = {
+        anchorOffset: document.getSelection().anchorOffset,
+        focusOffset: document.getSelection().focusOffset,
+      };
+    };
+
+    let isSelectionUpdated = false;
+    const observer = new MutationObserver((mutations) => {
+      isSelectionUpdated = true;
+      if (!this.isComposing) {
+        this.ref.current.normalize();
+        updateSelection();
+        update();
+      }
+      this.forceUpdate(); // debug
+    });
+    observer.observe(this.ref.current, {
+      characterData: true,
+      attributes: true,
+      childList: true,
+      subtree: true,
+    });
+
+    document.addEventListener('selectionchange', () => {
+      if (!isSelectionUpdated && !this.isComposing) {
+        this.ref.current.normalize();
+        updateSelection();
+      }
+      isSelectionUpdated = false;
+      this.forceUpdate(); // debug
+    });
+    this.ref.current.addEventListener('compositionstart', (event) => {
+      this.ref.current.normalize();
+      updateSelection();
+      this.isComposing = true;
+    });
+    this.ref.current.addEventListener('compositionend', (event) => {
+      this.isComposing = false;
+      this.ref.current.normalize();
+      updateSelection();
+      update();
+    });
   }
 
   public render() {
-    let pos = 0;
-    let diff = '';
     return (
-      <p
-        ref={this.ref}
-        contentEditable
-        dangerouslySetInnerHTML={{ __html: this.props.text }}
-        onKeyDown={(event) => {
-          const sel = document.getSelection();
-          pos = sel.anchorOffset;
-        }}
-        onInput={(event) => {
-          diff = event.nativeEvent.data;
-        }}
-        onKeyUp={(event) => {
-          if (!event.nativeEvent.isComposing) {
-            this.props.onChange(pos, diff);
-          }
-          pos = 0;
-          diff = '';
-        }}
-      />
+      <>
+        <p
+          ref={this.ref}
+          contentEditable
+          dangerouslySetInnerHTML={{ __html: this.props.text }}
+          onKeyDown={(event) => {
+            const sel = document.getSelection();
+            // this.delta.pos = sel.anchorOffset;
+          }}
+          onInput={(event) => {
+            // this.delta.diff = event.nativeEvent.data || '';
+          }}
+          onKeyUp={(event) => {
+            if (!event.nativeEvent.isComposing) {
+              // this.props.text.insert(this.delta.pos, this.delta.diff);
+            }
+            // this.delta.pos = 0;
+            // this.delta.diff = '';
+          }}
+          onCut={(event) => {
+            console.log('cut', event);
+          }}
+          onPaste={(event) => {
+            event.preventDefault();
+
+            const text = event.clipboardData.getData('text/plain');
+            const sel = window.getSelection();
+            sel.deleteFromDocument();
+            const txt = new Text(text);
+            const range = sel.getRangeAt(0);
+            range.insertNode(txt);
+            range.setStart(txt, txt.length);
+            range.setEnd(txt, txt.length);
+          }}
+        />
+        <div style={{ 'white-space': 'pre' }}>{JSON.stringify(this.isComposing, null, 2)}</div>
+        <div style={{ 'white-space': 'pre' }}>{JSON.stringify(this.text, null, 2)}</div>
+        <div style={{ 'white-space': 'pre' }}>{JSON.stringify(this.sel, null, 2)}</div>
+      </>
     );
   }
 }
 
 export default function YjsPage() {
-  const [value, setValue] = useState(tmp.getText('text').toString());
-
   useEffect(() => {
     tmp.on('update', () => {
-      console.log('update', tmp.getText('text').toString());
-      setValue(tmp.getText('text').toString());
+      // console.log('update');
     });
   }, []);
 
-  let pos = 0;
-  let diff = '';
   return (
     <>
       <h1>yjs</h1>
@@ -149,15 +255,7 @@ export default function YjsPage() {
         onInput={(e) => console.log(e.type)}
         onChange={(e) => console.log(e.type)}
       />
-      <YjsText
-        text={tmp.getText('text').toString()}
-        onChange={(pos, diff) => {
-          tmp.getText('text').insert(pos, diff);
-          setTimeout(() => {
-            tmp.getText('text').insert(0, '111');
-          }, 5000);
-        }}
-      />
+      <YjsTextarea text={tmp.getText('text')} />
     </>
   );
 }
