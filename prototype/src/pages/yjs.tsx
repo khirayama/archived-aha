@@ -115,7 +115,7 @@ export class YjsTextarea extends React.Component<YjsTextareProps> {
         if (prevText.length <= currentText.length) {
           const index = this.sel.prev.anchorOffset;
           const end = this.sel.current.focusOffset;
-          let txt = new Text(this.ref.current.textContent);
+          let txt = new Text(this.text.current);
           txt.splitText(end);
           txt = txt.splitText(index);
           console.log('insert', index, txt.textContent);
