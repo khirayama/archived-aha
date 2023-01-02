@@ -234,9 +234,9 @@ export class YjsTextarea extends React.Component<YjsTextareProps> {
             range.setEnd(txt, txt.length);
           }}
         />
-        <div style={{ 'white-space': 'pre' }}>{JSON.stringify(this.isComposing, null, 2)}</div>
-        <div style={{ 'white-space': 'pre' }}>{JSON.stringify(this.text, null, 2)}</div>
-        <div style={{ 'white-space': 'pre' }}>{JSON.stringify(this.sel, null, 2)}</div>
+        <div style={{ whiteSpace: 'pre' }}>{JSON.stringify(this.isComposing, null, 2)}</div>
+        <div style={{ whiteSpace: 'pre' }}>{JSON.stringify(this.text, null, 2)}</div>
+        <div style={{ whiteSpace: 'pre' }}>{JSON.stringify(this.sel, null, 2)}</div>
       </>
     );
   }
