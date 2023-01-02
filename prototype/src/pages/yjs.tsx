@@ -86,7 +86,7 @@ export class YjsTextarea extends React.Component<YjsTextareProps> {
   }
 
   public componentDidMount() {
-    this.text.current = this.ref.current.textContent;
+    this.text.current = this.ref.current.innerText;
     this.sel.current = {
       anchorOffset: document.getSelection().anchorOffset,
       focusOffset: document.getSelection().focusOffset,
@@ -110,7 +110,7 @@ export class YjsTextarea extends React.Component<YjsTextareProps> {
       }
 
       this.text.prev = this.text.current;
-      this.text.current = this.ref.current.textContent;
+      this.text.current = this.ref.current.innerText;
       const prevText = new Text(this.text.prev);
       const currentText = new Text(this.text.current);
 
