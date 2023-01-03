@@ -94,10 +94,12 @@ export class YjsTextarea extends React.Component<YjsTextareProps> {
     this.forceUpdate(); // debug
 
     this.props.text.doc.on('update', () => {
-      console.log('text:', this.props.text.toString());
-      console.log('dom:', this.ref.current.textContent);
-      if (this.props.text.toString() !== this.ref.current.textContent) {
-        console.warn('Does not match');
+      const expect = this.props.text.toString();
+      const actual = this.ref.current.innerText;
+      console.log('text:', expect);
+      console.log('dom :', actual);
+      if (expect !== actual) {
+        console.warn('Does not match, "' + expect + '" and "' + actual + '"');
       }
     });
 
