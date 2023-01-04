@@ -180,20 +180,29 @@ export class YjsTextarea extends React.Component<YjsTextareProps> {
 
     document.addEventListener('selectionchange', () => {
       if (!isSelectionUpdated && !this.isComposing) {
-        this.ref.current.normalize();
+        if (this.ref.current.childNodes?.length > 1) {
+          this.ref.current.normalize();
+        }
         updateSelection();
       }
       isSelectionUpdated = false;
       this.forceUpdate(); // debug
     });
+    this.ref.current.addEventListener('focus', (event) => {
+      updateSelection();
+    });
     this.ref.current.addEventListener('compositionstart', (event) => {
-      this.ref.current.normalize();
+      if (this.ref.current.childNodes?.length > 1) {
+        this.ref.current.normalize();
+      }
       updateSelection();
       this.isComposing = true;
     });
     this.ref.current.addEventListener('compositionend', (event) => {
       this.isComposing = false;
-      this.ref.current.normalize();
+      if (this.ref.current.childNodes?.length > 1) {
+        this.ref.current.normalize();
+      }
       updateSelection();
       update();
     });
