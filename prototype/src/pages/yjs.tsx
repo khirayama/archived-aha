@@ -86,7 +86,7 @@ export class YjsTextarea extends React.Component<YjsTextareProps> {
   }
 
   public componentDidMount() {
-    this.text.current = this.ref.current.innerText;
+    this.text.current = this.ref.current.textContent.toString();
     this.sel.current = {
       anchorOffset: document.getSelection().anchorOffset,
       focusOffset: document.getSelection().focusOffset,
@@ -95,7 +95,7 @@ export class YjsTextarea extends React.Component<YjsTextareProps> {
 
     this.props.text.doc.on('update', () => {
       const expect = this.props.text.toString();
-      const actual = this.ref.current.innerText;
+      const actual = this.ref.current.textContent.toString();
       console.log('text:', expect);
       console.log('dom :', actual);
       if (expect !== actual) {
@@ -112,7 +112,7 @@ export class YjsTextarea extends React.Component<YjsTextareProps> {
       }
 
       this.text.prev = this.text.current;
-      this.text.current = this.ref.current.innerText;
+      this.text.current = this.ref.current.textContent.toString();
       const prevText = new Text(this.text.prev);
       const currentText = new Text(this.text.current);
 
