@@ -105,8 +105,9 @@ export class YjsTextarea extends React.Component<YjsTextareProps> {
 
     const update = () => {
       if (
-        this.sel.prev.anchorOffset === this.sel.current.anchorOffset &&
-        this.sel.prev.focusOffset === this.sel.current.focusOffset
+        (this.sel.prev.anchorOffset === this.sel.current.anchorOffset &&
+          this.sel.prev.focusOffset === this.sel.current.focusOffset) ||
+        this.sel.prev === null
       ) {
         return;
       }
