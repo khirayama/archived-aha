@@ -215,6 +215,7 @@ export class YjsTextarea extends React.Component<YjsTextareProps> {
         <p
           role="textbox"
           ref={this.ref}
+          style={{ whiteSpace: 'pre-wrap' /* prevent &nbsp; with consecutive spaces */ }}
           contentEditable
           dangerouslySetInnerHTML={{ __html: this.props.text }}
           onKeyDown={(event) => {
