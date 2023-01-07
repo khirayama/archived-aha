@@ -213,6 +213,7 @@ export class YjsTextarea extends React.Component<YjsTextareProps> {
     return (
       <>
         <p
+          role="textbox"
           ref={this.ref}
           contentEditable
           dangerouslySetInnerHTML={{ __html: this.props.text }}
