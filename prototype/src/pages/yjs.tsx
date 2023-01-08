@@ -219,8 +219,21 @@ export class YjsTextarea extends React.Component<YjsTextareProps> {
           contentEditable
           dangerouslySetInnerHTML={{ __html: this.props.text }}
           onKeyDown={(event) => {
-            const sel = document.getSelection();
-            // this.delta.pos = sel.anchorOffset;
+            /* Prevent to be Bold(meta+b), Italic(meta+i), Underline(meta+u), New Line(enter), and Tab(tab) */
+            const meta = event.metaKey;
+            const keyCode = event.keyCode;
+            const keyCodes = {
+              Tab: 9,
+              Enter: 13,
+              b: 66,
+              i: 73,
+              u: 85,
+            };
+            if (!meta && (keyCode === keyCodes.Tab || keyCode === keyCodes.Enter)) {
+              event.preventDefault();
+            } else if (meta && (keyCode === keyCodes.b || keyCode === keyCodes.i || keyCode === keyCodes.u)) {
+              event.preventDefault();
+            }
           }}
           onInput={(event) => {
             // this.delta.diff = event.nativeEvent.data || '';
