@@ -125,24 +125,21 @@ export class YjsTextarea extends React.Component<YjsTextareProps> {
           let txt = new Text(this.text.current);
           txt.splitText(end);
           txt = txt.splitText(index);
-          console.log('insert', index, txt.textContent);
+          this.props.text.insert(index, txt.nodeValue);
         } else {
-          const index = this.sel.prev.anchorOffset;
-          const end = this.sel.current.focusOffset;
-          const length = index - end;
-          console.log('delete', index, length);
+          const index = this.sel.prev.anchorOffset - 1;
+          this.props.text.delete(index, 1);
         }
       } else {
-        // const index = this.sel.prev.anchorOffset;
-        // const end = this.sel.current.anchorOffset;
-        // const length = index - end;
-        // console.log('--- start delete and insert ---');
-        // console.log('delete', index, length);
-        // let txt = new Text(this.ref.current.textContent);
-        // txt.splitText(end);
-        // txt = txt.splitText(index);
-        // console.log('insert', index, txt.textContent);
-        // console.log('--- end delete and insert ---');
+        const index = Math.min(this.sel.prev.anchorOffset, this.sel.prev.focusOffset);
+        const length = Math.abs(this.sel.prev.focusOffset - this.sel.prev.anchorOffset);
+        let txt = new Text(this.text.current);
+        txt.splitText(Math.max(this.sel.current.anchorOffset, this.sel.current.focusOffset));
+        txt = txt.splitText(Math.min(this.sel.prev.anchorOffset, this.sel.prev.focusOffset));
+        this.props.text.doc.transact(() => {
+          this.props.text.delete(index, length);
+          this.props.text.insert(index, txt.nodeValue);
+        });
       }
     };
 
