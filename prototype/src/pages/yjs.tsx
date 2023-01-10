@@ -144,19 +144,34 @@ export class YjsTextarea extends React.Component<YjsTextareProps> {
     };
 
     const updateSelection = () => {
-      if (this.sel.prev) {
-        this.sel.prev.anchorOffset = this.sel.current.anchorOffset;
-        this.sel.prev.focusOffset = this.sel.current.focusOffset;
-      } else {
-        this.sel.prev = {
-          anchorOffset: this.sel.current.anchorOffset,
-          focusOffset: this.sel.current.focusOffset,
+      if (this.ref.current === document.activeElement) {
+        if (this.sel.prev) {
+          this.sel.prev = {
+            anchorOffset: 0,
+            focusOffset: 0,
+          };
+        }
+        this.sel.prev = this.sel.current
+          ? {
+              anchorOffset: this.sel.current.anchorOffset,
+              focusOffset: this.sel.current.focusOffset,
+            }
+          : null;
+
+        if (this.sel.current) {
+          this.sel.current = {
+            anchorOffset: 0,
+            focusOffset: 0,
+          };
+        }
+        this.sel.current = {
+          anchorOffset: document.getSelection().anchorOffset,
+          focusOffset: document.getSelection().focusOffset,
         };
+      } else {
+        this.sel.prev = null;
+        this.sel.current = null;
       }
-      this.sel.current = {
-        anchorOffset: document.getSelection().anchorOffset,
-        focusOffset: document.getSelection().focusOffset,
-      };
     };
 
     let isSelectionUpdated = false;
