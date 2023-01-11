@@ -178,7 +178,9 @@ export class YjsTextarea extends React.Component<YjsTextareProps> {
     const observer = new MutationObserver((mutations) => {
       isSelectionUpdated = true;
       if (!this.isComposing) {
-        this.ref.current.normalize();
+        if (this.ref.current?.childNodes?.length > 1) {
+          this.ref.current.normalize();
+        }
         updateSelection();
         update();
       }
