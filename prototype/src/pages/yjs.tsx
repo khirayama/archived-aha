@@ -301,6 +301,15 @@ export default function YjsPage() {
     tmp.on('update', () => {
       // console.log('update');
     });
+    setTimeout(() => {
+      const text = tmp.getText('text');
+      const anchor = Y.createRelativePositionFromTypeIndex(text, 0);
+      const focus = Y.createRelativePositionFromTypeIndex(text, 2);
+      text.insert(1, 'a');
+      const anchorPos = Y.createAbsolutePositionFromRelativePosition(anchor, tmp);
+      const focusPos = Y.createAbsolutePositionFromRelativePosition(focus, tmp);
+      console.log('call', text.toString(), anchorPos, focusPos);
+    }, 2000);
   }, []);
 
   return (
