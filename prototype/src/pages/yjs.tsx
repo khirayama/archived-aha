@@ -100,14 +100,27 @@ export class YjsTextarea extends React.Component<YjsTextareProps> {
       console.log('dom :', actual);
       if (expect !== actual) {
         console.warn('Does not match, "' + expect + '" and "' + actual + '"');
+        const prev = { ...this.sel.current };
+        this.ref.current.blur();
+        this.ref.current.textContent = this.props.text.toString();
+        if (prev) {
+          console.log('call', prev);
+          const sel = document.getSelection();
+          const range = document.createRange();
+          const node = this.ref.current.firstChild;
+          range.setStart(node, prev.anchorOffset);
+          range.setEnd(node, prev.focusOffset);
+          sel.removeAllRanges();
+          sel.addRange(range);
+        }
       }
     });
 
     const update = () => {
       if (
+        this.sel.prev === null ||
         (this.sel.prev.anchorOffset === this.sel.current.anchorOffset &&
-          this.sel.prev.focusOffset === this.sel.current.focusOffset) ||
-        this.sel.prev === null
+          this.sel.prev.focusOffset === this.sel.current.focusOffset)
       ) {
         return;
       }
