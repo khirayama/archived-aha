@@ -322,6 +322,7 @@ export default function YjsPage() {
         onInput={(e) => console.log(e.type)}
         onChange={(e) => console.log(e.type)}
       />
+      <textarea />
       <YjsTextarea text={tmp.getText('text')} />
     </>
   );
