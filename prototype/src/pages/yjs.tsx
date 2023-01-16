@@ -49,11 +49,11 @@ const tmp = new Y.Doc();
 const val = tmp.getText('text').insert(0, 'THIS IS SAMPLE TEXT');
 console.log(tmp.getText('text').toString());
 
-type YjsTextareProps = {
+type YjsTextareaProps = {
   text: Y.Text;
 };
 
-export class YjsTextarea extends React.Component<YjsTextareProps> {
+export class YjsTextarea extends React.Component<YjsTextareaProps> {
   private ref: React.RefObject<HTMLParagraphElement>;
 
   private sel: {
