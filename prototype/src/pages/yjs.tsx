@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect } from 'react';
 import * as Y from 'yjs';
 
 const doc1 = new Y.Doc();
@@ -41,7 +41,7 @@ const item0 = new Y.Map();
 items0.insert(0, [item0]);
 section0.set('items', items0);
 item0.set('text', new Y.Text('THIS IS TASK'));
-const txt = item0.get('text');
+const txt = item0.get('text') as Y.Text;
 txt.insert(7, ' FIRST');
 // console.log(page.toJSON());
 
@@ -244,7 +244,7 @@ export class YjsTextarea extends React.Component<YjsTextareaProps> {
           ref={this.ref}
           style={{ whiteSpace: 'pre-wrap' /* prevent &nbsp; with consecutive spaces */ }}
           contentEditable
-          dangerouslySetInnerHTML={{ __html: this.props.text }}
+          dangerouslySetInnerHTML={{ __html: this.props.text.toString() }}
           onKeyDown={(event) => {
             /* Prevent to be Bold(meta+b), Italic(meta+i), Underline(meta+u), New Line(enter), and Tab(tab) */
             const meta = event.metaKey;
@@ -262,7 +262,7 @@ export class YjsTextarea extends React.Component<YjsTextareaProps> {
               event.preventDefault();
             }
           }}
-          onInput={(event) => {
+          onInput={() => {
             // this.delta.diff = event.nativeEvent.data || '';
           }}
           onKeyUp={(event) => {
