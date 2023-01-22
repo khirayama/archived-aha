@@ -16,21 +16,6 @@ doc1.getArray('myarray').insert(0, ['Hello doc2, you got this?']);
 doc2.getArray('myarray').get(0);
 // console.log(doc1.toJSON(), doc2.toJSON());
 
-type Page = {
-  title: string;
-  sections: Section[];
-};
-
-type Section = {
-  heading: string;
-  items: Item[];
-};
-
-type Item = {
-  text: string;
-  indent: number;
-};
-
 const page = new Y.Doc();
 page.getText('title').insert(0, 'THIS IS TITLE');
 const section0 = new Y.Map();
@@ -46,7 +31,7 @@ txt.insert(7, ' FIRST');
 // console.log(page.toJSON());
 
 const tmp = new Y.Doc();
-const val = tmp.getText('text').insert(0, 'THIS IS SAMPLE TEXT');
+// const val = tmp.getText('text').insert(0, 'THIS IS SAMPLE TEXT');
 console.log(tmp.getText('text').toString());
 
 type YjsTextareaProps = {
@@ -80,7 +65,7 @@ export class YjsTextarea extends React.Component<YjsTextareaProps> {
 
   private isComposing: boolean = false;
 
-  constructor(props) {
+  constructor(props: YjsTextareaProps) {
     super(props);
     this.ref = React.createRef<HTMLParagraphElement>();
   }
@@ -188,7 +173,7 @@ export class YjsTextarea extends React.Component<YjsTextareaProps> {
     };
 
     let isSelectionUpdated = false;
-    const observer = new MutationObserver((mutations) => {
+    const observer = new MutationObserver((/* mutations */) => {
       isSelectionUpdated = true;
       if (!this.isComposing) {
         if (this.ref.current?.childNodes?.length > 1) {
@@ -216,17 +201,17 @@ export class YjsTextarea extends React.Component<YjsTextareaProps> {
       isSelectionUpdated = false;
       this.forceUpdate(); // debug
     });
-    this.ref.current.addEventListener('focus', (event) => {
+    this.ref.current.addEventListener('focus', () => {
       updateSelection();
     });
-    this.ref.current.addEventListener('compositionstart', (event) => {
+    this.ref.current.addEventListener('compositionstart', () => {
       if (this.ref.current.childNodes?.length > 1) {
         this.ref.current.normalize();
       }
       updateSelection();
       this.isComposing = true;
     });
-    this.ref.current.addEventListener('compositionend', (event) => {
+    this.ref.current.addEventListener('compositionend', () => {
       this.isComposing = false;
       if (this.ref.current.childNodes?.length > 1) {
         this.ref.current.normalize();
@@ -248,17 +233,17 @@ export class YjsTextarea extends React.Component<YjsTextareaProps> {
           onKeyDown={(event) => {
             /* Prevent to be Bold(meta+b), Italic(meta+i), Underline(meta+u), New Line(enter), and Tab(tab) */
             const meta = event.metaKey;
-            const keyCode = event.keyCode;
-            const keyCodes = {
-              Tab: 9,
-              Enter: 13,
-              b: 66,
-              i: 73,
-              u: 85,
+            const c = event.code;
+            const codes = {
+              Tab: 'Tab',
+              Enter: 'Enter',
+              b: 'KeyB',
+              i: 'KeyI',
+              u: 'KeyU',
             };
-            if (!meta && (keyCode === keyCodes.Tab || keyCode === keyCodes.Enter)) {
+            if (!meta && (c === codes.Tab || c === codes.Enter)) {
               event.preventDefault();
-            } else if (meta && (keyCode === keyCodes.b || keyCode === keyCodes.i || keyCode === keyCodes.u)) {
+            } else if (meta && (c === codes.b || c === codes.i || c === codes.u)) {
               event.preventDefault();
             }
           }}
