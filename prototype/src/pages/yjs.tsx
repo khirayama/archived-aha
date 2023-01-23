@@ -1,3 +1,12 @@
+/* TODO
+ * - 外部からの更新をサポート
+ *   - https://github.com/yjs/yjs#Relative-Positions
+ * - placeholder
+ * - 画像とファイル添付をサポート
+ * - ファイルが貼り付けられた時はファイル名をテキストで貼り付け
+ * - contenteditableをtextarea同様の形に分離したほうがいいか？
+ */
+
 import React, { useEffect } from 'react';
 import * as Y from 'yjs';
 
